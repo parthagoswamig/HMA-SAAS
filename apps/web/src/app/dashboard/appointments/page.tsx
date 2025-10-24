@@ -26,13 +26,12 @@ import {
   Alert,
   Progress,
   // Anchor,
-  NumberInput,
   Textarea,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import EmptyState from '../../../components/EmptyState';
 import { notifications } from '@mantine/notifications';
-import { Calendar, DatePickerInput } from '@mantine/dates';
+import { Calendar, DatePickerInput, DateTimePicker } from '@mantine/dates';
 // import { AreaChart, BarChart, DonutChart, LineChart } from '@mantine/charts';
 import {
   IconPlus,
@@ -76,6 +75,9 @@ import {
   // AppointmentStats
 } from '../../../types/appointment';
 import appointmentsService from '../../../services/appointments.service';
+import patientsService from '../../../services/patients.service';
+import staffService from '../../../services/staff.service';
+import hrService from '../../../services/hr.service';
 
 const AppointmentManagement = () => {
   // Utility function for consistent date formatting
@@ -95,12 +97,31 @@ const AppointmentManagement = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentStats, setAppointmentStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Dropdown data
+  const [patients, setPatients] = useState<any[]>([]);
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(false);
+  
+  // Form data for create/edit
+  const [formData, setFormData] = useState({
+    patientId: '',
+    doctorId: '',
+    departmentId: '',
+    appointmentDateTime: '' as string,
+    reason: '',
+    notes: '',
+    status: 'SCHEDULED' as string,
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Handle hydration
   useEffect(() => {
     setIsClient(true);
     fetchAppointments();
     fetchStats();
+    fetchDropdownData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -147,6 +168,48 @@ const AppointmentManagement = () => {
     }
   };
 
+  // Fetch dropdown data
+  const fetchDropdownData = async () => {
+    setLoadingDropdowns(true);
+    try {
+      const [patientsRes, doctorsRes, departmentsRes] = await Promise.all([
+        patientsService.getPatients({ limit: 1000 }).catch(() => ({ data: [] })),
+        staffService.getStaff({ role: 'DOCTOR', limit: 1000 }).catch(() => ({ data: { staff: [] } })),
+        hrService.getDepartments({ limit: 1000 }).catch(() => ({ data: { items: [] } })),
+      ]);
+
+      // Handle different response structures
+      const patientsData = Array.isArray(patientsRes.data) 
+        ? patientsRes.data 
+        : (patientsRes.data?.patients || []);
+      const doctorsData = Array.isArray(doctorsRes.data)
+        ? doctorsRes.data
+        : (doctorsRes.data?.staff || []);
+      const departmentsData = Array.isArray(departmentsRes.data)
+        ? departmentsRes.data
+        : (departmentsRes.data?.items || []);
+
+      setPatients(patientsData);
+      setDoctors(doctorsData);
+      setDepartments(departmentsData);
+      
+      console.log('Dropdown data loaded:', {
+        patients: patientsData.length,
+        doctors: doctorsData.length,
+        departments: departmentsData.length,
+      });
+    } catch (error) {
+      console.error('Error fetching dropdown data:', error);
+      notifications.show({
+        title: 'Warning',
+        message: 'Some dropdown data could not be loaded',
+        color: 'yellow',
+      });
+    } finally {
+      setLoadingDropdowns(false);
+    }
+  };
+
   // Refetch when filters change
   useEffect(() => {
     if (isClient) {
@@ -168,6 +231,162 @@ const AppointmentManagement = () => {
       return matchesType; // Other filtering is handled by API
     });
   }, [appointments, selectedType]);
+
+  // CRUD Handlers
+  const handleCreateAppointment = async () => {
+    try {
+      // Validation
+      if (!formData.patientId || !formData.doctorId || !formData.appointmentDateTime) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please fill in Patient, Doctor, and Date/Time fields',
+          color: 'red',
+        });
+        return;
+      }
+
+      await appointmentsService.createAppointment({
+        patientId: formData.patientId,
+        doctorId: formData.doctorId,
+        departmentId: formData.departmentId || undefined,
+        appointmentDateTime: new Date(formData.appointmentDateTime).toISOString(),
+        reason: formData.reason,
+        notes: formData.notes,
+        status: formData.status,
+      });
+
+      notifications.show({
+        title: '✅ Success',
+        message: 'Appointment created successfully',
+        color: 'green',
+      });
+
+      closeBookAppointment();
+      fetchAppointments();
+      fetchStats();
+      resetForm();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to create appointment',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleUpdateAppointment = async () => {
+    if (!editingId) return;
+
+    try {
+      const updateData: any = {};
+      if (formData.patientId) updateData.patientId = formData.patientId;
+      if (formData.doctorId) updateData.doctorId = formData.doctorId;
+      if (formData.departmentId) updateData.departmentId = formData.departmentId;
+      if (formData.appointmentDateTime) updateData.appointmentDateTime = new Date(formData.appointmentDateTime).toISOString();
+      if (formData.reason) updateData.reason = formData.reason;
+      if (formData.notes) updateData.notes = formData.notes;
+      if (formData.status) updateData.status = formData.status;
+
+      await appointmentsService.updateAppointment(editingId, updateData);
+
+      notifications.show({
+        title: '✅ Success',
+        message: 'Appointment updated successfully',
+        color: 'green',
+      });
+
+      closeBookAppointment();
+      fetchAppointments();
+      fetchStats();
+      resetForm();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to update appointment',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleStatusChange = async (appointmentId: string, newStatus: string) => {
+    try {
+      await appointmentsService.updateAppointmentStatus(appointmentId, newStatus);
+      
+      notifications.show({
+        title: '✅ Status Updated',
+        message: `Appointment marked as ${newStatus}`,
+        color: 'blue',
+      });
+
+      fetchAppointments();
+      fetchStats();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to update status',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId: string) => {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+
+    try {
+      await appointmentsService.deleteAppointment(appointmentId);
+      
+      notifications.show({
+        title: '✅ Cancelled',
+        message: 'Appointment cancelled successfully',
+        color: 'orange',
+      });
+
+      fetchAppointments();
+      fetchStats();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to cancel appointment',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleEditClick = (appointment: any) => {
+    setEditingId(appointment.id);
+    setFormData({
+      patientId: appointment.patient?.id || appointment.patientId || '',
+      doctorId: appointment.doctor?.id || appointment.doctorId || '',
+      departmentId: appointment.department?.id || appointment.departmentId || '',
+      appointmentDateTime: appointment.startTime ? new Date(appointment.startTime).toISOString() : '',
+      reason: appointment.reason || '',
+      notes: appointment.notes || '',
+      status: appointment.status || 'SCHEDULED',
+    });
+    openBookAppointment();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      patientId: '',
+      doctorId: '',
+      departmentId: '',
+      appointmentDateTime: '',
+      reason: '',
+      notes: '',
+      status: 'SCHEDULED',
+    });
+    setEditingId(null);
+  };
+
+  const handleNewAppointment = () => {
+    resetForm();
+    openBookAppointment();
+  };
+
+  const handleDateTimeChange = (value: string) => {
+    setFormData({ ...formData, appointmentDateTime: value });
+  };
 
   // Helper functions
   const getStatusColor = (status: AppointmentStatus) => {
@@ -230,49 +449,7 @@ const AppointmentManagement = () => {
     openAppointmentDetail();
   };
 
-  const handleStatusUpdate = async (appointmentId: string, newStatus: AppointmentStatus) => {
-    try {
-      await appointmentsService.updateAppointmentStatus(appointmentId, newStatus);
-      notifications.show({
-        title: 'Appointment Updated',
-        message: `Appointment status changed to ${newStatus}`,
-        color: 'green',
-      });
-      fetchAppointments(); // Refresh the list
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update appointment status',
-        color: 'red',
-      });
-    }
-  };
 
-  const handleCancelAppointment = async (appointment: Appointment) => {
-    if (
-      !window.confirm(
-        `Cancel appointment for ${appointment.patient.firstName} ${appointment.patient.lastName}?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await appointmentsService.updateAppointmentStatus(appointment.id, 'CANCELLED');
-      notifications.show({
-        title: 'Appointment Cancelled',
-        message: `Appointment for ${appointment.patient.firstName} ${appointment.patient.lastName} has been cancelled`,
-        color: 'green',
-      });
-      fetchAppointments(); // Refresh the list
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to cancel appointment',
-        color: 'red',
-      });
-    }
-  };
 
   // Statistics cards
   const statsCards = appointmentStats
@@ -319,9 +496,9 @@ const AppointmentManagement = () => {
             Schedule, manage, and track patient appointments
           </Text>
         </div>
-        <Button 
-          leftSection={<IconPlus size={16} />} 
-          onClick={openBookAppointment}
+        <Button
+          leftSection={<IconPlus size="1rem" />}
+          onClick={handleNewAppointment}
           className="w-full sm:w-auto"
           size="sm"
         >
@@ -575,7 +752,11 @@ const AppointmentManagement = () => {
                             >
                               <IconEye size={16} />
                             </ActionIcon>
-                            <ActionIcon variant="subtle" color="green">
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="green"
+                              onClick={() => handleEditClick(appointment)}
+                            >
                               <IconEdit size={16} />
                             </ActionIcon>
                             <Menu>
@@ -587,20 +768,26 @@ const AppointmentManagement = () => {
                               <Menu.Dropdown>
                                 <Menu.Item
                                   leftSection={<IconCheck size={14} />}
-                                  onClick={() => handleStatusUpdate(appointment.id, 'ARRIVED')}
+                                  onClick={() => handleStatusChange(appointment.id, 'CONFIRMED')}
                                 >
                                   Confirm
                                 </Menu.Item>
                                 <Menu.Item
                                   leftSection={<IconUserCheck size={14} />}
-                                  onClick={() => handleStatusUpdate(appointment.id, 'ARRIVED')}
+                                  onClick={() => handleStatusChange(appointment.id, 'ARRIVED')}
                                 >
                                   Check In
                                 </Menu.Item>
                                 <Menu.Item
+                                  leftSection={<IconCheck size={14} />}
+                                  onClick={() => handleStatusChange(appointment.id, 'COMPLETED')}
+                                >
+                                  Complete
+                                </Menu.Item>
+                                <Menu.Item
                                   leftSection={<IconX size={14} />}
                                   color="red"
-                                  onClick={() => handleCancelAppointment(appointment)}
+                                  onClick={() => handleCancelAppointment(appointment.id)}
                                 >
                                   Cancel
                                 </Menu.Item>
@@ -1127,11 +1314,14 @@ const AppointmentManagement = () => {
         )}
       </Modal>
 
-      {/* Book Appointment Modal */}
+      {/* Book/Edit Appointment Modal */}
       <Modal
         opened={bookAppointmentOpened}
-        onClose={closeBookAppointment}
-        title="Book New Appointment"
+        onClose={() => {
+          closeBookAppointment();
+          resetForm();
+        }}
+        title={editingId ? 'Edit Appointment' : 'Book New Appointment'}
         size="lg"
       >
         <Stack gap="md">
@@ -1139,90 +1329,108 @@ const AppointmentManagement = () => {
             <Select
               label="Patient"
               placeholder="Select patient"
-              data={[]} // TODO: Fetch from patients API
+              data={patients.map((p: any) => ({
+                value: p.id,
+                label: `${p.firstName || ''} ${p.lastName || ''} ${p.patientId || p.medicalRecordNumber ? `(${p.patientId || p.medicalRecordNumber})` : ''}`.trim(),
+              }))}
+              value={formData.patientId}
+              onChange={(value) => setFormData({ ...formData, patientId: value || '' })}
               searchable
               required
+              disabled={loadingDropdowns}
+              nothingFoundMessage="No patients found"
             />
             <Select
               label="Doctor"
               placeholder="Select doctor"
-              data={[]} // TODO: Fetch from staff API
+              data={doctors.map((d: any) => ({
+                value: d.user?.id || d.userId || d.id,
+                label: `Dr. ${d.user?.firstName || d.firstName || ''} ${d.user?.lastName || d.lastName || ''}`.trim(),
+              }))}
+              value={formData.doctorId}
+              onChange={(value) => setFormData({ ...formData, doctorId: value || '' })}
               searchable
               required
+              disabled={loadingDropdowns}
+              nothingFoundMessage="No doctors found"
             />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
-            <DatePickerInput
-              label="Appointment Date"
-              placeholder="Select date"
-              required
-              value={selectedDate}
-              onChange={setSelectedDate as any}
+            <Select
+              label="Department (Optional)"
+              placeholder="Select department"
+              data={departments.map((dept: any) => ({
+                value: dept.id,
+                label: dept.name,
+              }))}
+              value={formData.departmentId}
+              onChange={(value) => setFormData({ ...formData, departmentId: value || '' })}
+              searchable
               clearable
+              disabled={loadingDropdowns}
+              nothingFoundMessage="No departments found"
             />
             <Select
-              label="Time Slot"
-              placeholder="Select time"
+              label="Status"
+              placeholder="Select status"
               data={[
-                { value: '09:00', label: '09:00 AM' },
-                { value: '09:30', label: '09:30 AM' },
-                { value: '10:00', label: '10:00 AM' },
-                { value: '10:30', label: '10:30 AM' },
+                { value: 'SCHEDULED', label: 'Scheduled' },
+                { value: 'CONFIRMED', label: 'Confirmed' },
+                { value: 'ARRIVED', label: 'Arrived' },
+                { value: 'IN_PROGRESS', label: 'In Progress' },
+                { value: 'COMPLETED', label: 'Completed' },
+                { value: 'CANCELLED', label: 'Cancelled' },
+                { value: 'NO_SHOW', label: 'No Show' },
               ]}
+              value={formData.status}
+              onChange={(value) => setFormData({ ...formData, status: value || 'SCHEDULED' })}
               required
             />
           </SimpleGrid>
 
-          <SimpleGrid cols={2}>
-            <Select
-              label="Appointment Type"
-              placeholder="Select type"
-              data={[
-                { value: 'consultation', label: 'Consultation' },
-                { value: 'follow_up', label: 'Follow-up' },
-                { value: 'emergency', label: 'Emergency' },
-                { value: 'routine_checkup', label: 'Routine Checkup' },
-              ]}
-              required
-            />
-            <Select
-              label="Priority"
-              placeholder="Select priority"
-              data={[
-                { value: 'normal', label: 'Normal' },
-                { value: 'high', label: 'High' },
-                { value: 'urgent', label: 'Urgent' },
-                { value: 'emergency', label: 'Emergency' },
-              ]}
-              required
-            />
-          </SimpleGrid>
+          <DateTimePicker
+            label="Appointment Date & Time"
+            placeholder="Select date and time"
+            required
+            value={formData.appointmentDateTime}
+            onChange={handleDateTimeChange}
+            minDate={new Date()}
+            clearable
+            valueFormat="DD MMM YYYY hh:mm A"
+          />
 
           <Textarea
             label="Reason for Visit"
             placeholder="Describe the reason for the appointment"
-            required
+            value={formData.reason}
+            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+            rows={3}
           />
 
-          <NumberInput label="Consultation Fee" placeholder="Enter fee amount" min={0} prefix="₹" />
+          <Textarea
+            label="Notes (Optional)"
+            placeholder="Additional notes or instructions"
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            rows={2}
+          />
 
           <Group justify="flex-end">
-            <Button variant="light" onClick={closeBookAppointment}>
+            <Button 
+              variant="light" 
+              onClick={() => {
+                closeBookAppointment();
+                resetForm();
+              }}
+            >
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                // notifications.show({
-                //   title: 'Success',
-                //   message: 'Appointment booked successfully',
-                //   color: 'green',
-                // });
-                console.log('Appointment booked successfully');
-                closeBookAppointment();
-              }}
+              onClick={editingId ? handleUpdateAppointment : handleCreateAppointment}
+              loading={loadingDropdowns}
             >
-              Book Appointment
+              {editingId ? 'Update Appointment' : 'Book Appointment'}
             </Button>
           </Group>
         </Stack>

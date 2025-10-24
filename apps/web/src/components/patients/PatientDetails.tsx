@@ -62,6 +62,8 @@ interface PatientDetailsProps {
   appointments?: PatientAppointment[];
   onEdit?: (patient: Patient) => void;
   onScheduleAppointment?: (patientId: string) => void;
+  onExport?: (patient: Patient) => void;
+  onPrint?: (patient: Patient) => void;
 }
 
 function PatientDetails({
@@ -74,6 +76,8 @@ function PatientDetails({
   appointments = [],
   onEdit,
   onScheduleAppointment,
+  onExport,
+  onPrint,
 }: PatientDetailsProps) {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -165,10 +169,20 @@ function PatientDetails({
                 Schedule Appointment
               </Button>
               <Group grow>
-                <Button variant="subtle" size="sm" leftSection={<IconDownload size="0.8rem" />}>
+                <Button 
+                  variant="subtle" 
+                  size="sm" 
+                  leftSection={<IconDownload size="0.8rem" />}
+                  onClick={() => onExport?.(patient)}
+                >
                   Export
                 </Button>
-                <Button variant="subtle" size="sm" leftSection={<IconPrinter size="0.8rem" />}>
+                <Button 
+                  variant="subtle" 
+                  size="sm" 
+                  leftSection={<IconPrinter size="0.8rem" />}
+                  onClick={() => onPrint?.(patient)}
+                >
                   Print
                 </Button>
               </Group>

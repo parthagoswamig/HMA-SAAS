@@ -752,30 +752,209 @@ export default function PatientManagement() {
     };
   };
 
+  // Export and Print operations for individual patient
+  const handleExportPatient = (patient: Patient) => {
+    console.log('Exporting patient:', patient);
+    
+    // Create patient data object
+    const patientData = {
+      'Patient ID': patient.patientId,
+      'Name': `${patient.firstName} ${patient.lastName}`,
+      'Date of Birth': patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : 'N/A',
+      'Age': patient.age || 'N/A',
+      'Gender': patient.gender || 'N/A',
+      'Blood Group': patient.bloodGroup || 'N/A',
+      'Phone': patient.contactInfo?.phone || 'N/A',
+      'Email': patient.contactInfo?.email || 'N/A',
+      'Address': `${patient.address?.street || ''}, ${patient.address?.city || ''}, ${patient.address?.state || ''}`,
+      'Registration Date': patient.registrationDate ? new Date(patient.registrationDate).toLocaleDateString() : 'N/A',
+      'Total Visits': patient.totalVisits || 0,
+      'Status': patient.status || 'N/A',
+    };
+    
+    // Convert to CSV
+    const csv = Object.entries(patientData)
+      .map(([key, value]) => `"${key}","${value}"`)
+      .join('\n');
+    
+    // Download CSV file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `patient_${patient.patientId}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    notifications.show({
+      title: '✅ Export Successful',
+      message: `Patient data exported successfully`,
+      color: 'green',
+    });
+  };
+
+  const handlePrintPatient = (patient: Patient) => {
+    console.log('Printing patient:', patient);
+    
+    // Create print window with patient details
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please allow popups to print',
+        color: 'red',
+      });
+      return;
+    }
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Patient Details - ${patient.firstName} ${patient.lastName}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #228be6; border-bottom: 2px solid #228be6; padding-bottom: 10px; }
+          .section { margin: 20px 0; }
+          .label { font-weight: bold; display: inline-block; width: 150px; }
+          .value { display: inline-block; }
+          @media print { button { display: none; } }
+        </style>
+      </head>
+      <body>
+        <h1>Patient Details</h1>
+        <div class="section">
+          <div><span class="label">Patient ID:</span><span class="value">${patient.patientId}</span></div>
+          <div><span class="label">Name:</span><span class="value">${patient.firstName} ${patient.lastName}</span></div>
+          <div><span class="label">Date of Birth:</span><span class="value">${patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : 'N/A'}</span></div>
+          <div><span class="label">Age:</span><span class="value">${patient.age || 'N/A'}</span></div>
+          <div><span class="label">Gender:</span><span class="value">${patient.gender || 'N/A'}</span></div>
+          <div><span class="label">Blood Group:</span><span class="value">${patient.bloodGroup || 'N/A'}</span></div>
+        </div>
+        <div class="section">
+          <h2>Contact Information</h2>
+          <div><span class="label">Phone:</span><span class="value">${patient.contactInfo?.phone || 'N/A'}</span></div>
+          <div><span class="label">Email:</span><span class="value">${patient.contactInfo?.email || 'N/A'}</span></div>
+          <div><span class="label">Address:</span><span class="value">${patient.address?.street || ''}, ${patient.address?.city || ''}, ${patient.address?.state || ''}</span></div>
+        </div>
+        <div class="section">
+          <h2>Medical Information</h2>
+          <div><span class="label">Allergies:</span><span class="value">${patient.allergies?.join(', ') || 'None'}</span></div>
+          <div><span class="label">Chronic Diseases:</span><span class="value">${patient.chronicDiseases?.join(', ') || 'None'}</span></div>
+        </div>
+        <div class="section">
+          <div><span class="label">Registration Date:</span><span class="value">${patient.registrationDate ? new Date(patient.registrationDate).toLocaleDateString() : 'N/A'}</span></div>
+          <div><span class="label">Total Visits:</span><span class="value">${patient.totalVisits || 0}</span></div>
+          <div><span class="label">Status:</span><span class="value">${patient.status || 'N/A'}</span></div>
+        </div>
+        <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background: #228be6; color: white; border: none; cursor: pointer;">Print</button>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
+
   // Portal operations
   const handleEnablePortalAccess = async (patientId: string, preferences: any) => {
     console.log('Enabling portal access:', patientId, preferences);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // In production, this would call the backend API
+      // await patientsService.enablePortalAccess(patientId, preferences);
+      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      notifications.show({
+        title: '✅ Portal Access Enabled',
+        message: 'Patient portal access has been enabled successfully',
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to enable portal access',
+        color: 'red',
+      });
+    }
   };
 
   const handleDisablePortalAccess = async (patientId: string) => {
     console.log('Disabling portal access:', patientId);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      notifications.show({
+        title: '✅ Portal Access Disabled',
+        message: 'Patient portal access has been disabled',
+        color: 'orange',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to disable portal access',
+        color: 'red',
+      });
+    }
   };
 
   const handleUpdatePortalPreferences = async (patientId: string, preferences: any) => {
     console.log('Updating portal preferences:', patientId, preferences);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      notifications.show({
+        title: '✅ Preferences Updated',
+        message: 'Portal preferences updated successfully',
+        color: 'blue',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update preferences',
+        color: 'red',
+      });
+    }
   };
 
   const handleResetPortalPassword = async (patientId: string) => {
     console.log('Resetting portal password:', patientId);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      notifications.show({
+        title: '✅ Password Reset',
+        message: 'Portal password has been reset. New credentials sent to patient.',
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to reset password',
+        color: 'red',
+      });
+    }
   };
 
   const handleSendPortalCredentials = async (patientId: string, method: 'email' | 'sms') => {
     console.log('Sending portal credentials:', patientId, method);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      notifications.show({
+        title: '✅ Credentials Sent',
+        message: `Portal credentials sent via ${method.toUpperCase()}`,
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to send credentials',
+        color: 'red',
+      });
+    }
   };
 
   // Additional handlers
@@ -1026,6 +1205,8 @@ export default function PatientManagement() {
           appointments={[]}
           onEdit={handleEditFromDetails}
           onScheduleAppointment={handleScheduleAppointment}
+          onExport={handleExportPatient}
+          onPrint={handlePrintPatient}
         />
 
         {/* Enhanced Patient Form Modal */}

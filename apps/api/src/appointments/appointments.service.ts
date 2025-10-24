@@ -144,18 +144,43 @@ export class AppointmentsService {
   ) {
     try {
       // Verify appointment exists
-      await this.findOne(tenantId, id);
+      const existing = await this.findOne(tenantId, id);
 
-      const { appointmentDateTime, ...rest } = updateAppointmentDto;
+      const { appointmentDateTime, doctorId, ...rest } = updateAppointmentDto;
       const updateData: any = { ...rest };
 
-      if (appointmentDateTime) {
-        const startTime = new Date(appointmentDateTime);
-        const endTime = new Date(
-          startTime.getTime() + this.DEFAULT_DURATION_MINUTES * 60 * 1000,
+      // If updating time or doctor, check availability
+      if (appointmentDateTime || doctorId) {
+        const startTime = appointmentDateTime 
+          ? new Date(appointmentDateTime)
+          : existing.data.startTime;
+        const checkDoctorId = doctorId || existing.data.doctorId;
+
+        // Check if new slot is available (excluding current appointment)
+        const isAvailable = await this.isSlotAvailableForUpdate(
+          checkDoctorId,
+          startTime,
+          tenantId,
+          id,
         );
-        updateData.startTime = startTime;
-        updateData.endTime = endTime;
+
+        if (!isAvailable) {
+          throw new BadRequestException(
+            'This time slot is not available for the selected doctor',
+          );
+        }
+
+        if (appointmentDateTime) {
+          const endTime = new Date(
+            startTime.getTime() + this.DEFAULT_DURATION_MINUTES * 60 * 1000,
+          );
+          updateData.startTime = startTime;
+          updateData.endTime = endTime;
+        }
+
+        if (doctorId) {
+          updateData.doctorId = doctorId;
+        }
       }
 
       const appointment = await this.prisma.appointment.update({
@@ -187,21 +212,25 @@ export class AppointmentsService {
       // Verify appointment exists
       await this.findOne(tenantId, id);
 
-      await this.prisma.appointment.delete({
+      // Soft delete - update status to CANCELLED
+      const appointment = await this.prisma.appointment.update({
         where: { id },
+        data: { status: AppointmentStatus.CANCELLED },
+        include: this.getAppointmentIncludes(),
       });
 
       this.logger.log(
-        `Appointment deleted: ${id} for tenant: ${tenantId}`,
+        `Appointment cancelled (soft delete): ${id} for tenant: ${tenantId}`,
       );
 
       return {
         success: true,
-        message: 'Appointment deleted successfully',
+        message: 'Appointment cancelled successfully',
+        data: appointment,
       };
     } catch (error) {
       this.logger.error(
-        `Error deleting appointment: ${error.message}`,
+        `Error cancelling appointment: ${error.message}`,
         error.stack,
       );
       throw error;
@@ -387,6 +416,12 @@ export class AppointmentsService {
           lastName: true,
         },
       },
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     };
   }
 
@@ -466,6 +501,50 @@ export class AppointmentsService {
       where: {
         doctorId,
         tenantId,
+        status: {
+          not: AppointmentStatus.CANCELLED,
+        },
+        OR: [
+          {
+            AND: [
+              { startTime: { lte: startTime } },
+              { endTime: { gt: startTime } },
+            ],
+          },
+          {
+            AND: [
+              { startTime: { lt: endTime } },
+              { endTime: { gte: endTime } },
+            ],
+          },
+          {
+            AND: [
+              { startTime: { gte: startTime } },
+              { endTime: { lte: endTime } },
+            ],
+          },
+        ],
+      },
+    });
+
+    return !conflictingAppointment;
+  }
+
+  private async isSlotAvailableForUpdate(
+    doctorId: string,
+    startTime: Date,
+    tenantId: string,
+    excludeAppointmentId: string,
+  ): Promise<boolean> {
+    const endTime = new Date(
+      startTime.getTime() + this.DEFAULT_DURATION_MINUTES * 60 * 1000,
+    );
+
+    const conflictingAppointment = await this.prisma.appointment.findFirst({
+      where: {
+        doctorId,
+        tenantId,
+        id: { not: excludeAppointmentId }, // Exclude current appointment
         status: {
           not: AppointmentStatus.CANCELLED,
         },

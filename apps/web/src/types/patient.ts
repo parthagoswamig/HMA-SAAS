@@ -14,6 +14,7 @@ export interface Patient extends BaseEntity {
   patientId: string;
   firstName: string;
   lastName: string;
+  middleName?: string;
   dateOfBirth: Date;
   age: number;
   gender: Gender;

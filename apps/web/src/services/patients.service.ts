@@ -4,27 +4,10 @@ import { enhancedApiClient } from '../lib/api-client';
  * Patients Management API Service
  */
 
-export interface CreatePatientDto {
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  bloodType?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  emergencyContactRelationship?: string;
-  insuranceProvider?: string;
-  insurancePolicyNumber?: string;
-  maritalStatus?: string;
-}
+// Import the proper type from types/patient
+import { CreatePatientDto as CreatePatientDtoType } from '../types/patient';
+
+export type CreatePatientDto = CreatePatientDtoType;
 
 export interface PatientFilters {
   search?: string;
@@ -71,7 +54,24 @@ const patientsService = {
    * Create new patient
    */
   createPatient: async (data: CreatePatientDto): Promise<PatientResponse> => {
-    return enhancedApiClient.post('/patients', data);
+    try {
+      // Format the date if it's a Date object
+      const formattedData = {
+        ...data,
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : undefined,
+      };
+      
+      const response = await enhancedApiClient.post('/patients', formattedData);
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create patient');
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Error creating patient:', error);
+      throw new Error(error.response?.data?.message || 'Failed to create patient');
+    }
   },
 
   /**

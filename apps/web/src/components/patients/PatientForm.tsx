@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Modal,
   Stack,
@@ -148,7 +148,7 @@ function PatientForm({
       form.setValues({
         firstName: patient.firstName,
         lastName: patient.lastName,
-        middleName: '', // Add middleName when loading patient data
+        middleName: patient.middleName || '',
         dateOfBirth: patient.dateOfBirth,
         gender: patient.gender,
         bloodGroup: patient.bloodGroup,
@@ -183,122 +183,12 @@ function PatientForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, opened]);
 
-  const handleSubmit = async (values: CreatePatientDto) => {
-    try {
-      startLoading();
-      
-      // Debug: Log the original date value
-      console.log('Original dateOfBirth:', values.dateOfBirth, 'Type:', typeof values.dateOfBirth);
-      
-      // Convert dateOfBirth to ISO string
-      let convertedDate: string | undefined = undefined;
-      if (values.dateOfBirth) {
-        try {
-          if (values.dateOfBirth instanceof Date) {
-            convertedDate = values.dateOfBirth.toISOString();
-          } else if (typeof values.dateOfBirth === 'string') {
-            const trimmed = String(values.dateOfBirth).trim();
-            if (trimmed !== '') {
-              convertedDate = new Date(trimmed).toISOString();
-            }
-          }
-        } catch (error) {
-          console.error('Date conversion error:', error);
-          convertedDate = undefined;
-        }
-      }
-      
-      console.log('Converted dateOfBirth:', convertedDate);
-      
-      // Flatten the nested structure to match backend API expectations
-      const flattenedData: any = {
-        firstName: values.firstName,
-        lastName: values.lastName,
-        middleName: values.middleName,
-        dateOfBirth: convertedDate,
-        gender: values.gender,
-        bloodType: values.bloodGroup,
-        maritalStatus: values.maritalStatus,
-        // Flatten contactInfo - clean phone number (remove spaces, dashes, etc)
-        phone: values.contactInfo?.phone 
-          ? values.contactInfo.phone.replace(/[^\d+]/g, '') 
-          : undefined,
-        email: values.contactInfo?.email || undefined,
-        // Flatten address (backend uses 'pincode' not 'postalCode')
-        address: values.address?.street || undefined,
-        city: values.address?.city || undefined,
-        state: values.address?.state || undefined,
-        pincode: values.address?.postalCode || undefined,
-        country: values.address?.country || undefined,
-        // Flatten insurance info (backend uses 'insuranceId' not 'insurancePolicyNumber')
-        insuranceProvider: values.insuranceInfo?.insuranceProvider || undefined,
-        insuranceId: values.insuranceInfo?.policyNumber || undefined,
-      };
-      
-      // Add id for update operations
-      if (patient) {
-        flattenedData.id = patient.id;
-      }
-      
-      // Ensure dateOfBirth is a string or undefined (not a Date object)
-      if (flattenedData.dateOfBirth && typeof flattenedData.dateOfBirth !== 'string') {
-        flattenedData.dateOfBirth = flattenedData.dateOfBirth.toISOString();
-      }
-      
-      // Debug: Log the flattened data before sending
-      console.log('Flattened data being sent:', flattenedData);
-      console.log('dateOfBirth after conversion:', flattenedData.dateOfBirth, 'Type:', typeof flattenedData.dateOfBirth);
-      console.log('JSON stringified:', JSON.stringify(flattenedData));
-      
-      await onSubmit(flattenedData);
-
-      notifications.show({
-        title: patient ? 'Patient Updated' : 'Patient Created',
-        message: `Patient ${values.firstName} ${values.lastName} has been ${patient ? 'updated' : 'created'} successfully.`,
-        color: 'green',
-      });
-
-      handleClose();
-    } catch (error: any) {
-      console.error('Patient form submission error:', error);
-      
-      // Extract detailed error message
-      const errorMessage = error.response?.data?.message 
-        || error.message 
-        || `Failed to ${patient ? 'update' : 'create'} patient. Please try again.`;
-      
-      // Handle array of validation errors
-      const displayMessage = Array.isArray(errorMessage) 
-        ? errorMessage.join(', ') 
-        : errorMessage;
-      
-      notifications.show({
-        title: 'Error',
-        message: displayMessage,
-        color: 'red',
-        autoClose: 10000, // Show for 10 seconds
-      });
-    } finally {
-      stopLoading();
-    }
-  };
-
+  // Helper functions
   const handleClose = () => {
     form.reset();
     setActiveStep(0);
     setUploadedFiles([]);
     onClose();
-  };
-
-  const nextStep = () => {
-    const currentStepValid = validateCurrentStep();
-    if (currentStepValid) {
-      setActiveStep((current) => (current < steps.length - 1 ? current + 1 : current));
-    }
-  };
-
-  const prevStep = () => {
-    setActiveStep((current) => (current > 0 ? current - 1 : current));
   };
 
   const validateCurrentStep = (): boolean => {
@@ -322,43 +212,22 @@ function PatientForm({
           });
           return false;
         }
-        if (!form.values.dateOfBirth) {
-          notifications.show({
-            title: 'Validation Error',
-            message: 'Date of birth is required',
-            color: 'red',
-            icon: <IconAlertCircle />,
-          });
-          return false;
-        }
         return true;
-      case 1: // Contact
-        // More lenient phone validation - just check if it has enough digits
+      case 1: // Contact Info
         const phoneDigits = form.values.contactInfo.phone.replace(/\D/g, '');
-        if (!form.values.contactInfo.phone || phoneDigits.length < 10) {
+        if (!form.values.contactInfo?.phone || phoneDigits.length < 10) {
           notifications.show({
             title: 'Validation Error',
             message: 'Please enter a valid 10-digit phone number',
             color: 'red',
-            icon: <IconAlertCircle />,
-          });
-          return false;
-        }
-        if (form.values.contactInfo.email && !isValidEmail(form.values.contactInfo.email)) {
-          notifications.show({
-            title: 'Validation Error',
-            message: 'Please enter a valid email address',
-            color: 'red',
-            icon: <IconAlertCircle />,
           });
           return false;
         }
         if (!form.values.address.street || form.values.address.street.trim().length < 3) {
           notifications.show({
             title: 'Validation Error',
-            message: 'Street address is required (minimum 3 characters)',
+            message: 'Street address is required',
             color: 'red',
-            icon: <IconAlertCircle />,
           });
           return false;
         }
@@ -367,167 +236,257 @@ function PatientForm({
             title: 'Validation Error',
             message: 'City is required',
             color: 'red',
-            icon: <IconAlertCircle />,
-          });
-          return false;
-        }
-        if (!form.values.address.state || form.values.address.state.trim().length < 2) {
-          notifications.show({
-            title: 'Validation Error',
-            message: 'State is required',
-            color: 'red',
-            icon: <IconAlertCircle />,
-          });
-          return false;
-        }
-        if (!form.values.address.postalCode || form.values.address.postalCode.trim().length < 4) {
-          notifications.show({
-            title: 'Validation Error',
-            message: 'Postal code is required (minimum 4 characters)',
-            color: 'red',
-            icon: <IconAlertCircle />,
           });
           return false;
         }
         return true;
-      case 2: // Medical
-        return true; // Medical info is optional
-      case 3: // Insurance
-        return true; // Insurance is optional
-      case 4: // Documents
-        return true; // Documents are optional
-      case 5: // Review & Submit
-        return true; // Review & Submit is optional
       default:
         return true;
     }
   };
 
-  const handleFileUpload = async (files: File | File[] | null) => {
-    if (!files) return;
-    const fileArray = Array.isArray(files) ? files : [files];
-    if (!fileArray.length) return;
-
+  const handleSubmit = async (values: any) => {
+    startLoading();
+    
+    // Handle date conversion
+    let convertedDate: Date | undefined;
+    if (values.dateOfBirth) {
+      try {
+        convertedDate = values.dateOfBirth instanceof Date 
+          ? values.dateOfBirth 
+          : new Date(values.dateOfBirth);
+      } catch (error) {
+        console.error('Date conversion error:', error);
+        convertedDate = undefined;
+      }
+    }
+      
+    console.log('Converted dateOfBirth:', convertedDate);
+    
     try {
-      // Simulate file upload
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setUploadedFiles((prev) => [...prev, ...fileArray]);
+      // Prepare the base patient data that matches CreatePatientDto
+      const basePatientData: any = {
+        // Basic Info
+        firstName: values.firstName?.trim() || '',
+        lastName: values.lastName?.trim() || '',
+        middleName: values.middleName?.trim() || '',
+        dateOfBirth: convertedDate || new Date(),
+        gender: values.gender || Gender.MALE,
+        bloodGroup: values.bloodGroup,
+        maritalStatus: values.maritalStatus || MaritalStatus.SINGLE,
+        
+        // Contact Info
+        contactInfo: {
+          phone: values.contactInfo?.phone ? values.contactInfo.phone.replace(/[^\d+]/g, '') : '',
+          email: values.contactInfo?.email?.trim() || '',
+          alternatePhone: values.contactInfo?.alternatePhone || '',
+          emergencyContact: {
+            name: values.contactInfo?.emergencyContact?.name?.trim() || '',
+            phone: values.contactInfo?.emergencyContact?.phone?.replace(/[^\d+]/g, '') || '',
+            relationship: values.contactInfo?.emergencyContact?.relationship?.trim() || '',
+          },
+        },
+        
+        // Address
+        address: {
+          street: values.address?.street?.trim() || '',
+          city: values.address?.city?.trim() || '',
+          state: values.address?.state?.trim() || '',
+          country: values.address?.country?.trim() || 'India',
+          postalCode: values.address?.postalCode?.trim() || '',
+          landmark: values.address?.landmark?.trim() || '',
+        },
+        
+        // Insurance
+        insuranceInfo: {
+          insuranceProvider: values.insuranceInfo?.insuranceProvider?.trim() || '',
+          policyNumber: values.insuranceInfo?.policyNumber?.trim() || '',
+          insuranceType: values.insuranceInfo?.insuranceType,
+          policyHolderName: values.insuranceInfo?.policyHolderName || '',
+          relationshipToPatient: values.insuranceInfo?.relationshipToPatient || '',
+          coverageAmount: values.insuranceInfo?.coverageAmount,
+          isActive: values.insuranceInfo?.isActive || false,
+        },
+        
+        // Medical History
+        allergies: Array.isArray(values.allergies) ? values.allergies : [],
+        chronicDiseases: Array.isArray(values.chronicDiseases) ? values.chronicDiseases : [],
+        currentMedications: Array.isArray(values.currentMedications) ? values.currentMedications : [],
+        
+        // Additional fields
+        aadhaarNumber: values.aadhaarNumber || '',
+        otherIdNumber: values.otherIdNumber || '',
+        otherIdType: values.otherIdType,
+        occupation: values.occupation || '',
+        religion: values.religion || '',
+        language: values.language || '',
+        notes: values.notes || '',
+      };
+      
+      // For updates, include the ID
+      const patientData = patient?.id 
+        ? { ...basePatientData, id: patient.id } as UpdatePatientDto
+        : basePatientData as CreatePatientDto;
+      
+      console.log('Patient data being sent:', patientData);
+      
+      await onSubmit(patientData);
+
       notifications.show({
-        title: 'Files Uploaded',
-        message: `${fileArray.length} file(s) uploaded successfully.`,
+        title: patient ? 'Patient Updated' : 'Patient Created',
+        message: `Patient ${values.firstName} ${values.lastName} has been ${patient ? 'updated' : 'created'} successfully.`,
         color: 'green',
       });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+
+      handleClose();
+    } catch (error: any) {
+      console.error('Patient form submission error:', error);
+      
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (error.response?.data) {
+        if (Array.isArray(error.response.data.message)) {
+          errorMessage = error.response.data.message.join('\n');
+        } else if (typeof error.response.data.message === 'string') {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       notifications.show({
-        title: 'Upload Failed',
-        message: 'Failed to upload files. Please try again.',
+        title: `Failed to ${patient ? 'update' : 'create'} patient`,
+        message: errorMessage,
         color: 'red',
+        autoClose: 10000,
       });
+    } finally {
+      stopLoading();
     }
   };
 
-  const removeUploadedFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  const nextStep = () => {
+    const currentStepValid = validateCurrentStep();
+    if (currentStepValid) {
+      setActiveStep((current) => (current < steps.length - 1 ? current + 1 : current));
+    }
   };
 
-  // Step 1: Basic Information
-  const BasicInfoStep = React.useMemo(
-    () => (
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <TextInput
-            label="First Name"
-            placeholder="Enter first name"
-            required
-            {...form.getInputProps('firstName')}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <TextInput
-            label="Last Name"
-            placeholder="Enter last name"
-            required
-            {...form.getInputProps('lastName')}
-          />
-        </Grid.Col>
+  const prevStep = () => {
+    setActiveStep((current) => (current > 0 ? current - 1 : current));
+  };
 
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <DatePickerInput
-            label="Date of Birth"
-            placeholder="Select date of birth"
-            required
-            maxDate={new Date()}
-            {...form.getInputProps('dateOfBirth')}
-            leftSection={<IconCalendar size="1rem" />}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Select
-            label="Gender"
-            placeholder="Select gender"
-            required
-            data={[
-              { value: Gender.MALE, label: 'Male' },
-              { value: Gender.FEMALE, label: 'Female' },
-              { value: Gender.OTHER, label: 'Other' },
-            ]}
-            {...form.getInputProps('gender')}
-          />
-        </Grid.Col>
+  const handleFileUpload = (files: File | File[] | null) => {
+    if (!files) return;
+    const fileArray = Array.isArray(files) ? files : [files];
+    setUploadedFiles(prev => [...prev, ...fileArray]);
+  };
 
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Select
-            label="Blood Group"
-            placeholder="Select blood group"
-            data={Object.values(BloodGroup).map((bg) => ({ value: bg, label: bg }))}
-            {...form.getInputProps('bloodGroup')}
-            clearable
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Select
-            label="Marital Status"
-            placeholder="Select marital status"
-            data={Object.values(MaritalStatus).map((ms) => ({
-              value: ms,
-              label: ms.replace('_', ' '),
-            }))}
-            {...form.getInputProps('maritalStatus')}
-            clearable
-          />
-        </Grid.Col>
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <TextInput
-            label="Occupation"
-            placeholder="Enter occupation"
-            {...form.getInputProps('occupation')}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <TextInput
-            label="Religion"
-            placeholder="Enter religion"
-            {...form.getInputProps('religion')}
-          />
-        </Grid.Col>
+  const BasicInfoStep = (
+    <Stack gap="lg">
+      <Paper p="md" withBorder>
+        <Group mb="md">
+          <IconUsers size="1.2rem" />
+          <Title order={4}>Basic Information</Title>
+        </Group>
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <TextInput
+              label="First Name"
+              placeholder="Enter first name"
+              required
+              {...form.getInputProps('firstName')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <TextInput
+              label="Last Name"
+              placeholder="Enter last name"
+              required
+              {...form.getInputProps('lastName')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <DatePickerInput
+              label="Date of Birth"
+              placeholder="Select date of birth"
+              required
+              maxDate={new Date()}
+              {...form.getInputProps('dateOfBirth')}
+              leftSection={<IconCalendar size="1rem" />}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Select
+              label="Gender"
+              placeholder="Select gender"
+              required
+              data={[
+                { value: Gender.MALE, label: 'Male' },
+                { value: Gender.FEMALE, label: 'Female' },
+                { value: Gender.OTHER, label: 'Other' },
+              ]}
+              {...form.getInputProps('gender')}
+            />
+          </Grid.Col>
 
-        <Grid.Col span={12}>
-          <TextInput
-            label="Languages Known"
-            placeholder="Enter languages (comma separated)"
-            {...form.getInputProps('language')}
-          />
-        </Grid.Col>
-      </Grid>
-    ),
-    [form]
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Select
+              label="Blood Group"
+              placeholder="Select blood group"
+              data={Object.values(BloodGroup).map((bg) => ({ value: bg, label: bg }))}
+              {...form.getInputProps('bloodGroup')}
+              clearable
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Select
+              label="Marital Status"
+              placeholder="Select marital status"
+              data={Object.values(MaritalStatus).map((ms) => ({
+                value: ms,
+                label: ms.replace('_', ' '),
+              }))}
+              {...form.getInputProps('maritalStatus')}
+              clearable
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <TextInput
+              label="Occupation"
+              placeholder="Enter occupation"
+              {...form.getInputProps('occupation')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <TextInput
+              label="Religion"
+              placeholder="Enter religion"
+              {...form.getInputProps('religion')}
+            />
+          </Grid.Col>
+
+          <Grid.Col span={12}>
+            <TextInput
+              label="Languages Known"
+              placeholder="Enter languages (comma separated)"
+              {...form.getInputProps('language')}
+            />
+          </Grid.Col>
+        </Grid>
+      </Paper>
+    </Stack>
   );
 
   // Step 2: Contact Information
-  const ContactInfoStep = React.useMemo(
-    () => (
+  const ContactInfoStep = (
       <Stack gap="lg">
         <Paper p="md" withBorder>
           <Group mb="md">
@@ -650,110 +609,104 @@ function PatientForm({
           </Grid>
         </Paper>
       </Stack>
-    ),
-    [form]
   );
 
   // Step 3: Medical Information
-  const MedicalInfoStep = React.useMemo(
-    () => (
-      <Stack gap="lg">
-        <Paper p="md" withBorder>
-          <Group mb="md">
-            <IconAlertCircle size="1.2rem" color="red" />
-            <Title order={4}>Allergies</Title>
-          </Group>
-          <TagsInput
-            label="Known Allergies"
-            description="Add allergies one by one"
-            placeholder="Type allergy and press Enter"
-            {...form.getInputProps('allergies')}
-          />
-        </Paper>
+  const MedicalInfoStep = (
+    <Stack gap="lg">
+      <Paper p="md" withBorder>
+        <Group mb="md">
+          <IconAlertCircle size="1.2rem" color="red" />
+          <Title order={4}>Allergies</Title>
+        </Group>
+        <TagsInput
+          label="Known Allergies"
+          description="Add allergies one by one"
+          placeholder="Type allergy and press Enter"
+          {...form.getInputProps('allergies')}
+        />
+      </Paper>
 
-        <Paper p="md" withBorder>
-          <Group mb="md">
-            <IconFileText size="1.2rem" color="orange" />
-            <Title order={4}>Chronic Diseases</Title>
-          </Group>
-          <TagsInput
-            label="Chronic Diseases"
-            description="Add chronic conditions one by one"
-            placeholder="Type condition and press Enter"
-            {...form.getInputProps('chronicDiseases')}
-          />
-        </Paper>
+      <Paper p="md" withBorder>
+        <Group mb="md">
+          <IconFileText size="1.2rem" color="orange" />
+          <Title order={4}>Chronic Diseases</Title>
+        </Group>
+        <TagsInput
+          label="Chronic Diseases"
+          description="Add chronic conditions one by one"
+          placeholder="Type condition and press Enter"
+          {...form.getInputProps('chronicDiseases')}
+        />
+      </Paper>
 
-        <Paper p="md" withBorder>
-          <Group mb="md">
-            <IconFileText size="1.2rem" color="blue" />
-            <Title order={4}>Current Medications</Title>
-          </Group>
-          <TagsInput
-            label="Current Medications"
-            description="Add current medications one by one"
-            placeholder="Type medication and press Enter"
-            {...form.getInputProps('currentMedications')}
-          />
-        </Paper>
+      <Paper p="md" withBorder>
+        <Group mb="md">
+          <IconFileText size="1.2rem" color="blue" />
+          <Title order={4}>Current Medications</Title>
+        </Group>
+        <TagsInput
+          label="Current Medications"
+          description="Add current medications one by one"
+          placeholder="Type medication and press Enter"
+          {...form.getInputProps('currentMedications')}
+        />
+      </Paper>
 
-        <Paper p="md" withBorder>
-          <Group mb="md">
-            <IconFileText size="1.2rem" />
-            <Title order={4}>Identity Documents</Title>
-          </Group>
-          <Grid>
-            <Grid.Col span={{ base: 12, md: 8 }}>
-              <TextInput
-                label="Aadhaar Number"
-                placeholder="XXXX XXXX XXXX"
-                {...form.getInputProps('aadhaarNumber')}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <Select
-                label="Other ID Type"
-                placeholder="Select ID type"
-                data={[
-                  { value: 'pan', label: 'PAN Card' },
-                  { value: 'passport', label: 'Passport' },
-                  { value: 'driving_license', label: 'Driving License' },
-                  { value: 'voter_id', label: 'Voter ID' },
-                ]}
-                {...form.getInputProps('otherIdType')}
-                clearable
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput
-                label="Other ID Number"
-                placeholder="Enter ID number"
-                {...form.getInputProps('otherIdNumber')}
-              />
-            </Grid.Col>
-          </Grid>
-        </Paper>
+      <Paper p="md" withBorder>
+        <Group mb="md">
+          <IconFileText size="1.2rem" />
+          <Title order={4}>Identity Documents</Title>
+        </Group>
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 8 }}>
+            <TextInput
+              label="Aadhaar Number"
+              placeholder="XXXX XXXX XXXX"
+              {...form.getInputProps('aadhaarNumber')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Select
+              label="Other ID Type"
+              placeholder="Select ID type"
+              data={[
+                { value: 'pan', label: 'PAN Card' },
+                { value: 'passport', label: 'Passport' },
+                { value: 'driving_license', label: 'Driving License' },
+                { value: 'voter_id', label: 'Voter ID' },
+              ]}
+              {...form.getInputProps('otherIdType')}
+              clearable
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <TextInput
+              label="Other ID Number"
+              placeholder="Enter ID number"
+              {...form.getInputProps('otherIdNumber')}
+            />
+          </Grid.Col>
+        </Grid>
+      </Paper>
 
-        <Paper p="md" withBorder>
-          <Title order={4} mb="md">
-            Additional Notes
-          </Title>
-          <Textarea
-            label="Medical Notes"
-            description="Any additional medical information"
-            placeholder="Enter any additional notes"
-            minRows={3}
-            {...form.getInputProps('notes')}
-          />
-        </Paper>
-      </Stack>
-    ),
-    [form]
+      <Paper p="md" withBorder>
+        <Title order={4} mb="md">
+          Additional Notes
+        </Title>
+        <Textarea
+          label="Medical Notes"
+          description="Any additional medical information"
+          placeholder="Enter any additional notes"
+          minRows={3}
+          {...form.getInputProps('notes')}
+        />
+      </Paper>
+    </Stack>
   );
 
   // Step 4: Insurance Information
-  const InsuranceStep = React.useMemo(
-    () => (
+  const InsuranceStep = (
       <Paper p="md" withBorder>
         <Group mb="md">
           <IconShieldX size="1.2rem" color="green" />
@@ -816,13 +769,10 @@ function PatientForm({
           </Grid.Col>
         </Grid>
       </Paper>
-    ),
-    [form]
   );
 
   // Step 5: Document Upload
-  const DocumentsStep = React.useMemo(
-    () => (
+  const DocumentsStep = (
       <Stack gap="lg">
         <Paper p="md" withBorder>
           <Group mb="md">
@@ -887,12 +837,10 @@ function PatientForm({
           </Group>
         </Alert>
       </Stack>
-    ),
-    [uploadedFiles]
   );
-  // Step 5: Review & Submit
-  const ReviewSubmitStep = React.useMemo(
-    () => (
+
+  // Step 6: Review & Submit
+  const ReviewStep = (
       <Stack gap="lg">
         <Paper p="md" withBorder>
           <Group mb="md">
@@ -961,8 +909,6 @@ function PatientForm({
           </Group>
         </Alert>
       </Stack>
-    ),
-    [form, uploadedFiles]
   );
 
   const getCurrentStepContent = () => {
@@ -978,7 +924,7 @@ function PatientForm({
       case 4:
         return DocumentsStep;
       case 5:
-        return ReviewSubmitStep;
+        return ReviewStep;
       default:
         return null;
     }

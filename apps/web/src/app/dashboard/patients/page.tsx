@@ -319,10 +319,23 @@ export default function PatientManagement() {
   };
 
   const handleEditPatient = (patient: PatientListItem) => {
+    console.log('=== EDIT PATIENT CLICKED ===');
+    console.log('Patient List Item:', patient);
+    
     const fullPatient = patients.find((p) => p.id === patient.id);
+    console.log('Full Patient Data:', fullPatient);
+    
     if (fullPatient) {
       setSelectedPatient(fullPatient);
+      console.log('Selected patient set, opening form modal');
       open();
+    } else {
+      console.error('Could not find full patient data for ID:', patient.id);
+      notifications.show({
+        title: 'Error',
+        message: 'Could not load patient data. Please try again.',
+        color: 'red',
+      });
     }
   };
 
@@ -384,19 +397,20 @@ export default function PatientManagement() {
       // Close the form modal
       close();
       
-      // Show notification after modal closes (small delay ensures visibility)
+      // Show notification after modal closes (delay ensures visibility)
       setTimeout(() => {
         notifications.show({
           title: '✅ Patient Registered Successfully!',
           message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
           color: 'green',
           autoClose: 7000,
+          position: 'top-right',
           style: { 
             backgroundColor: '#f0fdf4',
             borderLeft: '4px solid #22c55e'
           },
         });
-      }, 100);
+      }, 500);
     } catch (error: any) {
       console.error('Patient creation error:', error);
       console.error('Error response:', error.response?.data);
@@ -440,12 +454,13 @@ export default function PatientManagement() {
           message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
           color: 'green',
           autoClose: 5000,
+          position: 'top-right',
           style: { 
             backgroundColor: '#f0fdf4',
             borderLeft: '4px solid #22c55e'
           },
         });
-      }, 100);
+      }, 500);
     } catch (error: any) {
       console.error('Patient update error:', error);
       console.error('Error response:', error.response?.data);

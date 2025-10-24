@@ -1,0 +1,17 @@
+{
+  "buildCommand": "cd apps/web && npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "functions": {
+    "apps/web/app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://hms-saas-staging.onrender.com",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://uoxyyqbwuzjraxhaypko.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw",
+    "NEXT_PUBLIC_APP_ENV": "production"
+  }
+}

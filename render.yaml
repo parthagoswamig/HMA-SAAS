@@ -1,0 +1,73 @@
+services:
+  # Backend API Service
+  - type: web
+    name: hms-backend-api
+    env: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    region: ohio
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hms-postgres-db
+          property: connectionString
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: BCRYPT_SALT_ROUNDS
+        value: 12
+      - key: CORS_ORIGINS
+        value: https://hms-saas-staging.vercel.app,http://localhost:3000,https://hms-saas.vercel.app
+      - key: FRONTEND_URL
+        value: https://hms-saas-staging.vercel.app
+      - key: RESET_PASSWORD_URL
+        value: https://hms-saas-staging.vercel.app/reset-password
+      - key: APP_NAME
+        value: HMS SaaS
+      - key: APP_VERSION
+        value: 1.0.0
+      - key: APP_URL
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: SWAGGER_ENABLED
+        value: true
+      - key: SWAGGER_PATH
+        value: api-docs
+      - key: THROTTLE_TTL
+        value: 60
+      - key: THROTTLE_LIMIT
+        value: 100
+    buildFilter:
+      paths:
+        - apps/api/**
+        - package.json
+        - package-lock.json
+    autoDeploy: true
+
+databases:
+  # PostgreSQL Database
+  - name: hms-postgres-db
+    databaseName: hms_saas
+    user: hms_user
+    region: ohio
+    plan: starter
+    postgresMajorVersion: 15
+
+# Alternative: If you prefer to use Supabase exclusively, comment out the database section above
+# and use only environment variables pointing to your Supabase database

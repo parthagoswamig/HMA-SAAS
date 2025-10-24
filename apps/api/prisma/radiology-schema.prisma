@@ -1,0 +1,557 @@
+// ===== RADIOLOGY / IMAGING & PACS MODULE SCHEMA =====
+// This file contains the complete Prisma schema for the Radiology module
+// To integrate: copy the enums and models to the main schema.prisma file
+
+enum ModalityType {
+  XR      // X-Ray
+  CT      // Computed Tomography
+  MRI     // Magnetic Resonance Imaging
+  USG     // Ultrasonography
+  NM      // Nuclear Medicine
+  MG      // Mammography
+  DX      // DEXA (Bone Densitometry)
+  FL      // Fluoroscopy
+  ANGIO   // Angiography
+  ECHO    // Echocardiography
+  ECG     // Electrocardiography
+  OTHER
+}
+
+enum ImagingOrderStatus {
+  DRAFTED
+  ORDERED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  REPORTED
+  SIGNED
+  CANCELLED
+  REJECTED
+}
+
+enum ImagingPriority {
+  ROUTINE
+  URGENT
+  STAT
+  ASAP
+}
+
+enum ReportStatus {
+  DRAFT
+  PRELIMINARY
+  FINAL
+  AMENDED
+  ADDENDUM
+}
+
+enum BIRADS {
+  BIRADS_0  // Incomplete - need additional imaging
+  BIRADS_1  // Negative
+  BIRADS_2  // Benign
+  BIRADS_3  // Probably benign
+  BIRADS_4A // Low suspicion
+  BIRADS_4B // Moderate suspicion
+  BIRADS_4C // High suspicion
+  BIRADS_5  // Highly suggestive of malignancy
+  BIRADS_6  // Known biopsy-proven malignancy
+}
+
+enum LungRADS {
+  LUNG_RADS_1  // Incomplete
+  LUNG_RADS_2  // Negative
+  LUNG_RADS_3  // Probably benign
+  LUNG_RADS_4A // Suspicious
+  LUNG_RADS_4B // Suspicious
+  LUNG_RADS_4X // Suspicious
+}
+
+enum ContrastType {
+  IV      // Intravenous
+  ORAL    // Oral
+  RECTAL  // Rectal
+  INTRA_ARTICULAR
+  INTRATHECAL
+  NONE
+}
+
+enum StudyStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
+enum MWLStatus {
+  SCHEDULED
+  SENT
+  RECEIVED
+  ERROR
+  COMPLETED
+}
+
+// ===== RADIOLOGY MODULE MODELS =====
+
+model Modality {
+  id              String         @id @default(cuid())
+  name            String         // e.g., "X-Ray Room 1", "CT Scanner 1"
+  modalityType    ModalityType
+  aeTitle         String         // DICOM Application Entity Title
+  hostname        String         // Modality IP/hostname
+  port            Int            @default(104) // DICOM port
+  isActive        Boolean        @default(true)
+  location        String?        // Room/location
+  manufacturer    String?
+  model           String?
+  description     String?
+  tenantId        String
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+
+  // Relations
+  imagingOrders   ImagingOrder[]
+  studies         Study[]
+  worklistItems   ModalityWorklist[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([tenantId, isActive])
+  @@index([modalityType])
+  @@map("modalities")
+}
+
+model ImagingOrder {
+  id              String           @id @default(cuid())
+  orderNumber     String           @unique // Auto-generated: IMG-YYYY-NNNN
+  visitId         String?          // Link to patient visit
+  visit           PatientVisit?    @relation(fields: [visitId], references: [id])
+  patientId       String           // Direct patient reference
+  patient         Patient          @relation(fields: [patientId], references: [id])
+
+  // Order details
+  modalityType    ModalityType
+  modalityId      String?          // Specific modality assigned
+  modality        Modality?        @relation(fields: [modalityId], references: [id])
+  protocol        String           // Imaging protocol (e.g., "Chest PA", "CT Abdomen")
+  bodyPart        String?          // Body part being imaged
+  clinicalHistory String?          // Clinical indication
+  priority        ImagingPriority  @default(ROUTINE)
+  status          ImagingOrderStatus @default(DRAFTED)
+
+  // Scheduling
+  scheduledFor    DateTime?        // Scheduled date/time
+  scheduledBy     String?          // User who scheduled
+  scheduledUser   User?            @relation("ScheduledImagingOrders", fields: [scheduledBy], references: [id])
+
+  // Contrast information
+  contrastType    ContrastType     @default(NONE)
+  contrastAgent   String?
+  contrastVolume  String?
+  contrastAllergy Boolean          @default(false)
+  allergyDetails  String?
+
+  // Clinical details
+  isPregnant      Boolean          @default(false)
+  pregnancyDetails String?
+  isInpatient     Boolean          @default(false)
+  isolationRequired Boolean        @default(false)
+  specialInstructions String?
+
+  // Radiation safety
+  previousStudies String?          // Previous relevant studies
+  cumulativeDose  Float?           // Cumulative radiation dose (mSv)
+
+  // Workflow tracking
+  orderedBy       String           // User who created order
+  orderingUser    User             @relation("OrderedImagingOrders", fields: [orderedBy], references: [id])
+  orderedAt       DateTime         @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  studies         Study[]
+  reports         RadReport[]
+  doseRecords     RadiationDose[]
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, status])
+  @@index([patientId, orderedAt])
+  @@index([modalityType])
+  @@map("imaging_orders")
+}
+
+model Study {
+  id              String           @id @default(cuid())
+  studyInstanceUID String          @unique // DICOM Study Instance UID
+  orderId         String           // Link to imaging order
+  order           ImagingOrder     @relation(fields: [orderId], references: [id])
+
+  // Study details
+  accessionNumber String?          // DICOM Accession Number
+  studyDate       DateTime         // Study date
+  studyTime       String?          // Study time (HHMMSS)
+  studyDescription String?         // Study description
+  procedureCode   String?          // CPT/Procedure code
+
+  // Modality information
+  modalityType    ModalityType
+  performingPhysician String?       // Performing physician
+  performingUser  User?            @relation("PerformingStudies", fields: [performingPhysician], references: [id])
+  readingPhysician String?         // Radiologist reading the study
+  readingUser     User?            @relation("ReadingStudies", fields: [readingPhysician], references: [id])
+
+  // DICOM metadata
+  dicomMetadata   Json?            // Store DICOM tags as JSON
+
+  // Workflow
+  status          StudyStatus      @default(SCHEDULED)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  reportedAt      DateTime?
+
+  // Relations
+  series          Series[]
+  reports         RadReport[]
+  worklistItems   ModalityWorklist[]
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, studyDate])
+  @@index([orderId])
+  @@index([studyInstanceUID])
+  @@map("studies")
+}
+
+model Series {
+  id              String           @id @default(cuid())
+  seriesInstanceUID String         @unique // DICOM Series Instance UID
+  studyId         String           // Link to study
+  study           Study            @relation(fields: [studyId], references: [id])
+
+  // Series details
+  seriesNumber    Int              // Series number
+  modality        String           // Series modality
+  seriesDate      DateTime?        // Series date
+  seriesTime      String?          // Series time
+  seriesDescription String?        // Series description
+  bodyPartExamined String?         // Body part examined
+  protocolName    String?          // Protocol name
+
+  // DICOM metadata
+  dicomMetadata   Json?            // Additional DICOM tags
+
+  // Relations
+  images          Image[]
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId])
+  @@index([studyId])
+  @@map("series")
+}
+
+model Image {
+  id              String           @id @default(cuid())
+  sopInstanceUID  String           @unique // DICOM SOP Instance UID
+  seriesId        String           // Link to series
+  series          Series           @relation(fields: [seriesId], references: [id])
+
+  // Image details
+  instanceNumber  Int              // Instance number in series
+  imageType       String[]         // Image type array
+  imageDate       DateTime?        // Image date
+  imageTime       String?          // Image time
+  acquisitionDateTime DateTime?     // Acquisition date/time
+
+  // Image metadata
+  rows            Int?             // Image rows
+  columns         Int?             // Image columns
+  bitsAllocated   Int?             // Bits allocated
+  bitsStored      Int?             // Bits stored
+  photometricInterpretation String? // Photometric interpretation
+
+  // File information
+  filePath        String?          // Path to DICOM file
+  fileSize        Int?             // File size in bytes
+  checksum        String?          // File checksum
+
+  // DICOM metadata
+  dicomMetadata   Json?            // Full DICOM header
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId])
+  @@index([seriesId])
+  @@map("images")
+}
+
+model RadReport {
+  id              String           @id @default(cuid())
+  reportNumber    String           @unique // Auto-generated: RAD-YYYY-NNNN
+  studyId         String           // Link to study
+  study           Study            @relation(fields: [studyId], references: [id])
+  orderId         String?          // Link to imaging order
+  order           ImagingOrder?    @relation(fields: [orderId], references: [id])
+
+  // Report content
+  reportType      String           // e.g., "Final", "Preliminary", "Addendum"
+  status          ReportStatus     @default(DRAFT)
+
+  // Structured findings (JSON)
+  findings        Json?            // Structured findings (BI-RADS, Lung-RADS, etc.)
+
+  // Free text sections
+  clinicalHistory String?
+  comparison      String?          // Comparison with previous studies
+  technique       String?          // Imaging technique used
+  findingsText    String?          // Narrative findings
+  impression      String?          // Clinical impression
+  recommendations String?          // Recommendations
+  conclusion      String?          // Conclusion
+
+  // Structured reporting
+  biRadsScore     BIRADS?          // BI-RADS score for mammography
+  lungRadsScore   LungRADS?        // Lung-RADS score for chest CT
+  otherScores     Json?            // Other structured scores
+
+  // Workflow
+  dictatedBy      String?          // User who dictated report
+  dictatingUser   User?            @relation("DictatedReports", fields: [dictatedBy], references: [id])
+  dictatedAt      DateTime?
+
+  primaryReadBy   String?          // Primary radiologist
+  primaryReader   User?            @relation("PrimaryReadReports", fields: [primaryReadBy], references: [id])
+  primaryReadAt   DateTime?
+
+  secondReadBy    String?          // Second opinion radiologist
+  secondReader    User?            @relation("SecondReadReports", fields: [secondReadBy], references: [id])
+  secondReadAt    DateTime?
+
+  signedBy        String?          // Final signing radiologist
+  signingUser     User?            @relation("SignedReports", fields: [signedBy], references: [id])
+  signedAt        DateTime?
+
+  // Distribution
+  publishedAt     DateTime?
+  sharedWithPatient Boolean       @default(false)
+  sharedWithDoctor  Boolean       @default(false)
+  sharedAt        DateTime?
+
+  // Quality & compliance
+  turnaroundTime  Int?             // Minutes from study completion to report
+  isStat          Boolean          @default(false)
+  requiresSecondRead Boolean       @default(false)
+  peerReviewRequired Boolean       @default(false)
+  peerReviewedBy  String?
+  peerReviewedAt  DateTime?
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, status])
+  @@index([studyId])
+  @@index([signedAt])
+  @@map("rad_reports")
+}
+
+model RadiationDose {
+  id              String           @id @default(cuid())
+  patientId       String           // Link to patient
+  patient         Patient          @relation(fields: [patientId], references: [id])
+  orderId         String?          // Link to imaging order
+  order           ImagingOrder?    @relation(fields: [orderId], references: [id])
+  studyId         String?          // Link to study
+  study           Study?           @relation(fields: [studyId], references: [id])
+
+  // Dose information
+  modalityType    ModalityType
+  protocol        String?          // Protocol used
+  exposureFactors Json?            // Technical factors (kVp, mAs, etc.)
+
+  // Radiation metrics
+  dlp             Float?           // Dose Length Product (mGy*cm)
+  ctdiVol         Float?           // CT Dose Index Volume (mGy)
+  effectiveDose    Float?           // Effective dose (mSv)
+  organDoses      Json?            // Organ-specific doses
+
+  // Cumulative tracking
+  cumulativeDose  Float?           // Running total for patient
+  periodStart     DateTime?        // Period start for cumulative calculation
+  periodEnd       DateTime?        // Period end for cumulative calculation
+
+  // Safety
+  isRepeat        Boolean          @default(false)
+  repeatReason    String?          // Reason for repeat if applicable
+  pregnancyRiskAssessed Boolean     @default(false)
+  riskAssessment  String?
+
+  recordedBy      String           // User who recorded
+  recordingUser   User             @relation("RecordedDoses", fields: [recordedBy], references: [id])
+  recordedAt      DateTime         @default(now())
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, patientId])
+  @@index([patientId, recordedAt])
+  @@map("radiation_doses")
+}
+
+model ModalityWorklist {
+  id              String           @id @default(cuid())
+  studyId         String           // Link to study
+  study           Study            @relation(fields: [studyId], references: [id])
+  modalityId      String           // Assigned modality
+  modality        Modality         @relation(fields: [modalityId], references: [id])
+
+  // Worklist details
+  patientName     String           // Patient name for MWL
+  patientId       String           // Patient ID for MWL
+  accessionNumber String?          // Accession number
+  studyInstanceUID String          // Study UID
+
+  // MWL status
+  status          MWLStatus        @default(SCHEDULED)
+  sentToModalityAt DateTime?
+  receivedFromModalityAt DateTime?
+  errorMessage    String?
+
+  // DICOM MWL data
+  worklistData    Json?            // Full MWL entry as JSON
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, status])
+  @@index([modalityId])
+  @@map("modality_worklist")
+}
+
+model ReportTemplate {
+  id              String           @id @default(cuid())
+  name            String           // Template name
+  description     String?
+  modalityType    ModalityType
+  templateType    String           // e.g., "Structured", "Free Text", "Mixed"
+
+  // Template content
+  sections        Json             // Template sections as JSON
+  defaultFindings Json?            // Default structured findings
+
+  // BI-RADS/Lung-RADS settings
+  requiresBiRads  Boolean          @default(false)
+  requiresLungRads Boolean         @default(false)
+  requiredFields  String[]         // Required fields for completion
+
+  // Workflow
+  isActive        Boolean          @default(true)
+  isDefault       Boolean          @default(false)
+  createdBy       String
+  creatingUser    User             @relation("CreatedTemplates", fields: [createdBy], references: [id])
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, modalityType, isActive])
+  @@map("report_templates")
+}
+
+model ContrastAllergy {
+  id              String           @id @default(cuid())
+  patientId       String           // Link to patient
+  patient         Patient          @relation(fields: [patientId], references: [id])
+
+  // Allergy details
+  contrastType    ContrastType
+  agentName       String           // Specific contrast agent
+  reactionType    String           // Type of reaction (mild/moderate/severe)
+  severity        String           // Severity level
+  symptoms        String[]         // Symptoms experienced
+  treatment       String?          // Treatment given
+
+  // Clinical details
+  occurredAt      DateTime?        // When the reaction occurred
+  facility        String?          // Where it occurred
+  notes           String?          // Additional notes
+
+  // Safety protocols
+  premedicationRequired Boolean    @default(false)
+  premedicationProtocol String?    // Required premedication
+  alternativeContrast String?      // Alternative contrast options
+  requiresAlert   Boolean          @default(true)
+
+  recordedBy      String           // User who recorded
+  recordingUser   User             @relation("RecordedAllergies", fields: [recordedBy], references: [id])
+  recordedAt      DateTime         @default(now())
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, patientId])
+  @@index([patientId, requiresAlert])
+  @@map("contrast_allergies")
+}
+
+model ImagingSchedule {
+  id              String           @id @default(cuid())
+  modalityId      String           // Modality being scheduled
+  modality        Modality         @relation(fields: [modalityId], references: [id])
+
+  // Schedule details
+  scheduleDate    DateTime         // Date of schedule
+  startTime       DateTime         // Start time
+  endTime         DateTime         // End time
+  slotDuration    Int              @default(30) // Duration in minutes
+
+  // Slot configuration
+  isActive        Boolean          @default(true)
+  isBlocked       Boolean          @default(false)
+  blockReason     String?
+  maxAppointments Int              @default(1)
+
+  // Recurring schedule
+  isRecurring     Boolean          @default(false)
+  recurrencePattern Json?          // Recurrence pattern
+  recurrenceEndDate DateTime?
+
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([tenantId, modalityId, scheduleDate])
+  @@map("imaging_schedules")
+}

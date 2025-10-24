@@ -1,0 +1,1634 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id           String        @id @default(cuid())
+  name         String
+  code         String?       @unique
+  description  String?
+  isActive     Boolean       @default(true)
+  tenantId     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  staff        Staff[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Specialty {
+  id          String   @id @default(cuid())
+  name        String
+  code        String?  @unique
+  description String?
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Staff {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  employeeId    String?     @unique
+  designation   String?
+  departmentId  String?
+  joiningDate   DateTime?
+  qualification String?
+  experience    String?
+  isActive      Boolean     @default(true)
+  tenantId      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  department    Department? @relation(fields: [departmentId], references: [id])
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+  user          User        @relation("UserStaff", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([employeeId])
+  @@index([departmentId])
+  @@index([isActive])
+}
+
+model Tenant {
+  id                        String                     @id @default(cuid())
+  name                      String
+  slug                      String                     @unique
+  type                      TenantType                 @default(HOSPITAL)
+  address                   String?
+  phone                     String?
+  email                     String?
+  logo                      String?
+  deletedAt                 DateTime?
+  isActive                  Boolean                    @default(true)
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  appointments              Appointment[]
+  auditLogs                 AuditLog[]
+  beds                      Bed[]
+  departments               Department[]
+  emergencyCases            EmergencyCase[]
+  insuranceClaims           InsuranceClaim[]
+  inventoryItems            InventoryItem[]
+  invoices                  Invoice[]
+  invoiceItems              InvoiceItem[]
+  labOrders                 LabOrder[]
+  labOrderTests             LabOrderTest[]
+  labTests                  LabTest[]
+  medicalRecords            MedicalRecord[]
+  medications               Medication[]
+  messages                  Message[]
+  notifications             Notification[]
+  operationTheaters         OperationTheater[]
+  payments                  Payment[]
+  pharmacyOrders            PharmacyOrder[]
+  pharmacyOrderItems        PharmacyOrderItem[]
+  prescriptions             Prescription[]
+  prescriptionItems         PrescriptionItem[]
+  radReports                RadReport[]
+  radiologyOrders           RadiologyOrder[]
+  refreshTokens             RefreshToken[]
+  reportTemplates           ReportTemplate[]
+  specialties               Specialty[]
+  staff                     Staff[]
+  studies                   Study[]
+  surgeries                 Surgery[]
+  telemedicineConsultations TelemedicineConsultation[]
+  users                     User[]
+  videoMessages             VideoMessage[]
+  videoParticipants         VideoParticipant[]
+  videoRecordings           VideoRecording[]
+  videoRooms                VideoRoom[]
+  wards                     Ward[]
+  patients                  Patient[]
+
+  @@index([slug])
+}
+
+model User {
+  id                    String                     @id @default(cuid())
+  email                 String                     @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  role                  Role
+  roleId                String?                    // RBAC role assignment
+  specialization        String?
+  experience            Int?                       @default(0)
+  licenseNumber         String?
+  signature             String?
+  isActive              Boolean                    @default(true)
+  lastLoginAt           DateTime?
+  deletedAt             DateTime?
+  tenantId              String
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  doctorAppointments    Appointment[]              @relation("DoctorAppointments")
+  auditLogs             AuditLog[]
+  doctorLabOrders       LabOrder[]                 @relation("DoctorLabOrders")
+  createdMedicalRecords MedicalRecord[]            @relation("DoctorMedicalRecords")
+  updatedMedicalRecords MedicalRecord[]            @relation("DoctorUpdatedMedicalRecords")
+  doctorPrescriptions   PharmacyOrder[]            @relation("DoctorPrescriptions")
+  prescriptions         Prescription[]             @relation("DoctorPrescriptions")
+  doctorRadiologyOrders RadiologyOrder[]           @relation("DoctorRadiologyOrders")
+  refreshTokens         RefreshToken[]
+  staff                 Staff?                     @relation("UserStaff")
+  doctorTelemedicine    TelemedicineConsultation[] @relation("DoctorTelemedicine")
+  tenant                Tenant                     @relation(fields: [tenantId], references: [id])
+  tenantRole            TenantRole?                @relation("UserRoleVirtual", fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([role])
+  @@index([tenantId])
+  @@index([roleId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  jti       String   @unique
+  token     String
+  userId    String
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Patient {
+  id                        String                     @id @default(cuid())
+  medicalRecordNumber       String                     @unique
+  registrationNumber        String?                    @unique
+  externalId                String?                    @unique
+  firstName                 String
+  middleName                String?
+  lastName                  String
+  dateOfBirth               DateTime?
+  gender                    Gender?
+  bloodType                 BloodType?
+  maritalStatus             MaritalStatus?
+  email                     String?                    @unique
+  phone                     String?
+  address                   String?
+  city                      String?
+  state                     String?
+  country                   String?                    @default("India")
+  pincode                   String?
+  phoneVerified             Boolean                    @default(false)
+  emailVerified             Boolean                    @default(false)
+  allergies                 Json?
+  chronicConditions         Json?
+  currentMedications        Json?
+  knownAllergies            Json?
+  familyHistory             Json?
+  insuranceProvider         String?
+  insuranceId               String?
+  insuranceGroup            String?
+  insuranceValidUntil       DateTime?
+  insuranceType             InsuranceType?
+  tenantId                  String
+  createdBy                 String?
+  updatedBy                 String?
+  isActive                  Boolean                    @default(true)
+  isVerified                Boolean                    @default(false)
+  lastLoginAt               DateTime?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  deletedAt                 DateTime?
+  aadharNumber              String?                    @unique
+  appointments              Appointment[]
+  emergencyCases            EmergencyCase[]
+  insuranceClaims           InsuranceClaim[]
+  invoices                  Invoice[]
+  labOrders                 LabOrder[]
+  medicalRecords            MedicalRecord[]
+  pharmacyOrders            PharmacyOrder[]
+  prescriptions             Prescription[]
+  prescriptionItems         PrescriptionItem[]
+  radiologyOrders           RadiologyOrder[]
+  studies                   Study[]
+  surgeries                 Surgery[]
+  telemedicineConsultations TelemedicineConsultation[]
+  tenant                    Tenant                     @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([phone])
+  @@index([isActive])
+  @@index([lastName, firstName])
+  @@index([createdAt])
+  @@map("patients")
+}
+
+model Appointment {
+  id           String            @id @default(cuid())
+  patientId    String
+  doctorId     String
+  departmentId String?
+  startTime    DateTime
+  endTime      DateTime
+  status       AppointmentStatus
+  reason       String?
+  notes        String?
+  tenantId     String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  department   Department?       @relation(fields: [departmentId], references: [id])
+  doctor       User              @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  patient      Patient           @relation(fields: [patientId], references: [id])
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
+}
+
+model Prescription {
+  id                String             @id @default(cuid())
+  patientId         String
+  doctorId          String
+  diagnosis         String?
+  notes             String?
+  status            PrescriptionStatus @default(ACTIVE)
+  tenantId          String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  doctor            User               @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+  patient           Patient            @relation(fields: [patientId], references: [id])
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  prescriptionItems PrescriptionItem[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PrescriptionItem {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  medicationId   String
+  patientId      String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+  isDispensed    Boolean      @default(false)
+  tenantId       String
+  medication     Medication   @relation(fields: [medicationId], references: [id])
+  patient        Patient      @relation(fields: [patientId], references: [id])
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
+
+  @@index([prescriptionId])
+  @@index([medicationId])
+  @@index([isDispensed])
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  patientId   String
+  recordType  String
+  title       String
+  description String?
+  date        DateTime @default(now())
+  doctorId    String?
+  updatedById String?
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  doctor      User?    @relation("DoctorMedicalRecords", fields: [doctorId], references: [id])
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  updatedBy   User?    @relation("DoctorUpdatedMedicalRecords", fields: [updatedById], references: [id])
+
+  @@index([patientId])
+  @@index([recordType])
+  @@index([date])
+}
+
+model Invoice {
+  id             String         @id @default(cuid())
+  invoiceNumber  String         @unique
+  patientId      String
+  date           DateTime       @default(now())
+  dueDate        DateTime
+  status         InvoiceStatus  @default(PENDING)
+  subTotal       Float          @default(0)
+  taxAmount      Float          @default(0)
+  discountAmount Float          @default(0)
+  totalAmount    Float          @default(0)
+  notes          String?
+  tenantId       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  patient        Patient        @relation(fields: [patientId], references: [id])
+  tenant         Tenant         @relation(fields: [tenantId], references: [id])
+  items          InvoiceItem[]
+  payments       Payment[]
+  pharmacyOrders PharmacyOrder?
+
+  @@index([patientId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([date])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  itemType    String
+  itemId      String
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Float
+  discount    Float   @default(0)
+  taxRate     Float   @default(0)
+  totalAmount Float
+  tenantId    String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  tenant      Tenant  @relation(fields: [tenantId], references: [id])
+
+  @@index([invoiceId])
+  @@index([itemType, itemId])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  paymentNumber   String        @unique
+  invoiceId       String
+  amount          Float
+  paymentDate     DateTime      @default(now())
+  paymentMethod   PaymentMethod
+  referenceNumber String?
+  notes           String?
+  status          PaymentStatus @default(COMPLETED)
+  tenantId        String
+  createdBy       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+  @@index([status])
+}
+
+model LabTest {
+  id          String         @id @default(cuid())
+  name        String
+  code        String         @unique
+  description String?
+  category    String
+  price       Float?
+  isActive    Boolean        @default(true)
+  tenantId    String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  labOrders   LabOrderTest[]
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+
+  @@index([code])
+  @@index([category])
+  @@index([isActive])
+}
+
+model LabOrder {
+  id             String                    @id @default(cuid())
+  orderNumber    String                    @unique
+  patientId      String
+  doctorId       String?
+  status         LabOrderStatus            @default(PENDING)
+  orderDate      DateTime                  @default(now())
+  completedDate  DateTime?
+  notes          String?
+  tenantId       String
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  consultationId String?
+  consultation   TelemedicineConsultation? @relation(fields: [consultationId], references: [id])
+  doctor         User?                     @relation("DoctorLabOrders", fields: [doctorId], references: [id])
+  patient        Patient                   @relation(fields: [patientId], references: [id])
+  tenant         Tenant                    @relation(fields: [tenantId], references: [id])
+  tests          LabOrderTest[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model LabOrderTest {
+  id             String        @id @default(cuid())
+  orderId        String
+  testId         String
+  status         LabTestStatus @default(PENDING)
+  result         String?
+  resultDate     DateTime?
+  referenceRange String?
+  notes          String?
+  tenantId       String
+  order          LabOrder      @relation(fields: [orderId], references: [id])
+  tenant         Tenant        @relation(fields: [tenantId], references: [id])
+  test           LabTest       @relation(fields: [testId], references: [id])
+
+  @@index([orderId])
+  @@index([testId])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model Medication {
+  id                 String              @id @default(cuid())
+  name               String
+  genericName        String?
+  description        String?
+  strength           String?
+  unit               String?
+  dosageForm         String?
+  route              String?
+  schedule           Json?
+  isActive           Boolean             @default(true)
+  tenantId           String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  tenant             Tenant              @relation(fields: [tenantId], references: [id])
+  pharmacyOrderItems PharmacyOrderItem[]
+  prescriptionItems  PrescriptionItem[]
+
+  @@index([name])
+  @@index([genericName])
+  @@index([isActive])
+}
+
+model PharmacyOrder {
+  id            String              @id @default(cuid())
+  orderNumber   String              @unique
+  patientId     String
+  doctorId      String?
+  status        PharmacyOrderStatus @default(PENDING)
+  orderDate     DateTime            @default(now())
+  dispensedDate DateTime?
+  notes         String?
+  tenantId      String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  invoiceId     String?             @unique
+  createdBy     String?
+  updatedBy     String?
+  doctor        User?               @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+  invoice       Invoice?            @relation(fields: [invoiceId], references: [id])
+  patient       Patient             @relation(fields: [patientId], references: [id])
+  tenant        Tenant              @relation(fields: [tenantId], references: [id])
+  items         PharmacyOrderItem[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model PharmacyOrderItem {
+  id           String             @id @default(cuid())
+  orderId      String
+  medicationId String
+  quantity     Int                @default(1)
+  dosage       String?
+  frequency    String?
+  duration     String?
+  instructions String?
+  status       PharmacyItemStatus @default(PENDING)
+  tenantId     String
+  medication   Medication         @relation(fields: [medicationId], references: [id])
+  order        PharmacyOrder      @relation(fields: [orderId], references: [id])
+  tenant       Tenant             @relation(fields: [tenantId], references: [id])
+
+  @@index([orderId])
+  @@index([medicationId])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String?
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  tenantId   String
+  createdAt  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Modality {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  description     String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  radiologyOrders RadiologyOrder[]
+  studies         Study[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Study {
+  id              String           @id @default(cuid())
+  studyId         String           @unique
+  patientId       String
+  patientName     String
+  modalityId      String
+  status          StudyStatus      @default(SCHEDULED)
+  studyDate       DateTime         @default(now())
+  priority        Priority?        @default(ROUTINE)
+  description     String?
+  notes           String?
+  isActive        Boolean          @default(true)
+  tenantId        String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  radReports      RadReport[]
+  radiationDoses  RadiationDose[]
+  radiologyOrders RadiologyOrder[]
+  series          Series[]
+  modality        Modality         @relation(fields: [modalityId], references: [id])
+  patient         Patient          @relation(fields: [patientId], references: [id])
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+
+  @@index([studyId])
+  @@index([patientId])
+  @@index([modalityId])
+  @@index([studyDate])
+  @@index([status])
+  @@index([isActive])
+}
+
+model Series {
+  id          String   @id @default(cuid())
+  seriesUid   String   @unique
+  studyId     String
+  number      Int
+  description String?
+  modality    String
+  bodyPart    String?
+  count       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  images      Image[]
+  study       Study    @relation(fields: [studyId], references: [id])
+
+  @@index([seriesUid])
+  @@index([studyId])
+  @@index([modality])
+  @@index([isActive])
+}
+
+model Image {
+  id             String   @id @default(cuid())
+  sopInstanceUid String   @unique
+  seriesId       String
+  number         Int
+  path           String
+  size           Int
+  contentType    String
+  width          Int
+  height         Int
+  windowCenter   Float?
+  windowWidth    Float?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  series         Series   @relation(fields: [seriesId], references: [id])
+
+  @@index([sopInstanceUid])
+  @@index([seriesId])
+  @@index([isActive])
+}
+
+model RadReport {
+  id               String          @id @default(cuid())
+  reportId         String          @unique
+  studyId          String
+  reportTemplateId String?
+  status           ReportStatus    @default(DRAFT)
+  findings         String?
+  impression       String?
+  conclusion       String?
+  reportDateTime   DateTime        @default(now())
+  verifiedBy       String?
+  verifiedAt       DateTime?
+  isActive         Boolean         @default(true)
+  tenantId         String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  reportTemplate   ReportTemplate? @relation(fields: [reportTemplateId], references: [id])
+  study            Study           @relation(fields: [studyId], references: [id])
+  tenant           Tenant          @relation(fields: [tenantId], references: [id])
+
+  @@index([reportId])
+  @@index([studyId])
+  @@index([status])
+  @@index([isActive])
+}
+
+model RadiationDose {
+  id                String   @id @default(cuid())
+  studyId           String
+  deviceName        String?
+  deviceType        String?
+  exposureTime      Float?
+  kvp               Float?
+  ma                Float?
+  doseAreaProduct   Float?
+  doseLengthProduct Float?
+  ctdiVol           Float?
+  dlp               Float?
+  effectiveDose     Float?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  study             Study    @relation(fields: [studyId], references: [id])
+
+  @@index([studyId])
+  @@index([isActive])
+}
+
+model ReportTemplate {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  template    String
+  isActive    Boolean     @default(true)
+  tenantId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  radReports  RadReport[]
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model TelemedicineConsultation {
+  id               String             @id @default(cuid())
+  patientId        String
+  doctorId         String?
+  status           TelemedicineStatus @default(SCHEDULED)
+  scheduledAt      DateTime
+  startedAt        DateTime?
+  endedAt          DateTime?
+  duration         Int?
+  consultationType ConsultationType   @default(VIDEO)
+  reason           String?
+  notes            String?
+  prescription     String?
+  followUpRequired Boolean            @default(false)
+  followUpDate     DateTime?
+  isEmergency      Boolean            @default(false)
+  isActive         Boolean            @default(true)
+  tenantId         String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  labOrders        LabOrder[]
+  radiologyOrders  RadiologyOrder[]
+  doctor           User?              @relation("DoctorTelemedicine", fields: [doctorId], references: [id])
+  patient          Patient            @relation(fields: [patientId], references: [id])
+  tenant           Tenant             @relation(fields: [tenantId], references: [id])
+  videoRoom        VideoRoom?
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([isEmergency])
+}
+
+model VideoRoom {
+  id               String                   @id @default(cuid())
+  consultationId   String                   @unique
+  roomId           String                   @unique
+  status           VideoRoomStatus          @default(WAITING)
+  startedAt        DateTime?
+  endedAt          DateTime?
+  maxParticipants  Int                      @default(2)
+  recordingEnabled Boolean                  @default(false)
+  recordingUrl     String?
+  isActive         Boolean                  @default(true)
+  tenantId         String
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  participants     VideoParticipant[]
+  recordings       VideoRecording[]
+  consultation     TelemedicineConsultation @relation(fields: [consultationId], references: [id])
+  tenant           Tenant                   @relation(fields: [tenantId], references: [id])
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model VideoParticipant {
+  id              String          @id @default(cuid())
+  roomId          String
+  userId          String
+  participantType ParticipantType
+  joinedAt        DateTime?
+  leftAt          DateTime?
+  isActive        Boolean         @default(true)
+  tenantId        String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  room            VideoRoom       @relation(fields: [roomId], references: [id])
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+}
+
+model VideoRecording {
+  id        String          @id @default(cuid())
+  roomId    String
+  fileName  String
+  filePath  String
+  fileSize  Int
+  duration  Int?
+  status    RecordingStatus @default(PROCESSING)
+  isActive  Boolean         @default(true)
+  tenantId  String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  room      VideoRoom       @relation(fields: [roomId], references: [id])
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model VideoMessage {
+  id          String      @id @default(cuid())
+  roomId      String
+  senderId    String
+  message     String
+  messageType MessageType @default(TEXT)
+  isActive    Boolean     @default(true)
+  tenantId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@index([roomId])
+  @@index([senderId])
+}
+
+model RadiologyOrder {
+  id              String                   @id @default(cuid())
+  consultationId  String
+  patientId       String
+  doctorId        String
+  modalityId      String
+  studyType       String
+  priority        Priority                 @default(ROUTINE)
+  reason          String?
+  clinicalHistory String?
+  status          RadiologyOrderStatus     @default(ORDERED)
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  isActive        Boolean                  @default(true)
+  tenantId        String
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  studyId         String?
+  consultation    TelemedicineConsultation @relation(fields: [consultationId], references: [id])
+  doctor          User                     @relation("DoctorRadiologyOrders", fields: [doctorId], references: [id])
+  modality        Modality                 @relation(fields: [modalityId], references: [id])
+  patient         Patient                  @relation(fields: [patientId], references: [id])
+  study           Study?                   @relation(fields: [studyId], references: [id])
+  tenant          Tenant                   @relation(fields: [tenantId], references: [id])
+
+  @@index([consultationId])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+}
+
+model Ward {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  capacity    Int
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  beds        Bed[]
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Bed {
+  id        String    @id @default(cuid())
+  bedNumber String
+  wardId    String
+  status    BedStatus @default(AVAILABLE)
+  isActive  Boolean   @default(true)
+  tenantId  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  ward      Ward      @relation(fields: [wardId], references: [id])
+
+  @@index([bedNumber])
+  @@index([wardId])
+  @@index([status])
+}
+
+model EmergencyCase {
+  id             String              @id @default(cuid())
+  patientId      String
+  triageLevel    TriageLevel
+  chiefComplaint String
+  vitalSigns     Json?
+  status         EmergencyCaseStatus @default(WAITING)
+  arrivalTime    DateTime            @default(now())
+  dischargeTime  DateTime?
+  notes          String?
+  isActive       Boolean             @default(true)
+  tenantId       String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  patient        Patient             @relation(fields: [patientId], references: [id])
+  tenant         Tenant              @relation(fields: [tenantId], references: [id])
+
+  @@index([patientId])
+  @@index([triageLevel])
+  @@index([status])
+}
+
+model Surgery {
+  id                 String            @id @default(cuid())
+  patientId          String
+  surgeryType        String
+  surgeon            String?
+  scheduledDate      DateTime
+  actualStartTime    DateTime?
+  actualEndTime      DateTime?
+  status             SurgeryStatus     @default(SCHEDULED)
+  operationTheaterId String?
+  notes              String?
+  complications      String?
+  isActive           Boolean           @default(true)
+  tenantId           String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  operationTheater   OperationTheater? @relation(fields: [operationTheaterId], references: [id])
+  patient            Patient           @relation(fields: [patientId], references: [id])
+  tenant             Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([patientId])
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+model OperationTheater {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  status      OTStatus  @default(AVAILABLE)
+  isActive    Boolean   @default(true)
+  tenantId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  surgeries   Surgery[]
+
+  @@index([name])
+  @@index([status])
+}
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String?
+  quantity    Int      @default(0)
+  minQuantity Int      @default(0)
+  unit        String?
+  price       Float?   @default(0)
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+}
+
+model InsuranceClaim {
+  id            String      @id @default(cuid())
+  patientId     String
+  claimNumber   String      @unique
+  provider      String
+  policyNumber  String?
+  amount        Float
+  claimedAmount Float?
+  status        ClaimStatus @default(SUBMITTED)
+  submittedAt   DateTime    @default(now())
+  approvedAt    DateTime?
+  paidAt        DateTime?
+  notes         String?
+  isActive      Boolean     @default(true)
+  tenantId      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@index([patientId])
+  @@index([claimNumber])
+  @@index([status])
+}
+
+model Message {
+  id          String          @id @default(cuid())
+  senderId    String
+  recipientId String
+  subject     String?
+  body        String
+  read        Boolean         @default(false)
+  priority    MessagePriority @default(NORMAL)
+  tenantId    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  tenant      Tenant          @relation(fields: [tenantId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([read])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  actionUrl String?
+  tenantId  String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  tenant    Tenant           @relation(fields: [tenantId], references: [id])
+
+  @@index([userId])
+  @@index([read])
+  @@index([type])
+}
+
+model audit_logs {
+  id              String                      @id(map: "PK_1bb179d048bbc581caa3b013439") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at      DateTime                    @default(now()) @db.Timestamp(6)
+  updated_at      DateTime                    @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?                   @db.Timestamp(6)
+  created_by      String?                     @db.VarChar
+  updated_by      String?                     @db.VarChar
+  deleted_by      String?                     @db.VarChar
+  tenant_id       String                      @db.Uuid
+  user_id         String                      @db.Uuid
+  user_email      String                      @db.VarChar(255)
+  user_role       String                      @db.VarChar(100)
+  action          audit_logs_action_enum
+  entity_type     audit_logs_entity_type_enum
+  entity_id       String?                     @db.VarChar(255)
+  description     String?
+  method          String?                     @db.VarChar(10)
+  endpoint        String?
+  status_code     Int?
+  ip_address      String?                     @db.VarChar(100)
+  user_agent      String?
+  device          String?                     @db.VarChar(100)
+  browser         String?                     @db.VarChar(100)
+  location        String?                     @db.VarChar(100)
+  old_values      Json?
+  new_values      Json?
+  metadata        Json?
+  is_sensitive    Boolean                     @default(false)
+  is_suspicious   Boolean                     @default(false)
+  requires_review Boolean                     @default(false)
+  duration_ms     Int?
+
+  @@index([user_id, created_at], map: "IDX_2f68e345c05e8166ff9deea1ab")
+  @@index([tenant_id], map: "IDX_6f18d459490bb48923b1f40bdb")
+  @@index([entity_type, entity_id], map: "IDX_7421efc125d95e413657efa3c6")
+  @@index([tenant_id, created_at], map: "IDX_898d14750b88319b89b1ab66cd")
+  @@index([ip_address], map: "IDX_8e5e23ee6fccba37f99df331d1")
+  @@index([user_id], map: "IDX_bd2726fd31b35443f2245b93ba")
+  @@index([action], map: "IDX_cee5459245f652b75eb2759b4c")
+  @@index([entity_type], map: "IDX_ea9ba3dfb39050f831ee3be40d")
+}
+
+model migrations {
+  id        Int    @id(map: "PK_8c82d7f526340ab734260ea46be") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model tenants {
+  id                      String                         @id(map: "PK_53be67a04681c66b87ee27c9321") @default(cuid())
+  created_at              DateTime                       @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                       @default(now()) @db.Timestamp(6)
+  deleted_at              DateTime?                      @db.Timestamp(6)
+  created_by              String?                        @db.VarChar
+  updated_by              String?                        @db.VarChar
+  deleted_by              String?                        @db.VarChar
+  name                    String                         @unique(map: "UQ_32731f181236a46182a38c992a8") @db.VarChar(255)
+  slug                    String                         @unique(map: "UQ_2310ecc5cb8be427097154b18fc") @db.VarChar(100)
+  type                    tenants_type_enum              @default(clinic)
+  status                  tenants_status_enum            @default(pending)
+  subscription_plan       tenants_subscription_plan_enum @default(free)
+  subscription_start_date DateTime?                      @db.Timestamp(6)
+  subscription_end_date   DateTime?                      @db.Timestamp(6)
+  trial_ends_at           DateTime?                      @db.Timestamp(6)
+  email                   String?                        @db.VarChar(255)
+  phone                   String?                        @db.VarChar(50)
+  website                 String?                        @db.VarChar(255)
+  address_line1           String?
+  address_line2           String?
+  city                    String?                        @db.VarChar(100)
+  state                   String?                        @db.VarChar(100)
+  postal_code             String?                        @db.VarChar(20)
+  country                 String?                        @db.VarChar(100)
+  license_number          String?                        @db.VarChar(255)
+  registration_number     String?                        @db.VarChar(255)
+  tax_id                  String?                        @db.VarChar(100)
+  settings                Json?
+  logo_url                String?                        @db.VarChar(500)
+  primary_color           String?                        @db.VarChar(7)
+  secondary_color         String?                        @db.VarChar(7)
+  billing_email           String?                        @db.VarChar(255)
+  stripe_customer_id      String?                        @db.VarChar(255)
+  stripe_subscription_id  String?                        @db.VarChar(255)
+  metadata                Json?
+  users                   users[]
+  tenantRoles             TenantRole[]                   @relation("TenantRoles")
+  subscriptions           Subscription[]                 @relation("TenantSubscriptions")
+
+  @@index([slug], map: "IDX_2310ecc5cb8be427097154b18f")
+  @@index([name], map: "IDX_32731f181236a46182a38c992a")
+}
+
+model users {
+  id                         String          @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at                 DateTime        @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime        @default(now()) @db.Timestamp(6)
+  deleted_at                 DateTime?       @db.Timestamp(6)
+  created_by                 String?         @db.VarChar
+  updated_by                 String?         @db.VarChar
+  deleted_by                 String?         @db.VarChar
+  tenant_id                  String
+  email                      String          @db.VarChar(255)
+  phone                      String?         @db.VarChar(255)
+  passwordHash               String          @map("password_hash") @db.VarChar(255)
+  firstName                  String          @map("first_name") @db.VarChar(100)
+  lastName                   String          @map("last_name") @db.VarChar(100)
+  middleName                 String?         @map("middle_name") @db.VarChar(100)
+  role                       users_role_enum @default(PATIENT)
+  roleId                     String?         @map("role_id") // RBAC role assignment
+  customPermissions          String?         @map("custom_permissions")
+  isActive                   Boolean         @default(true) @map("is_active")
+  isEmailVerified            Boolean         @default(false) @map("is_email_verified")
+  isPhoneVerified            Boolean         @default(false) @map("is_phone_verified")
+  is2faEnabled               Boolean         @default(false) @map("is_2fa_enabled")
+  twoFaSecret                String?         @map("two_fa_secret") @db.VarChar(255)
+  lastLoginAt                DateTime?       @map("last_login_at") @db.Timestamp(6)
+  lastLoginIp                String?         @map("last_login_ip") @db.VarChar(100)
+  failedLoginAttempts        Int             @default(0) @map("failed_login_attempts")
+  lockedUntil                DateTime?       @map("locked_until") @db.Timestamp(6)
+  resetPasswordToken         String?         @map("reset_password_token") @db.VarChar(255)
+  resetPasswordExpires       DateTime?       @map("reset_password_expires") @db.Timestamp(6)
+  emailVerificationToken     String?         @map("email_verification_token") @db.VarChar(255)
+  emailVerificationExpires   DateTime?       @map("email_verification_expires") @db.Timestamp(6)
+  metadata                   Json?
+  tenants                    tenants         @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_109638590074998bb72a2f2cf08")
+  tenantRole                 TenantRole?     @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@unique([email, tenant_id], map: "IDX_e9f4c2efab52114c4e99e28efb")
+  @@index([tenant_id], map: "IDX_109638590074998bb72a2f2cf0")
+  @@index([email], map: "IDX_97672ac88f789774dd47f7c8be")
+  @@index([roleId])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  NURSE
+  LAB_TECHNICIAN
+  RADIOLOGIST
+  PHARMACIST
+  RECEPTIONIST
+  ACCOUNTANT
+  PATIENT
+  USER
+  HOSPITAL_ADMIN
+}
+
+enum TenantType {
+  HOSPITAL
+  CLINIC
+  LAB
+  PHARMACY
+  CHAMBER
+  MULTI_SPECIALTY
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  SEPARATED
+  DOMESTIC_PARTNERSHIP
+  UNKNOWN
+}
+
+enum BloodType {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+  UNKNOWN
+}
+
+enum LabOrderStatus {
+  DRAFT
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum LabTestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum RegistrationType {
+  WALK_IN
+  ONLINE
+  TRANSFER
+  OTHER
+}
+
+enum InsuranceType {
+  PRIVATE_INSURANCE
+  GOVERNMENT_INSURANCE
+  CORPORATE_INSURANCE
+  FAMILY_INSURANCE
+  INDIVIDUAL_INSURANCE
+  MEDICARE
+  MEDICAID
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+enum PrescriptionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  UPI
+  NET_BANKING
+  CHEQUE
+  BANK_TRANSFER
+  WALLET
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PharmacyOrderStatus {
+  PENDING
+  DISPENSED
+  PARTIALLY_DISPENSED
+  CANCELLED
+  COMPLETED
+}
+
+enum PharmacyItemStatus {
+  PENDING
+  DISPENSED
+  OUT_OF_STOCK
+  CANCELLED
+}
+
+enum StudyStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DELETED
+}
+
+enum ReportStatus {
+  DRAFT
+  PRELIMINARY
+  FINAL
+  AMENDED
+  CANCELLED
+}
+
+enum Priority {
+  STAT
+  HIGH
+  ROUTINE
+  LOW
+}
+
+enum TelemedicineStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+enum ConsultationType {
+  VIDEO
+  AUDIO
+  CHAT
+  MIXED
+}
+
+enum VideoRoomStatus {
+  WAITING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum ParticipantType {
+  DOCTOR
+  PATIENT
+  OBSERVER
+  SUPPORT
+}
+
+enum RecordingStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum RadiologyOrderStatus {
+  ORDERED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BedStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+  BLOCKED
+}
+
+enum TriageLevel {
+  CRITICAL
+  URGENT
+  SEMI_URGENT
+  NON_URGENT
+}
+
+enum EmergencyCaseStatus {
+  WAITING
+  IN_TREATMENT
+  ADMITTED
+  DISCHARGED
+  TRANSFERRED
+}
+
+enum SurgeryStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum OTStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  BLOCKED
+}
+
+enum ClaimStatus {
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  PAID
+  APPEALED
+}
+
+enum MessagePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+  REMINDER
+}
+
+enum audit_logs_action_enum {
+  create
+  read
+  update
+  delete
+  login
+  logout
+  login_failed
+  password_change
+  password_reset
+  export
+  print
+  share
+  approve
+  reject
+  sign
+}
+
+enum audit_logs_entity_type_enum {
+  user
+  patient
+  appointment
+  medical_record
+  prescription
+  lab_order
+  lab_result
+  billing
+  invoice
+  payment
+  inventory
+  medication
+  tenant
+  setting
+}
+
+enum tenants_status_enum {
+  active
+  inactive
+  suspended
+  trial
+  pending
+}
+
+enum tenants_subscription_plan_enum {
+  free
+  basic
+  professional
+  enterprise
+}
+
+enum tenants_type_enum {
+  hospital
+  clinic
+  diagnostic_center
+  pharmacy
+  laboratory
+}
+
+enum users_role_enum {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  HOSPITAL_ADMIN
+  DOCTOR
+  SPECIALIST
+  RESIDENT
+  NURSE
+  LAB_TECHNICIAN
+  RADIOLOGIST
+  PHARMACIST
+  RECEPTIONIST
+  ACCOUNTANT
+  HR_MANAGER
+  INVENTORY_MANAGER
+  VENDOR
+  INSURANCE_PROVIDER
+  PATIENT
+  USER
+}
+
+// ============================================
+// RBAC (ROLE-BASED ACCESS CONTROL) MODELS
+// ============================================
+
+model TenantRole {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  isSystem    Boolean  @default(false) @map("is_system") // System roles cannot be deleted
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant            tenants          @relation("TenantRoles", fields: [tenantId], references: [id], onDelete: Cascade)
+  users             users[]          @relation("UserRole")
+  virtualUsers      User[]           @relation("UserRoleVirtual")
+  rolePermissions   RolePermission[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([name])
+  @@index([isActive])
+  @@map("tenant_roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "patient.view", "billing.create"
+  description String?
+  category    String?  // e.g., "patient", "billing", "pharmacy"
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  role       TenantRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// SUBSCRIPTION MODELS
+// ============================================
+
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  interval    String   // 'monthly' or 'yearly'
+  features    Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  subscriptions Subscription[]
+  
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  tenantId             String             @map("tenant_id")
+  planId               String             @map("plan_id")
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime           @map("current_period_start")
+  currentPeriodEnd     DateTime           @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  stripeSubscriptionId String?            @map("stripe_subscription_id")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  
+  tenant tenants          @relation("TenantSubscriptions", fields: [tenantId], references: [id], onDelete: Cascade)
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+  
+  @@index([tenantId])
+  @@index([planId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  SUSPENDED
+  PAST_DUE
+  TRIALING
+}

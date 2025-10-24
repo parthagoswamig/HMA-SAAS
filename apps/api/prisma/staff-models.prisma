@@ -1,0 +1,244 @@
+// Staff Management Models
+
+// Staff model represents the staff members in the system
+model Staff {
+  id            String         @id @default(cuid())
+  tenantId      String
+  userId        String         @unique
+  user          User           @relation(fields: [userId], references: [id])
+  employeeId    String         @unique
+  type          StaffType
+  status        StaffStatus
+  departmentId  String?
+  department    Department?    @relation(fields: [departmentId], references: [id])
+  designation   String
+  joiningDate   DateTime
+  qualifications String[]
+  bio           String?
+  isActive      Boolean        @default(true)
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  
+  // Relations
+  roles         StaffRole[]
+  specialties   StaffSpecialty[]
+  
+  // Audit
+  createdBy     String?
+  updatedBy     String?
+  
+  @@index([tenantId])
+  @@index([employeeId])
+  @@index([departmentId])
+  @@index([type])
+  @@index([status])
+  @@index([isActive])
+}
+
+// Department model represents the organizational units
+model Department {
+  id                 String       @id @default(cuid())
+  tenantId           String
+  name               String
+  code               String?      @unique
+  description        String?
+  parentDepartmentId String?
+  parent             Department?  @relation("DepartmentToDepartment", fields: [parentDepartmentId], references: [id])
+  headStaffId        String?
+  headStaff          Staff?       @relation("DepartmentHead", fields: [headStaffId], references: [id])
+  isActive           Boolean      @default(true)
+  colorCode          String?
+  icon               String?
+  contactEmail       String?
+  contactPhone       String?
+  location           String?
+  deletedAt          DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  tenant             Tenant       @relation(fields: [tenantId], references: [id])
+  
+  // Relations
+  staff              Staff[]
+  children           Department[] @relation("DepartmentToDepartment")
+  
+  // Audit
+  createdBy          String?
+  updatedBy          String?
+  
+  @@index([tenantId])
+  @@index([parentDepartmentId])
+  @@index([headStaffId])
+  @@index([isActive])
+}
+
+// Role model for role-based access control
+model Role {
+  id          String      @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  isSystem    Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  
+  // Relations
+  permissions RolePermission[]
+  staff       StaffRole[]
+  
+  // Audit
+  createdBy   String?
+  updatedBy   String?
+  
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([isSystem])
+  @@index([isActive])
+}
+
+// Permission model for fine-grained access control
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  description String?
+  module      String
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relations
+  roles       RolePermission[]
+  
+  // Audit
+  createdBy   String?
+  updatedBy   String?
+  
+  @@index([module])
+  @@index([isActive])
+}
+
+// Role-Permission many-to-many relationship
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  createdAt    DateTime   @default(now())
+  
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+// Staff-Role many-to-many relationship
+model StaffRole {
+  staffId    String
+  staff      Staff    @relation(fields: [staffId], references: [id])
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id])
+  isPrimary  Boolean  @default(false)
+  assignedAt DateTime @default(now())
+  assignedBy String?
+  
+  @@id([staffId, roleId])
+  @@index([roleId])
+}
+
+// Specialty model for staff specialties
+model Specialty {
+  id                    String           @id @default(cuid())
+  tenantId              String
+  name                  String
+  code                  String?          @unique
+  description           String?
+  category              String?
+  isActive              Boolean          @default(true)
+  colorCode             String?
+  icon                  String?
+  displayOrder          Int              @default(0)
+  requiresCertification Boolean          @default(false)
+  minYearsExperience    Int              @default(0)
+  deletedAt             DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  tenant                Tenant           @relation(fields: [tenantId], references: [id])
+  
+  // Relations
+  staffSpecialties      StaffSpecialty[]
+  
+  // Audit
+  createdBy             String?
+  updatedBy             String?
+  
+  @@index([tenantId])
+  @@index([code])
+  @@index([category])
+  @@index([isActive])
+}
+
+// Staff-Specialty many-to-many relationship with additional attributes
+model StaffSpecialty {
+  id                   String      @id @default(cuid())
+  staffId              String
+  staff                Staff       @relation(fields: [staffId], references: [id])
+  specialtyId          String
+  specialty            Specialty   @relation(fields: [specialtyId], references: [id])
+  isPrimary            Boolean     @default(false)
+  experience           Int?        // Years of experience
+  notes                String?
+  startDate            DateTime?
+  certificationNumber  String?
+  certificationExpiryDate DateTime?
+  assignedAt           DateTime    @default(now())
+  assignedBy           String?
+  
+  @@index([staffId])
+  @@index([specialtyId])
+  @@index([isPrimary])
+}
+
+// Enums
+enum StaffType {
+  DOCTOR
+  NURSE
+  ADMINISTRATOR
+  RECEPTIONIST
+  LAB_TECHNICIAN
+  PHARMACIST
+  ACCOUNTANT
+  OTHER
+}
+
+enum StaffStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+  RETIRED
+  PROBATION
+}
+
+// Audit log for tracking changes to staff records
+model StaffAuditLog {
+  id          String      @id @default(cuid())
+  tenantId    String
+  staffId     String
+  staff       Staff       @relation(fields: [staffId], references: [id])
+  action      String      // CREATE, UPDATE, DELETE, STATUS_CHANGE, etc.
+  field       String?     // Field that was changed
+  oldValue    String?     // Old value (as JSON string)
+  newValue    String?     // New value (as JSON string)
+  performedBy String?     // User ID who performed the action
+  performedAt DateTime    @default(now())
+  ipAddress   String?
+  userAgent   String?
+  
+  @@index([tenantId])
+  @@index([staffId])
+  @@index([action])
+  @@index([performedAt])
+}

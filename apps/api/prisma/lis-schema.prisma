@@ -1,0 +1,322 @@
+// Laboratory Information System Models
+
+model LabTest {
+  id                String            @id @default(cuid())
+  name              String
+  code              String            @unique
+  description       String
+  category          TestCategory
+  department        String?
+  section           String?
+  price             Float?
+  tatHours          Int?
+  isActive          Boolean           @default(true)
+  requiresValidation Boolean          @default(false)
+  method            String?
+  unit              String?
+  sampleTypes       SampleType[]
+  containerTypes    ContainerType[]
+  status            TestStatus        @default(ACTIVE)
+
+  // Analyzer settings
+  analyzerSettings  Json?
+  qcSettings        Json?
+
+  // Relationships
+  referenceRanges   LabTestReferenceRange[]
+  orders            LabOrderTest[]
+  results           LabResult[]
+  panels            LabTestPanel[]
+
+  // Timestamps
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("lab_tests")
+}
+
+model LabTestReferenceRange {
+  id          String @id @default(cuid())
+  testId      String
+  ageGroup    String
+  gender      String
+  low         Float
+  high        Float
+  unit        String?
+  condition   String?
+
+  test        LabTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@map("lab_test_reference_ranges")
+}
+
+model LabPanel {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  category    TestCategory
+  isActive    Boolean @default(true)
+
+  tests       LabTestPanel[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lab_panels")
+}
+
+model LabTestPanel {
+  id      String @id @default(cuid())
+  testId  String
+  panelId String
+
+  test    LabTest  @relation(fields: [testId], references: [id], onDelete: Cascade)
+  panel   LabPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, panelId])
+  @@map("lab_test_panels")
+}
+
+model LabOrder {
+  id                String @id @default(cuid())
+  visitId           String
+  patientId         String
+  panelId           String?
+  testIds           String[]
+  priority          TestPriority @default(ROUTINE)
+  status            OrderStatus @default(ORDERED)
+  orderingPhysician String?
+  clinicalNotes     String?
+  requiredDateTime  DateTime?
+  isStat            Boolean @default(false)
+  diagnosis         String?
+  barcode           String? @unique
+
+  // Relationships
+  patient           Patient @relation(fields: [patientId], references: [id])
+  tests             LabTest[]
+  samples           LabSample[]
+  results           LabResult[]
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("lab_orders")
+}
+
+model LabSample {
+  id                String @id @default(cuid())
+  orderId           String
+  sampleType        SampleType
+  containerType     ContainerType
+  volume            Float?
+  collectionNotes   String?
+  collectedAt       DateTime?
+  stabilityExpiresAt DateTime?
+  status            SampleStatus @default(PENDING)
+  barcode           String? @unique
+
+  // Relationships
+  order             LabOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("lab_samples")
+}
+
+model LabResult {
+  id                String @id @default(cuid())
+  orderId           String
+  testId            String
+  analyte           String
+  value             Float?
+  textValue         String?
+  unit              String?
+  flag              ResultFlag @default(PENDING)
+  referenceLow      Float?
+  referenceHigh     Float?
+  instrument        String?
+  resultDateTime    DateTime?
+  notes             String?
+  method            String?
+  validationStatus  ValidationStatus @default(PENDING)
+
+  // Validation
+  validatedBy       String?
+  validatedAt       DateTime?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+
+  // Relationships
+  order             LabOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  test              LabTest @relation(fields: [testId], references: [id])
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("lab_results")
+}
+
+model LabAnalyzer {
+  id                String @id @default(cuid())
+  name              String
+  model             String
+  type              AnalyzerType
+  serialNumber      String @unique
+  ipAddress         String
+  port              Int?
+  location          String?
+  direction         Direction @default(UNIDIRECTIONAL)
+  status            AnalyzerStatus @default(OFFLINE)
+  isActive          Boolean @default(true)
+
+  // Configuration
+  configuration     Json?
+  supportedTests    Json?
+
+  // Communication
+  lastCommunication DateTime?
+
+  // Relationships
+  qcRuns            LabQcRun[]
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("lab_analyzers")
+}
+
+model LabQcRun {
+  id                String @id @default(cuid())
+  analyzerId        String
+  qcBatches         Json   // Array of QcBatchDto
+  qcResults         Json   // Array of QcResultDto
+  operator          String?
+  runDateTime       DateTime?
+  notes             String?
+  isPassed          Boolean @default(false)
+  westgardRules     String[]
+
+  // Relationships
+  analyzer          LabAnalyzer @relation(fields: [analyzerId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("lab_qc_runs")
+}
+
+// Enums
+enum TestCategory {
+  HEMATOLOGY
+  CHEMISTRY
+  MICROBIOLOGY
+  IMMUNOLOGY
+  SEROLOGY
+  TOXICOLOGY
+  URINALYSIS
+  COAGULATION
+  ENDOCRINOLOGY
+  GENETICS
+}
+
+enum TestStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}
+
+enum TestPriority {
+  STAT
+  URGENT
+  ROUTINE
+}
+
+enum SampleType {
+  BLOOD
+  URINE
+  SPUTUM
+  STOOL
+  CSF
+  TISSUE
+  SWAB
+  FLUID
+}
+
+enum ContainerType {
+  RED_TOP
+  PURPLE_TOP
+  BLUE_TOP
+  GREEN_TOP
+  GREY_TOP
+  YELLOW_TOP
+  VACUTAINER
+  TUBE
+  BOTTLE
+}
+
+enum OrderStatus {
+  PENDING
+  ORDERED
+  COLLECTED
+  ACCESSIONED
+  IN_PROGRESS
+  COMPLETED
+  VALIDATED
+  PUBLISHED
+  CANCELLED
+}
+
+enum SampleStatus {
+  PENDING
+  COLLECTED
+  RECEIVED
+  PROCESSED
+  STORED
+  DISPOSED
+}
+
+enum ResultFlag {
+  NORMAL
+  LOW
+  HIGH
+  CRITICAL
+  ABNORMAL
+  PENDING
+  INVALID
+}
+
+enum ValidationStatus {
+  PENDING
+  TECH_REVIEWED
+  PATH_REVIEWED
+  FINAL
+  AMENDED
+}
+
+enum AnalyzerStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+  ERROR
+}
+
+enum AnalyzerType {
+  CHEMISTRY
+  HEMATOLOGY
+  IMMUNOASSAY
+  COAGULATION
+  URINALYSIS
+  MICROBIOLOGY
+}
+
+enum Direction {
+  UNIDIRECTIONAL
+  BIDIRECTIONAL
+}

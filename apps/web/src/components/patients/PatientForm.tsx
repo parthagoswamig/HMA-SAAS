@@ -266,64 +266,53 @@ function PatientForm({
     console.log('Converted dateOfBirth:', convertedDate);
     
     try {
-      // Prepare the base patient data that matches CreatePatientDto
+      // Prepare the base patient data - FLAT STRUCTURE to match backend DTO
       const basePatientData: any = {
         // Basic Info
         firstName: values.firstName?.trim() || '',
         lastName: values.lastName?.trim() || '',
         middleName: values.middleName?.trim() || '',
-        dateOfBirth: convertedDate || new Date(),
+        dateOfBirth: convertedDate?.toISOString() || new Date().toISOString(),
         gender: values.gender || Gender.MALE,
-        bloodGroup: values.bloodGroup,
+        bloodType: values.bloodGroup, // Backend uses bloodType not bloodGroup
         maritalStatus: values.maritalStatus || MaritalStatus.SINGLE,
         
-        // Contact Info
-        contactInfo: {
-          phone: values.contactInfo?.phone ? values.contactInfo.phone.replace(/[^\d+]/g, '') : '',
-          email: values.contactInfo?.email?.trim() || '',
-          alternatePhone: values.contactInfo?.alternatePhone || '',
-          emergencyContact: {
-            name: values.contactInfo?.emergencyContact?.name?.trim() || '',
-            phone: values.contactInfo?.emergencyContact?.phone?.replace(/[^\d+]/g, '') || '',
-            relationship: values.contactInfo?.emergencyContact?.relationship?.trim() || '',
-          },
-        },
+        // Contact Info - FLATTENED
+        phone: values.contactInfo?.phone ? values.contactInfo.phone.replace(/[^\d+]/g, '') : '',
+        email: values.contactInfo?.email?.trim() || '',
         
-        // Address
-        address: {
-          street: values.address?.street?.trim() || '',
-          city: values.address?.city?.trim() || '',
-          state: values.address?.state?.trim() || '',
-          country: values.address?.country?.trim() || 'India',
-          postalCode: values.address?.postalCode?.trim() || '',
-          landmark: values.address?.landmark?.trim() || '',
-        },
+        // Address - FLATTENED
+        address: values.address?.street?.trim() || '',
+        city: values.address?.city?.trim() || '',
+        state: values.address?.state?.trim() || '',
+        country: values.address?.country?.trim() || 'India',
+        pincode: values.address?.postalCode?.trim() || '',
         
-        // Insurance
-        insuranceInfo: {
-          insuranceProvider: values.insuranceInfo?.insuranceProvider?.trim() || '',
-          policyNumber: values.insuranceInfo?.policyNumber?.trim() || '',
-          insuranceType: values.insuranceInfo?.insuranceType,
-          policyHolderName: values.insuranceInfo?.policyHolderName || '',
-          relationshipToPatient: values.insuranceInfo?.relationshipToPatient || '',
-          coverageAmount: values.insuranceInfo?.coverageAmount,
-          isActive: values.insuranceInfo?.isActive || false,
-        },
+        // Insurance - FLATTENED
+        insuranceProvider: values.insuranceInfo?.insuranceProvider?.trim() || undefined,
+        insuranceId: values.insuranceInfo?.policyNumber?.trim() || undefined,
         
-        // Medical History
-        allergies: Array.isArray(values.allergies) ? values.allergies : [],
-        chronicDiseases: Array.isArray(values.chronicDiseases) ? values.chronicDiseases : [],
-        currentMedications: Array.isArray(values.currentMedications) ? values.currentMedications : [],
+        // Medical History - Arrays as JSON strings for backend
+        allergies: Array.isArray(values.allergies) && values.allergies.length > 0 
+          ? JSON.stringify(values.allergies) 
+          : undefined,
+        chronicConditions: Array.isArray(values.chronicDiseases) && values.chronicDiseases.length > 0 
+          ? JSON.stringify(values.chronicDiseases) 
+          : undefined,
+        currentMedications: Array.isArray(values.currentMedications) && values.currentMedications.length > 0 
+          ? JSON.stringify(values.currentMedications) 
+          : undefined,
         
-        // Additional fields
-        aadhaarNumber: values.aadhaarNumber || '',
-        otherIdNumber: values.otherIdNumber || '',
-        otherIdType: values.otherIdType,
-        occupation: values.occupation || '',
-        religion: values.religion || '',
-        language: values.language || '',
-        notes: values.notes || '',
+        // Aadhar (backend uses aadharNumber not aadhaarNumber)
+        aadharNumber: values.aadhaarNumber || undefined,
       };
+      
+      // Remove undefined values to keep payload clean
+      Object.keys(basePatientData).forEach(key => {
+        if (basePatientData[key] === undefined || basePatientData[key] === '') {
+          delete basePatientData[key];
+        }
+      });
       
       // For updates, include the ID
       const patientData = patient?.id 

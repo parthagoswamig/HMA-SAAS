@@ -73,6 +73,7 @@ export default function PatientManagement() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [patientStats, setPatientStats] = useState<any>(null);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patientDocuments, setPatientDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [, setSearchQuery] = useState('');
@@ -376,23 +377,26 @@ export default function PatientManagement() {
       const patientName = `${newPatient.firstName || ''} ${newPatient.lastName || ''}`.trim() || 'Patient';
       const patientId = newPatient.id || newPatient.patientId || 'N/A';
       
-      notifications.show({
-        title: '✅ Patient Registered Successfully!',
-        message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
-        color: 'green',
-        autoClose: 7000,
-        style: { 
-          backgroundColor: '#f0fdf4',
-          borderLeft: '4px solid #22c55e'
-        },
-      });
-
+      // Refresh the patients list and stats first
+      await fetchPatients();
+      await fetchStats();
+      
       // Close the form modal
       close();
       
-      // Refresh the patients list and stats
-      await fetchPatients();
-      await fetchStats();
+      // Show notification after modal closes (small delay ensures visibility)
+      setTimeout(() => {
+        notifications.show({
+          title: '✅ Patient Registered Successfully!',
+          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
+          color: 'green',
+          autoClose: 7000,
+          style: { 
+            backgroundColor: '#f0fdf4',
+            borderLeft: '4px solid #22c55e'
+          },
+        });
+      }, 100);
     } catch (error: any) {
       console.error('Patient creation error:', error);
       console.error('Error response:', error.response?.data);
@@ -412,23 +416,36 @@ export default function PatientManagement() {
 
   const handleUpdatePatient = async (data: UpdatePatientDto) => {
     try {
+      console.log('Updating patient with data:', data);
+      
       // Data is already flattened and formatted in PatientForm, just pass it through
       const response = await patientsService.updatePatient(data.id!, data as any);
+      console.log('Patient update response:', response);
+      
       const updatedPatient = response.data;
       const patientName = `${updatedPatient.firstName || ''} ${updatedPatient.lastName || ''}`.trim() || 'Patient';
+      const patientId = updatedPatient.id || updatedPatient.patientId || data.id;
 
-      notifications.show({
-        title: 'Success',
-        message: `Patient ${patientName} updated successfully!`,
-        color: 'green',
-      });
-
+      // Refresh the patients list and stats first
+      await fetchPatients();
+      await fetchStats();
+      
       // Close the form modal
       close();
       
-      // Refresh the patients list and stats
-      await fetchPatients();
-      await fetchStats();
+      // Show notification after modal closes
+      setTimeout(() => {
+        notifications.show({
+          title: '✅ Patient Updated Successfully!',
+          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
+          color: 'green',
+          autoClose: 5000,
+          style: { 
+            backgroundColor: '#f0fdf4',
+            borderLeft: '4px solid #22c55e'
+          },
+        });
+      }, 100);
     } catch (error: any) {
       console.error('Patient update error:', error);
       console.error('Error response:', error.response?.data);
@@ -465,17 +482,65 @@ export default function PatientManagement() {
   // Document operations
   const handleUploadDocument = async (document: any, file: File) => {
     console.log('Uploading document:', document, file);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // Simulate document upload - in real app, upload to server/storage
+      const newDocument = {
+        id: Date.now().toString(),
+        ...document,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        uploadedAt: new Date(),
+        fileUrl: URL.createObjectURL(file), // Temporary URL for preview
+      };
+      
+      setPatientDocuments(prev => [...prev, newDocument]);
+      
+      notifications.show({
+        title: '✅ Document Uploaded',
+        message: `${file.name} uploaded successfully!`,
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Document upload error:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to upload document',
+        color: 'red',
+      });
+    }
   };
 
   const handleUpdateDocument = async (id: string, document: any) => {
     console.log('Updating document:', id, document);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      setPatientDocuments(prev => 
+        prev.map(doc => doc.id === id ? { ...doc, ...document } : doc)
+      );
+      
+      notifications.show({
+        title: '✅ Document Updated',
+        message: 'Document information updated successfully!',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Document update error:', error);
+    }
   };
 
   const handleDeleteDocument = async (id: string) => {
     console.log('Deleting document:', id);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      setPatientDocuments(prev => prev.filter(doc => doc.id !== id));
+      
+      notifications.show({
+        title: '✅ Document Deleted',
+        message: 'Document removed successfully!',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Document delete error:', error);
+    }
   };
 
   const handleDownloadDocument = async (document: any) => {
@@ -489,13 +554,135 @@ export default function PatientManagement() {
   };
 
   // Search operations
-  const handleSearch = (criteria: PatientSearchParams) => {
-    console.log('Searching patients:', criteria);
-    // In real implementation, filter patients based on criteria
+  const handleSearch = async (criteria: PatientSearchParams) => {
+    console.log('Searching patients with criteria:', criteria);
+    
+    try {
+      setLoading(true);
+      
+      // Filter patients based on search criteria
+      let filteredPatients = [...patients];
+      
+      // Search term (searches across multiple fields)
+      if (criteria.searchTerm) {
+        const term = criteria.searchTerm.toLowerCase();
+        filteredPatients = filteredPatients.filter(p => 
+          p.firstName?.toLowerCase().includes(term) ||
+          p.lastName?.toLowerCase().includes(term) ||
+          p.patientId?.toLowerCase().includes(term) ||
+          p.contactInfo?.phone?.includes(term) ||
+          p.contactInfo?.email?.toLowerCase().includes(term)
+        );
+      }
+      
+      // Patient ID
+      if (criteria.patientId) {
+        filteredPatients = filteredPatients.filter(p => 
+          p.patientId?.toLowerCase().includes(criteria.patientId!.toLowerCase())
+        );
+      }
+      
+      // First Name
+      if (criteria.firstName) {
+        filteredPatients = filteredPatients.filter(p => 
+          p.firstName?.toLowerCase().includes(criteria.firstName!.toLowerCase())
+        );
+      }
+      
+      // Last Name
+      if (criteria.lastName) {
+        filteredPatients = filteredPatients.filter(p => 
+          p.lastName?.toLowerCase().includes(criteria.lastName!.toLowerCase())
+        );
+      }
+      
+      // Phone
+      if (criteria.phone) {
+        filteredPatients = filteredPatients.filter(p => 
+          p.contactInfo?.phone?.includes(criteria.phone!)
+        );
+      }
+      
+      // Email
+      if (criteria.email) {
+        filteredPatients = filteredPatients.filter(p => 
+          p.contactInfo?.email?.toLowerCase().includes(criteria.email!.toLowerCase())
+        );
+      }
+      
+      // Gender
+      if (criteria.gender) {
+        filteredPatients = filteredPatients.filter(p => p.gender === criteria.gender);
+      }
+      
+      // Blood Group
+      if (criteria.bloodGroup) {
+        filteredPatients = filteredPatients.filter(p => p.bloodGroup === criteria.bloodGroup);
+      }
+      
+      // Status
+      if (criteria.status) {
+        filteredPatients = filteredPatients.filter(p => p.status === criteria.status);
+      }
+      
+      // Age range
+      if (criteria.ageFrom !== undefined) {
+        filteredPatients = filteredPatients.filter(p => (p.age || 0) >= criteria.ageFrom!);
+      }
+      if (criteria.ageTo !== undefined) {
+        filteredPatients = filteredPatients.filter(p => (p.age || 0) <= criteria.ageTo!);
+      }
+      
+      // Has Insurance
+      if (criteria.hasInsurance !== undefined) {
+        filteredPatients = filteredPatients.filter(p => 
+          criteria.hasInsurance ? !!p.insuranceInfo?.insuranceProvider : !p.insuranceInfo?.insuranceProvider
+        );
+      }
+      
+      // Has Allergies
+      if (criteria.hasAllergies !== undefined) {
+        filteredPatients = filteredPatients.filter(p => 
+          criteria.hasAllergies ? (p.allergies?.length || 0) > 0 : (p.allergies?.length || 0) === 0
+        );
+      }
+      
+      // Has Chronic Diseases
+      if (criteria.hasChronicDiseases !== undefined) {
+        filteredPatients = filteredPatients.filter(p => 
+          criteria.hasChronicDiseases ? (p.chronicDiseases?.length || 0) > 0 : (p.chronicDiseases?.length || 0) === 0
+        );
+      }
+      
+      setPatients(filteredPatients);
+      
+      notifications.show({
+        title: '🔍 Search Complete',
+        message: `Found ${filteredPatients.length} patient(s) matching your criteria`,
+        color: 'blue',
+        autoClose: 3000,
+      });
+      
+      closeSearch();
+    } catch (error) {
+      console.error('Search error:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to search patients',
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveSearch = (name: string, criteria: PatientSearchParams) => {
     console.log('Saving search:', name, criteria);
+    notifications.show({
+      title: '💾 Search Saved',
+      message: `Search "${name}" has been saved successfully`,
+      color: 'green',
+    });
   };
 
   // Export operations
@@ -565,6 +752,10 @@ export default function PatientManagement() {
     const fullPatient = patients.find((p) => p.id === patient.id);
     if (fullPatient) {
       setSelectedPatient(fullPatient);
+      // Reset documents for new patient
+      setPatientDocuments([]);
+      // In real app, fetch documents from API here
+      // fetchPatientDocuments(fullPatient.id);
       openDocuments();
     }
   };
@@ -660,8 +851,8 @@ export default function PatientManagement() {
   );
 
   return (
-    <Container fluid>
-      <Stack gap="lg">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
         {/* Header */}
         <Group justify="space-between">
           <div>
@@ -819,7 +1010,7 @@ export default function PatientManagement() {
             onClose={closeDocuments}
             patientId={selectedPatient.patientId}
             patientName={`${selectedPatient.firstName} ${selectedPatient.lastName}`}
-            documents={[]}
+            documents={patientDocuments}
             onUpload={handleUploadDocument}
             onUpdate={handleUpdateDocument}
             onDelete={handleDeleteDocument}

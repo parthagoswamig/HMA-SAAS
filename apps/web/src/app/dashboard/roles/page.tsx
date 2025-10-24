@@ -252,17 +252,19 @@ export default function RolesManagementPage() {
 
   if (loading) {
     return (
-      <Container size="xl" py="xl">
-        <Group justify="center" mt="xl">
-          <Loader size="lg" />
-        </Group>
+      <Container fluid px={0} style={{ maxWidth: '100%' }}>
+        <Stack gap="lg" px="md" py="xl">
+          <Group justify="center" mt="xl">
+            <Loader size="lg" />
+          </Group>
+        </Stack>
       </Container>
     );
   }
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="lg">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md" py="xl">
         {/* Header */}
         <Group justify="space-between">
           <div>
@@ -407,7 +409,6 @@ export default function RolesManagementPage() {
             </Box>
           )}
         </Paper>
-      </Stack>
 
       {/* Create/Edit Modal */}
       <Modal
@@ -492,6 +493,7 @@ export default function RolesManagementPage() {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 }

@@ -378,7 +378,8 @@ const HRManagement = () => {
   const payrollData = [];
 
   return (
-    <Container size="xl" py={{ base: 'xs', sm: 'sm', md: 'md' }} px={{ base: 'xs', sm: 'sm', md: 'md', lg: 'lg' }}>
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <Group justify="space-between" mb="lg">
         <div>
@@ -1585,6 +1586,7 @@ const HRManagement = () => {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 };

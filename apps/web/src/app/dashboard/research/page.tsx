@@ -183,8 +183,8 @@ export default function ResearchPage() {
   ];
 
   return (
-    <Container size="xl" py="md">
-      <Stack gap="lg">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
         {/* Header */}
         <Group justify="space-between">
           <div>
@@ -580,7 +580,6 @@ export default function ResearchPage() {
             </Tabs.Panel>
           </Tabs>
         </Paper>
-      </Stack>
 
       {/* New Trial Modal */}
       <Modal
@@ -686,6 +685,7 @@ export default function ResearchPage() {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 }

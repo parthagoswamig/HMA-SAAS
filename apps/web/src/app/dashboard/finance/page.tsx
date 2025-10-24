@@ -290,7 +290,8 @@ const FinanceManagement = () => {
     : [];
 
   return (
-    <Container size="xl" py={{ base: 'xs', sm: 'sm', md: 'md' }} px={{ base: 'xs', sm: 'sm', md: 'md', lg: 'lg' }} className="px-3 sm:px-4 md:px-6">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex-1 min-w-0">
@@ -1330,6 +1331,7 @@ const FinanceManagement = () => {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 };

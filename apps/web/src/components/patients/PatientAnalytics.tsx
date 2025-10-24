@@ -134,24 +134,35 @@ export default function PatientAnalytics({
     };
   }, [patients]);
 
-  // Handle null stats (after all hooks to follow Rules of Hooks)
-  if (!stats) {
+  // Handle null stats or missing data (after all hooks to follow Rules of Hooks)
+  if (!stats || patients.length === 0) {
     return (
       <Modal opened={opened} onClose={onClose} size="xl" title="Patient Analytics" padding="lg">
         <Center p="xl">
           <Stack align="center" gap="md">
             <IconAlertCircle size="3rem" color="gray" />
             <Text size="lg" c="dimmed">
-              No patient statistics available
+              {patients.length === 0 ? 'No patients registered yet' : 'No patient statistics available'}
             </Text>
             <Text size="sm" c="dimmed">
-              Patient data is still loading or unavailable
+              {patients.length === 0 ? 'Register your first patient to see analytics' : 'Patient data is still loading or unavailable'}
             </Text>
           </Stack>
         </Center>
       </Modal>
     );
   }
+
+  // Provide default values for missing stats fields
+  const safeStats = {
+    totalPatients: stats.totalPatients || 0,
+    activePatients: stats.activePatients || 0,
+    averageAge: stats.averageAge || 0,
+    genderDistribution: stats.genderDistribution || { male: 0, female: 0, other: 0 },
+    bloodGroupDistribution: stats.bloodGroupDistribution || {},
+    insuranceDistribution: stats.insuranceDistribution || { insured: 0, uninsured: 0 },
+    visitTrends: stats.visitTrends || [],
+  };
 
   // Stat Card Component
   const StatCard = ({
@@ -242,14 +253,14 @@ export default function PatientAnalytics({
         />
         <StatCard
           title="Active Patients"
-          value={stats.activePatients.toLocaleString()}
+          value={safeStats.activePatients.toLocaleString()}
           subtitle="Currently under care"
           icon={<IconHeart size="1.5rem" />}
           color="red"
         />
         <StatCard
           title="Average Age"
-          value={`${stats.averageAge} years`}
+          value={safeStats.averageAge > 0 ? `${safeStats.averageAge} years` : 'N/A'}
           subtitle="Patient demographics"
           icon={<IconCalendar size="1.5rem" />}
           color="purple"
@@ -268,15 +279,13 @@ export default function PatientAnalytics({
                 <Group justify="space-between" mb="xs">
                   <Text size="sm">Male</Text>
                   <Text size="sm" fw={500}>
-                    {stats.genderDistribution.male} (
-                    {((stats.genderDistribution.male / derivedStats.totalPatients) * 100).toFixed(
-                      1
-                    )}
+                    {safeStats.genderDistribution.male} (
+                    {derivedStats.totalPatients > 0 ? ((safeStats.genderDistribution.male / derivedStats.totalPatients) * 100).toFixed(1) : '0'}
                     %)
                   </Text>
                 </Group>
                 <Progress
-                  value={(stats.genderDistribution.male / derivedStats.totalPatients) * 100}
+                  value={derivedStats.totalPatients > 0 ? (safeStats.genderDistribution.male / derivedStats.totalPatients) * 100 : 0}
                   color="blue"
                   size="lg"
                 />
@@ -286,35 +295,30 @@ export default function PatientAnalytics({
                 <Group justify="space-between" mb="xs">
                   <Text size="sm">Female</Text>
                   <Text size="sm" fw={500}>
-                    {stats.genderDistribution.female} (
-                    {((stats.genderDistribution.female / derivedStats.totalPatients) * 100).toFixed(
-                      1
-                    )}
+                    {safeStats.genderDistribution.female} (
+                    {derivedStats.totalPatients > 0 ? ((safeStats.genderDistribution.female / derivedStats.totalPatients) * 100).toFixed(1) : '0'}
                     %)
                   </Text>
                 </Group>
                 <Progress
-                  value={(stats.genderDistribution.female / derivedStats.totalPatients) * 100}
+                  value={derivedStats.totalPatients > 0 ? (safeStats.genderDistribution.female / derivedStats.totalPatients) * 100 : 0}
                   color="pink"
                   size="lg"
                 />
               </div>
 
-              {stats.genderDistribution.other > 0 && (
+              {safeStats.genderDistribution.other > 0 && (
                 <div>
                   <Group justify="space-between" mb="xs">
                     <Text size="sm">Other</Text>
                     <Text size="sm" fw={500}>
-                      {stats.genderDistribution.other} (
-                      {(
-                        (stats.genderDistribution.other / derivedStats.totalPatients) *
-                        100
-                      ).toFixed(1)}
+                      {safeStats.genderDistribution.other} (
+                      {derivedStats.totalPatients > 0 ? ((safeStats.genderDistribution.other / derivedStats.totalPatients) * 100).toFixed(1) : '0'}
                       %)
                     </Text>
                   </Group>
                   <Progress
-                    value={(stats.genderDistribution.other / derivedStats.totalPatients) * 100}
+                    value={derivedStats.totalPatients > 0 ? (safeStats.genderDistribution.other / derivedStats.totalPatients) * 100 : 0}
                     color="gray"
                     size="lg"
                   />
@@ -335,17 +339,17 @@ export default function PatientAnalytics({
                 thickness={20}
                 sections={[
                   {
-                    value: (derivedStats.ageGroups.pediatric / derivedStats.totalPatients) * 100,
+                    value: derivedStats.totalPatients > 0 ? (derivedStats.ageGroups.pediatric / derivedStats.totalPatients) * 100 : 0,
                     color: 'cyan',
                     tooltip: 'Pediatric (0-17)',
                   },
                   {
-                    value: (derivedStats.ageGroups.adult / derivedStats.totalPatients) * 100,
+                    value: derivedStats.totalPatients > 0 ? (derivedStats.ageGroups.adult / derivedStats.totalPatients) * 100 : 0,
                     color: 'blue',
                     tooltip: 'Adult (18-64)',
                   },
                   {
-                    value: (derivedStats.ageGroups.senior / derivedStats.totalPatients) * 100,
+                    value: derivedStats.totalPatients > 0 ? (derivedStats.ageGroups.senior / derivedStats.totalPatients) * 100 : 0,
                     color: 'orange',
                     tooltip: 'Senior (65+)',
                   },
@@ -419,31 +423,37 @@ export default function PatientAnalytics({
       </Grid>
 
       {/* Visit Trends */}
-      <Paper p="md" withBorder>
-        <Group justify="space-between" mb="md">
-          <Title order={4}>Visit Trends</Title>
-          <Select
-            data={timeframes}
-            value={selectedTimeframe}
-            onChange={(value) => setSelectedTimeframe(value || '30d')}
-            size="sm"
-            w={150}
-          />
-        </Group>
-        <Stack gap="sm">
-          {stats.visitTrends.map((trend, index) => (
-            <Group key={index} justify="space-between">
-              <Text size="sm">{formatDate(new Date(trend.date))}</Text>
-              <Group gap="sm" align="center">
-                <Progress value={(trend.count / 200) * 100} size="sm" w={100} color="blue" />
-                <Text size="sm" fw={500} w={40} ta="right">
-                  {trend.count}
-                </Text>
+      {safeStats.visitTrends && safeStats.visitTrends.length > 0 ? (
+        <Paper p="md" withBorder>
+          <Group justify="space-between" mb="md">
+            <Title order={4}>Visit Trends</Title>
+            <Select
+              data={timeframes}
+              value={selectedTimeframe}
+              onChange={(value) => setSelectedTimeframe(value || '30d')}
+              size="sm"
+              w={150}
+            />
+          </Group>
+          <Stack gap="sm">
+            {safeStats.visitTrends.map((trend, index) => (
+              <Group key={index} justify="space-between">
+                <Text size="sm">{formatDate(new Date(trend.date))}</Text>
+                <Group gap="sm" align="center">
+                  <Progress value={(trend.count / 200) * 100} size="sm" w={100} color="blue" />
+                  <Text size="sm" fw={500} w={40} ta="right">
+                    {trend.count}
+                  </Text>
+                </Group>
               </Group>
-            </Group>
-          ))}
-        </Stack>
-      </Paper>
+            ))}
+          </Stack>
+        </Paper>
+      ) : (
+        <Alert icon={<IconAlertCircle size="1rem" />} color="blue" variant="light">
+          <Text size="sm">Visit trend data is not available yet. Data will appear as patients schedule visits.</Text>
+        </Alert>
+      )}
     </Stack>
   );
 
@@ -451,28 +461,37 @@ export default function PatientAnalytics({
   const MedicalTab = () => (
     <Stack gap="lg">
       {/* Blood Group Distribution */}
-      <Paper p="md" withBorder>
-        <Title order={4} mb="md">
-          Blood Group Distribution
-        </Title>
-        <Grid>
-          {Object.entries(stats.bloodGroupDistribution).map(([bloodGroup, count]) => (
-            <Grid.Col key={bloodGroup} span={{ base: 6, md: 3 }}>
-              <Card withBorder p="md" ta="center">
-                <Text size="xl" fw={700} c="red">
-                  {bloodGroup}
-                </Text>
-                <Text size="sm" c="dimmed" mt="xs">
-                  {count} patients
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {((count / derivedStats.totalPatients) * 100).toFixed(1)}%
-                </Text>
-              </Card>
-            </Grid.Col>
-          ))}
-        </Grid>
-      </Paper>
+      {safeStats.bloodGroupDistribution && Object.keys(safeStats.bloodGroupDistribution).length > 0 ? (
+        <Paper p="md" withBorder>
+          <Title order={4} mb="md">
+            Blood Group Distribution
+          </Title>
+          <Grid>
+            {Object.entries(safeStats.bloodGroupDistribution).map(([bloodGroup, count]) => {
+              const patientCount = typeof count === 'number' ? count : 0;
+              return (
+                <Grid.Col key={bloodGroup} span={{ base: 6, md: 3 }}>
+                  <Card withBorder p="md" ta="center">
+                    <Text size="xl" fw={700} c="red">
+                      {bloodGroup.replace('_', ' ')}
+                    </Text>
+                    <Text size="sm" c="dimmed" mt="xs">
+                      {patientCount} patients
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {derivedStats.totalPatients > 0 ? ((patientCount / derivedStats.totalPatients) * 100).toFixed(1) : '0'}%
+                    </Text>
+                  </Card>
+                </Grid.Col>
+              );
+            })}
+          </Grid>
+        </Paper>
+      ) : (
+        <Alert icon={<IconAlertCircle size="1rem" />} color="blue" variant="light">
+          <Text size="sm">Blood group distribution data is not available. Ensure patients have blood type information recorded.</Text>
+        </Alert>
+      )}
 
       {/* Top Medical Conditions */}
       {derivedStats.topConditions.length > 0 && (
@@ -588,12 +607,12 @@ export default function PatientAnalytics({
             thickness={20}
             sections={[
               {
-                value: (stats.insuranceDistribution.insured / derivedStats.totalPatients) * 100,
+                value: derivedStats.totalPatients > 0 ? (safeStats.insuranceDistribution.insured / derivedStats.totalPatients) * 100 : 0,
                 color: 'green',
                 tooltip: 'Insured Patients',
               },
               {
-                value: (stats.insuranceDistribution.uninsured / derivedStats.totalPatients) * 100,
+                value: derivedStats.totalPatients > 0 ? (safeStats.insuranceDistribution.uninsured / derivedStats.totalPatients) * 100 : 0,
                 color: 'red',
                 tooltip: 'Uninsured Patients',
               },
@@ -602,10 +621,7 @@ export default function PatientAnalytics({
               <Center>
                 <div>
                   <Text size="xl" fw={700} ta="center" c="green">
-                    {(
-                      (stats.insuranceDistribution.insured / derivedStats.totalPatients) *
-                      100
-                    ).toFixed(1)}
+                    {derivedStats.totalPatients > 0 ? ((safeStats.insuranceDistribution.insured / derivedStats.totalPatients) * 100).toFixed(1) : '0'}
                     %
                   </Text>
                   <Text size="sm" c="dimmed" ta="center">
@@ -627,7 +643,7 @@ export default function PatientAnalytics({
                 <Text size="sm">Insured</Text>
               </Group>
               <Text size="sm" fw={500}>
-                {stats.insuranceDistribution.insured}
+                {safeStats.insuranceDistribution.insured}
               </Text>
             </Group>
           </Grid.Col>
@@ -640,7 +656,7 @@ export default function PatientAnalytics({
                 <Text size="sm">Uninsured</Text>
               </Group>
               <Text size="sm" fw={500}>
-                {stats.insuranceDistribution.uninsured}
+                {safeStats.insuranceDistribution.uninsured}
               </Text>
             </Group>
           </Grid.Col>

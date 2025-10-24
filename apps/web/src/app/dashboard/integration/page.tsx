@@ -211,7 +211,8 @@ const IntegrationHub = () => {
   ];
 
   return (
-    <Container size="xl" py="md">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <Group justify="space-between" mb="lg">
         <div>
@@ -1308,6 +1309,7 @@ const IntegrationHub = () => {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 };

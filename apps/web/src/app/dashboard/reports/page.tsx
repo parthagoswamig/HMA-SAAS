@@ -190,7 +190,8 @@ const ReportsAnalytics = () => {
   };
 
   return (
-    <Container size="xl" py="md">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <Group justify="space-between" mb="lg">
         <div>
@@ -949,6 +950,7 @@ const ReportsAnalytics = () => {
           </Group>
         </Stack>
       </Modal>
+      </Stack>
     </Container>
   );
 };

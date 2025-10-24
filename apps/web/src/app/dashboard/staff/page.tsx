@@ -345,7 +345,8 @@ const StaffManagement = () => {
   const hiringTrendsData: any[] = []; // TODO: Implement when hiring trends are available
 
   return (
-    <Container size="xl" py={{ base: 'xs', sm: 'sm', md: 'md' }} px={{ base: 'xs', sm: 'sm', md: 'md', lg: 'lg' }}>
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <Group justify="space-between" mb="lg">
         <div>
@@ -1303,6 +1304,7 @@ const StaffManagement = () => {
           </Stack>
         )}
       </Modal>
+      </Stack>
     </Container>
   );
 };

@@ -240,7 +240,8 @@ const PharmacyManagement = () => {
   ];
 
   return (
-    <Container size="xl" py="md">
+    <Container fluid px={0} style={{ maxWidth: '100%' }}>
+      <Stack gap="lg" px="md">
       {/* Header */}
       <Group justify="space-between" mb="lg">
         <div>
@@ -1011,6 +1012,7 @@ const PharmacyManagement = () => {
           </Stack>
         )}
       </Modal>
+      </Stack>
     </Container>
   );
 };

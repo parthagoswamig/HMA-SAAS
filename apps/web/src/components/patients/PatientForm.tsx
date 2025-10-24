@@ -246,6 +246,8 @@ function PatientForm({
   };
 
   const handleSubmit = async (values: any) => {
+    console.log('=== PATIENT FORM SUBMISSION STARTED ===');
+    console.log('Form values:', values);
     startLoading();
     
     // Handle date conversion
@@ -329,9 +331,11 @@ function PatientForm({
         : basePatientData as CreatePatientDto;
       
       console.log('Patient data being sent:', patientData);
+      console.log('Calling onSubmit function...');
       
       await onSubmit(patientData);
 
+      console.log('onSubmit completed successfully!');
       notifications.show({
         title: patient ? 'Patient Updated' : 'Patient Created',
         message: `Patient ${values.firstName} ${values.lastName} has been ${patient ? 'updated' : 'created'} successfully.`,
@@ -340,7 +344,13 @@ function PatientForm({
 
       handleClose();
     } catch (error: any) {
+      console.error('=== PATIENT FORM SUBMISSION ERROR ===');
       console.error('Patient form submission error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
       
       let errorMessage = 'An unexpected error occurred. Please try again.';
       

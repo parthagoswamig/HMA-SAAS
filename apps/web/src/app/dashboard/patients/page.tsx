@@ -400,7 +400,7 @@ export default function PatientManagement() {
         color: 'red',
         autoClose: 10000,
       });
-      throw error;
+      // Don't throw error - let the form stay open so user can fix issues
     }
   };
 
@@ -424,13 +424,19 @@ export default function PatientManagement() {
       await fetchPatients();
       await fetchStats();
     } catch (error: any) {
+      console.error('Patient update error:', error);
+      console.error('Error response:', error.response?.data);
+      
       const errorMsg = error.response?.data?.message || error.message || 'Failed to update patient';
+      const displayMsg = Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg;
+      
       notifications.show({
         title: 'Error',
-        message: errorMsg,
+        message: displayMsg,
         color: 'red',
+        autoClose: 10000,
       });
-      throw error;
+      // Don't throw error - let the form stay open so user can fix issues
     }
   };
 

@@ -74,6 +74,8 @@ export default function PatientManagement() {
   const [patientStats, setPatientStats] = useState<any>(null);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientDocuments, setPatientDocuments] = useState<any[]>([]);
+  // Store documents per patient ID
+  const [documentsMap, setDocumentsMap] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [, setSearchQuery] = useState('');
@@ -314,6 +316,8 @@ export default function PatientManagement() {
     const fullPatient = patients.find((p) => p.id === patient.id);
     if (fullPatient) {
       setSelectedPatient(fullPatient);
+      // Load documents for this patient
+      setPatientDocuments(documentsMap[fullPatient.id] || []);
       openView();
     }
   };
@@ -497,11 +501,14 @@ export default function PatientManagement() {
   // Document operations
   const handleUploadDocument = async (document: any, file: File) => {
     console.log('Uploading document:', document, file);
+    if (!selectedPatient) return;
+    
     try {
       // Simulate document upload - in real app, upload to server/storage
       const newDocument = {
         id: Date.now().toString(),
         ...document,
+        patientId: selectedPatient.id,
         fileName: file.name,
         fileSize: file.size,
         mimeType: file.type,
@@ -509,7 +516,13 @@ export default function PatientManagement() {
         fileUrl: URL.createObjectURL(file), // Temporary URL for preview
       };
       
-      setPatientDocuments(prev => [...prev, newDocument]);
+      // Update both current documents and the map
+      const updatedDocs = [...(documentsMap[selectedPatient.id] || []), newDocument];
+      setPatientDocuments(updatedDocs);
+      setDocumentsMap(prev => ({
+        ...prev,
+        [selectedPatient.id]: updatedDocs
+      }));
       
       notifications.show({
         title: '✅ Document Uploaded',
@@ -528,10 +541,18 @@ export default function PatientManagement() {
 
   const handleUpdateDocument = async (id: string, document: any) => {
     console.log('Updating document:', id, document);
+    if (!selectedPatient) return;
+    
     try {
-      setPatientDocuments(prev => 
-        prev.map(doc => doc.id === id ? { ...doc, ...document } : doc)
+      const updatedDocs = patientDocuments.map(doc => 
+        doc.id === id ? { ...doc, ...document } : doc
       );
+      
+      setPatientDocuments(updatedDocs);
+      setDocumentsMap(prev => ({
+        ...prev,
+        [selectedPatient.id]: updatedDocs
+      }));
       
       notifications.show({
         title: '✅ Document Updated',
@@ -545,12 +566,20 @@ export default function PatientManagement() {
 
   const handleDeleteDocument = async (id: string) => {
     console.log('Deleting document:', id);
+    if (!selectedPatient) return;
+    
     try {
-      setPatientDocuments(prev => prev.filter(doc => doc.id !== id));
+      const updatedDocs = patientDocuments.filter(doc => doc.id !== id);
+      
+      setPatientDocuments(updatedDocs);
+      setDocumentsMap(prev => ({
+        ...prev,
+        [selectedPatient.id]: updatedDocs
+      }));
       
       notifications.show({
         title: '✅ Document Deleted',
-        message: 'Document removed successfully!',
+        message: 'Document deleted successfully!',
         color: 'green',
       });
     } catch (error) {
@@ -752,7 +781,10 @@ export default function PatientManagement() {
   // Additional handlers
   const handleScheduleAppointment = (patientId: string) => {
     console.log('Schedule appointment for patient:', patientId);
-    // Would navigate to appointment scheduling
+    // Close the patient details modal
+    closeView();
+    // Navigate to appointments page with patient pre-selected
+    window.location.href = `/dashboard/appointments?patientId=${patientId}`;
   };
 
   const handleOpenHistory = (patient: PatientListItem) => {
@@ -767,8 +799,8 @@ export default function PatientManagement() {
     const fullPatient = patients.find((p) => p.id === patient.id);
     if (fullPatient) {
       setSelectedPatient(fullPatient);
-      // Reset documents for new patient
-      setPatientDocuments([]);
+      // Load documents for this patient
+      setPatientDocuments(documentsMap[fullPatient.id] || []);
       // In real app, fetch documents from API here
       // fetchPatientDocuments(fullPatient.id);
       openDocuments();
@@ -989,7 +1021,7 @@ export default function PatientManagement() {
           onClose={closeView}
           patient={selectedPatient}
           visits={[]}
-          documents={[]}
+          documents={patientDocuments}
           medicalHistory={[]}
           appointments={[]}
           onEdit={handleEditFromDetails}

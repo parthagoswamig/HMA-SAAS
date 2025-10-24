@@ -374,11 +374,17 @@ export default function PatientManagement() {
       
       const newPatient = response.data;
       const patientName = `${newPatient.firstName || ''} ${newPatient.lastName || ''}`.trim() || 'Patient';
+      const patientId = newPatient.id || newPatient.patientId || 'N/A';
       
       notifications.show({
-        title: 'Success',
-        message: `Patient ${patientName} registered successfully!`,
+        title: '✅ Patient Registered Successfully!',
+        message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
         color: 'green',
+        autoClose: 7000,
+        style: { 
+          backgroundColor: '#f0fdf4',
+          borderLeft: '4px solid #22c55e'
+        },
       });
 
       // Close the form modal

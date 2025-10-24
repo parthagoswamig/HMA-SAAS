@@ -39,6 +39,7 @@ import {
   IconCloudUpload,
   IconCalendar,
   IconUpload,
+  IconArrowRight,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { CreatePatientDto, UpdatePatientDto, Patient } from '../../types/patient';
@@ -325,11 +326,9 @@ function PatientForm({
       await onSubmit(patientData);
 
       console.log('onSubmit completed successfully!');
-      notifications.show({
-        title: patient ? 'Patient Updated' : 'Patient Created',
-        message: `Patient ${values.firstName} ${values.lastName} has been ${patient ? 'updated' : 'created'} successfully.`,
-        color: 'green',
-      });
+      
+      // Success notification is handled by parent component (page.tsx)
+      // which has access to the patient ID from the API response
 
       handleClose();
     } catch (error: any) {
@@ -944,7 +943,13 @@ function PatientForm({
       closeOnClickOutside={false}
       closeOnEscape={!formLoading}
     >
-      <form onSubmit={form.onSubmit((values: any) => handleSubmit(values as CreatePatientDto))}>
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        // Only submit if on the last step
+        if (activeStep === steps.length - 1) {
+          form.onSubmit((values: any) => handleSubmit(values as CreatePatientDto))();
+        }
+      }}>
         <LoadingOverlay visible={formLoading} />
 
         <Stack gap="lg">
@@ -965,12 +970,16 @@ function PatientForm({
 
             <Group>
               {activeStep < steps.length - 1 ? (
-                <Button onClick={nextStep} disabled={formLoading}>
+                <Button 
+                  onClick={nextStep} 
+                  disabled={formLoading}
+                  rightSection={<IconArrowRight size="1rem" />}
+                >
                   Next
                 </Button>
               ) : (
                 <Button
-                  type="submit"
+                  onClick={() => form.onSubmit((values: any) => handleSubmit(values as CreatePatientDto))()}
                   loading={formLoading}
                   leftSection={<IconCheck size="1rem" />}
                   color="green"

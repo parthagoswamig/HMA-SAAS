@@ -359,10 +359,13 @@ export class PatientsService {
     tenantId: string,
   ) {
     try {
+      // Remove id from body if present (URL param is authoritative)
+      const { id: _bodyId, ...updateData } = updatePatientDto;
+      
       const data = {
-        ...updatePatientDto,
-        dateOfBirth: updatePatientDto.dateOfBirth
-          ? new Date(updatePatientDto.dateOfBirth)
+        ...updateData,
+        dateOfBirth: updateData.dateOfBirth
+          ? new Date(updateData.dateOfBirth)
           : undefined,
       };
 

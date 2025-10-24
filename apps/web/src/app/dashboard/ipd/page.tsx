@@ -160,8 +160,8 @@ const IPDManagement = () => {
 
   const fetchAdmissions = useCallback(async () => {
     try {
-      // IPD service doesn't have getAdmissions - using empty data
-      console.warn('IPD admissions API not implemented - showing empty state');
+      // Note: IPD admissions endpoint will be implemented in future
+      // For now, using empty state to show UI structure
       setAdmissions([]);
     } catch (err: any) {
       console.warn('Error fetching admissions:', err.response?.data?.message || err.message);

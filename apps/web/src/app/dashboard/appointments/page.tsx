@@ -172,22 +172,47 @@ const AppointmentManagement = () => {
   const fetchDropdownData = async () => {
     setLoadingDropdowns(true);
     try {
-      const [patientsRes, doctorsRes, departmentsRes] = await Promise.all([
-        patientsService.getPatients({ limit: 1000 }).catch(() => ({ data: [] })),
-        staffService.getStaff({ role: 'DOCTOR', limit: 1000 }).catch(() => ({ data: { staff: [] } })),
-        hrService.getDepartments({ limit: 1000 }).catch(() => ({ data: { items: [] } })),
-      ]);
+      console.log('Fetching dropdown data...');
+      
+      // Fetch patients
+      let patientsData: any[] = [];
+      try {
+        const patientsRes = await patientsService.getPatients({ limit: 100 });
+        console.log('Patients response:', patientsRes);
+        patientsData = Array.isArray(patientsRes.data) 
+          ? patientsRes.data 
+          : (patientsRes.data?.patients || []);
+      } catch (error: any) {
+        console.error('Error fetching patients:', error);
+        console.error('Patients error response:', error.response?.data);
+      }
 
-      // Handle different response structures
-      const patientsData = Array.isArray(patientsRes.data) 
-        ? patientsRes.data 
-        : (patientsRes.data?.patients || []);
-      const doctorsData = Array.isArray(doctorsRes.data)
-        ? doctorsRes.data
-        : (doctorsRes.data?.staff || []);
-      const departmentsData = Array.isArray(departmentsRes.data)
-        ? departmentsRes.data
-        : (departmentsRes.data?.items || []);
+      // Fetch doctors
+      let doctorsData: any[] = [];
+      try {
+        const doctorsRes = await staffService.getStaff({ role: 'DOCTOR', limit: 100 });
+        console.log('Doctors response:', doctorsRes);
+        const doctorsDataSource = (doctorsRes as any)?.data;
+        doctorsData = Array.isArray(doctorsDataSource)
+          ? doctorsDataSource
+          : (doctorsDataSource?.staff ?? doctorsDataSource?.items ?? []);
+      } catch (error: any) {
+        console.error('Error fetching doctors:', error);
+        console.error('Doctors error response:', error.response?.data);
+      }
+
+      // Fetch departments
+      let departmentsData: any[] = [];
+      try {
+        const departmentsRes = await hrService.getDepartments({ limit: 100 });
+        console.log('Departments response:', departmentsRes);
+        departmentsData = Array.isArray(departmentsRes.data)
+          ? departmentsRes.data
+          : (departmentsRes.data?.items || []);
+      } catch (error: any) {
+        console.error('Error fetching departments:', error);
+        console.error('Departments error response:', error.response?.data);
+      }
 
       setPatients(patientsData);
       setDoctors(doctorsData);
@@ -198,12 +223,21 @@ const AppointmentManagement = () => {
         doctors: doctorsData.length,
         departments: departmentsData.length,
       });
+
+      if (patientsData.length === 0 || doctorsData.length === 0) {
+        notifications.show({
+          title: 'Warning',
+          message: `Missing data: ${patientsData.length === 0 ? 'No patients found. ' : ''}${doctorsData.length === 0 ? 'No doctors found.' : ''}`,
+          color: 'yellow',
+          autoClose: 5000,
+        });
+      }
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
       notifications.show({
-        title: 'Warning',
-        message: 'Some dropdown data could not be loaded',
-        color: 'yellow',
+        title: 'Error',
+        message: 'Failed to load dropdown data. Please refresh the page.',
+        color: 'red',
       });
     } finally {
       setLoadingDropdowns(false);

@@ -115,6 +115,54 @@ const patientsService = {
   getPatientStats: async (): Promise<PatientStatsResponse> => {
     return enhancedApiClient.get('/patients/stats');
   },
+
+  /**
+   * Upload documents for a patient
+   */
+  uploadDocuments: async (patientId: string, files: File[]): Promise<PatientResponse> => {
+    try {
+      const formData = new FormData();
+      
+      // Append each file to FormData
+      files.forEach((file, index) => {
+        formData.append('files', file);
+      });
+
+      // Use fetch directly for multipart/form-data
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/patients/${patientId}/documents`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload documents');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error uploading documents:', error);
+      throw new Error(error.message || 'Failed to upload documents');
+    }
+  },
+
+  /**
+   * Get documents for a patient
+   */
+  getPatientDocuments: async (patientId: string): Promise<PatientResponse> => {
+    return enhancedApiClient.get(`/patients/${patientId}/documents`);
+  },
+
+  /**
+   * Delete a patient document
+   */
+  deletePatientDocument: async (patientId: string, documentId: string): Promise<PatientResponse> => {
+    return enhancedApiClient.delete(`/patients/${patientId}/documents/${documentId}`);
+  },
 };
 
 export default patientsService;

@@ -312,12 +312,34 @@ export default function PatientManagement() {
   ];
 
   // Handle patient actions
-  const handleViewPatient = (patient: PatientListItem) => {
+  const handleViewPatient = async (patient: PatientListItem) => {
     const fullPatient = patients.find((p) => p.id === patient.id);
     if (fullPatient) {
       setSelectedPatient(fullPatient);
-      // Load documents for this patient
-      setPatientDocuments(documentsMap[fullPatient.id] || []);
+      
+      // Load documents for this patient from cache or API
+      if (documentsMap[fullPatient.id]) {
+        setPatientDocuments(documentsMap[fullPatient.id]);
+      } else {
+        // Fetch documents from API
+        try {
+          const docsResponse = await patientsService.getPatientDocuments(fullPatient.id);
+          if (docsResponse.success && docsResponse.data) {
+            const docs = Array.isArray(docsResponse.data) ? docsResponse.data : [];
+            setPatientDocuments(docs);
+            setDocumentsMap(prev => ({
+              ...prev,
+              [fullPatient.id]: docs
+            }));
+          } else {
+            setPatientDocuments([]);
+          }
+        } catch (error) {
+          console.error('Error fetching documents:', error);
+          setPatientDocuments([]);
+        }
+      }
+      
       openView();
     }
   };
@@ -370,11 +392,13 @@ export default function PatientManagement() {
   };
 
   // Patient CRUD operations
-  const handleCreatePatient = async (data: CreatePatientDto) => {
+  const handleCreatePatient = async (data: CreatePatientDto, files?: File[]) => {
     try {
-      // Check if user is authenticated
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      if (!token) {
+      console.log('=== CREATE PATIENT HANDLER CALLED ===');
+      console.log('User context:', user);
+      console.log('Files to upload:', files);
+      
+      if (!user) {
         notifications.show({
           title: 'Authentication Required',
           message: 'Please log in to create patients',
@@ -394,6 +418,33 @@ export default function PatientManagement() {
       const patientName = `${newPatient.firstName || ''} ${newPatient.lastName || ''}`.trim() || 'Patient';
       const patientId = newPatient.id || newPatient.patientId || 'N/A';
       
+      // Upload documents if any files were provided
+      if (files && files.length > 0) {
+        try {
+          console.log(`Uploading ${files.length} documents for patient ${patientId}...`);
+          await patientsService.uploadDocuments(patientId, files);
+          console.log('Documents uploaded successfully');
+          
+          // Fetch and store documents for this patient
+          const docsResponse = await patientsService.getPatientDocuments(patientId);
+          if (docsResponse.success && docsResponse.data) {
+            setDocumentsMap(prev => ({
+              ...prev,
+              [patientId]: docsResponse.data
+            }));
+          }
+        } catch (docError: any) {
+          console.error('Error uploading documents:', docError);
+          // Show warning but don't fail the patient creation
+          notifications.show({
+            title: 'Warning',
+            message: 'Patient created but some documents failed to upload. You can upload them later.',
+            color: 'yellow',
+            autoClose: 5000,
+          });
+        }
+      }
+      
       // Refresh the patients list and stats first
       await fetchPatients();
       await fetchStats();
@@ -403,9 +454,10 @@ export default function PatientManagement() {
       
       // Show notification after modal closes (delay ensures visibility)
       setTimeout(() => {
+        const documentsMsg = files && files.length > 0 ? `\n${files.length} document(s) uploaded` : '';
         notifications.show({
           title: '✅ Patient Registered Successfully!',
-          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
+          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}${documentsMsg}`,
           color: 'green',
           autoClose: 7000,
           position: 'top-right',
@@ -432,9 +484,10 @@ export default function PatientManagement() {
     }
   };
 
-  const handleUpdatePatient = async (data: UpdatePatientDto) => {
+  const handleUpdatePatient = async (data: UpdatePatientDto, files?: File[]) => {
     try {
       console.log('Updating patient with data:', data);
+      console.log('Files to upload:', files);
       
       // Data is already flattened and formatted in PatientForm, just pass it through
       const response = await patientsService.updatePatient(data.id!, data as any);
@@ -443,6 +496,32 @@ export default function PatientManagement() {
       const updatedPatient = response.data;
       const patientName = `${updatedPatient.firstName || ''} ${updatedPatient.lastName || ''}`.trim() || 'Patient';
       const patientId = updatedPatient.id || updatedPatient.patientId || data.id;
+
+      // Upload documents if any files were provided
+      if (files && files.length > 0) {
+        try {
+          console.log(`Uploading ${files.length} documents for patient ${patientId}...`);
+          await patientsService.uploadDocuments(patientId, files);
+          console.log('Documents uploaded successfully');
+          
+          // Fetch and update documents for this patient
+          const docsResponse = await patientsService.getPatientDocuments(patientId);
+          if (docsResponse.success && docsResponse.data) {
+            setDocumentsMap(prev => ({
+              ...prev,
+              [patientId]: docsResponse.data
+            }));
+          }
+        } catch (docError: any) {
+          console.error('Error uploading documents:', docError);
+          notifications.show({
+            title: 'Warning',
+            message: 'Patient updated but some documents failed to upload. You can upload them later.',
+            color: 'yellow',
+            autoClose: 5000,
+          });
+        }
+      }
 
       // Refresh the patients list and stats first
       await fetchPatients();
@@ -453,9 +532,10 @@ export default function PatientManagement() {
       
       // Show notification after modal closes
       setTimeout(() => {
+        const documentsMsg = files && files.length > 0 ? `\n${files.length} document(s) uploaded` : '';
         notifications.show({
           title: '✅ Patient Updated Successfully!',
-          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}`,
+          message: `Patient Name: ${patientName}\nPatient ID: ${patientId}${documentsMsg}`,
           color: 'green',
           autoClose: 5000,
           position: 'top-right',

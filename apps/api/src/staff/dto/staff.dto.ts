@@ -8,6 +8,9 @@ import {
   IsBoolean,
   MinLength,
   MaxLength,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -179,15 +182,20 @@ export class UpdateStaffDto {
 }
 
 export class StaffQueryDto {
-  @ApiPropertyOptional({ example: 1, description: 'Page number' })
+  @ApiPropertyOptional({ example: 1, minimum: 1, description: 'Page number' })
   @IsOptional()
   @Type(() => Number)
-  page?: number;
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
 
-  @ApiPropertyOptional({ example: 10, description: 'Items per page' })
+  @ApiPropertyOptional({ example: 10, minimum: 1, maximum: 100, description: 'Items per page' })
   @IsOptional()
   @Type(() => Number)
-  limit?: number;
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
 
   @ApiPropertyOptional({ example: 'John Doe', description: 'Search query' })
   @IsOptional()

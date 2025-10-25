@@ -50,7 +50,7 @@ interface PatientFormProps {
   opened: boolean;
   onClose: () => void;
   patient?: Patient | null;
-  onSubmit: (data: CreatePatientDto | UpdatePatientDto) => Promise<void>;
+  onSubmit: (data: CreatePatientDto | UpdatePatientDto, files?: File[]) => Promise<void>;
   loading?: boolean;
 }
 
@@ -321,9 +321,11 @@ function PatientForm({
         : basePatientData as CreatePatientDto;
       
       console.log('Patient data being sent:', patientData);
+      console.log('Uploaded files:', uploadedFiles);
       console.log('Calling onSubmit function...');
       
-      await onSubmit(patientData);
+      // Pass both patient data and uploaded files
+      await onSubmit(patientData, uploadedFiles.length > 0 ? uploadedFiles : undefined);
 
       console.log('onSubmit completed successfully!');
       
@@ -852,18 +854,50 @@ function PatientForm({
           </Alert>
 
           <Grid>
+            {/* Basic Information */}
             <Grid.Col span={12}>
               <Card withBorder>
                 <Title order={5} mb="sm">
-                  Patient Information Summary
+                  Basic Information
                 </Title>
                 <Stack gap="xs">
                   <Group>
                     <Text fw={500}>Name:</Text>
                     <Text>
-                      {form.values.firstName} {form.values.lastName}
+                      {form.values.firstName} {form.values.middleName} {form.values.lastName}
                     </Text>
                   </Group>
+                  <Group>
+                    <Text fw={500}>Date of Birth:</Text>
+                    <Text>{form.values.dateOfBirth ? new Date(form.values.dateOfBirth).toLocaleDateString() : 'Not provided'}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Gender:</Text>
+                    <Text>{form.values.gender}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Blood Group:</Text>
+                    <Text>{form.values.bloodGroup || 'Not provided'}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Marital Status:</Text>
+                    <Text>{form.values.maritalStatus || 'Not provided'}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Occupation:</Text>
+                    <Text>{form.values.occupation || 'Not provided'}</Text>
+                  </Group>
+                </Stack>
+              </Card>
+            </Grid.Col>
+
+            {/* Contact Information */}
+            <Grid.Col span={12}>
+              <Card withBorder>
+                <Title order={5} mb="sm">
+                  Contact Information
+                </Title>
+                <Stack gap="xs">
                   <Group>
                     <Text fw={500}>Phone:</Text>
                     <Text>{form.values.contactInfo.phone}</Text>
@@ -873,27 +907,134 @@ function PatientForm({
                     <Text>{form.values.contactInfo.email || 'Not provided'}</Text>
                   </Group>
                   <Group>
+                    <Text fw={500}>Alternate Phone:</Text>
+                    <Text>{form.values.contactInfo.alternatePhone || 'Not provided'}</Text>
+                  </Group>
+                  <Group>
                     <Text fw={500}>Address:</Text>
                     <Text>
-                      {form.values.address.street}, {form.values.address.city}
+                      {form.values.address.street}, {form.values.address.city}, {form.values.address.state}, {form.values.address.country} - {form.values.address.postalCode}
                     </Text>
                   </Group>
                 </Stack>
               </Card>
             </Grid.Col>
 
+            {/* Emergency Contact */}
+            {form.values.contactInfo.emergencyContact?.name && (
+              <Grid.Col span={12}>
+                <Card withBorder>
+                  <Title order={5} mb="sm">
+                    Emergency Contact
+                  </Title>
+                  <Stack gap="xs">
+                    <Group>
+                      <Text fw={500}>Name:</Text>
+                      <Text>{form.values.contactInfo.emergencyContact.name}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Phone:</Text>
+                      <Text>{form.values.contactInfo.emergencyContact.phone}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Relationship:</Text>
+                      <Text>{form.values.contactInfo.emergencyContact.relationship}</Text>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            )}
+
+            {/* Medical Information */}
+            <Grid.Col span={12}>
+              <Card withBorder>
+                <Title order={5} mb="sm">
+                  Medical Information
+                </Title>
+                <Stack gap="xs">
+                  <Group>
+                    <Text fw={500}>Allergies:</Text>
+                    <Text>{form.values.allergies && form.values.allergies.length > 0 ? form.values.allergies.join(', ') : 'None'}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Chronic Diseases:</Text>
+                    <Text>{form.values.chronicDiseases && form.values.chronicDiseases.length > 0 ? form.values.chronicDiseases.join(', ') : 'None'}</Text>
+                  </Group>
+                  <Group>
+                    <Text fw={500}>Current Medications:</Text>
+                    <Text>{form.values.currentMedications && form.values.currentMedications.length > 0 ? form.values.currentMedications.join(', ') : 'None'}</Text>
+                  </Group>
+                </Stack>
+              </Card>
+            </Grid.Col>
+
+            {/* Insurance Information */}
+            {form.values.insuranceInfo?.insuranceProvider && (
+              <Grid.Col span={12}>
+                <Card withBorder>
+                  <Title order={5} mb="sm">
+                    Insurance Information
+                  </Title>
+                  <Stack gap="xs">
+                    <Group>
+                      <Text fw={500}>Provider:</Text>
+                      <Text>{form.values.insuranceInfo.insuranceProvider}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Policy Number:</Text>
+                      <Text>{form.values.insuranceInfo.policyNumber}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Policy Holder:</Text>
+                      <Text>{form.values.insuranceInfo.policyHolderName}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Coverage Amount:</Text>
+                      <Text>{form.values.insuranceInfo.coverageAmount ? `₹${form.values.insuranceInfo.coverageAmount}` : 'Not provided'}</Text>
+                    </Group>
+                    <Group>
+                      <Text fw={500}>Status:</Text>
+                      <Text>{form.values.insuranceInfo.isActive ? 'Active' : 'Inactive'}</Text>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            )}
+
+            {/* Documents */}
             <Grid.Col span={12}>
               <Card withBorder>
                 <Title order={5} mb="sm">
                   Documents
                 </Title>
                 {uploadedFiles.length > 0 ? (
-                  <Text c="green">✓ {uploadedFiles.length} file(s) uploaded</Text>
+                  <Stack gap="xs">
+                    <Text c="green" fw={500}>✓ {uploadedFiles.length} file(s) uploaded</Text>
+                    {uploadedFiles.map((file, index) => (
+                      <Group key={index}>
+                        <IconFileText size="1rem" />
+                        <Text size="sm">{file.name}</Text>
+                        <Text size="xs" c="dimmed">({(file.size / 1024).toFixed(2)} KB)</Text>
+                      </Group>
+                    ))}
+                  </Stack>
                 ) : (
                   <Text c="dimmed">No documents uploaded (optional)</Text>
                 )}
               </Card>
             </Grid.Col>
+
+            {/* Additional Notes */}
+            {form.values.notes && (
+              <Grid.Col span={12}>
+                <Card withBorder>
+                  <Title order={5} mb="sm">
+                    Additional Notes
+                  </Title>
+                  <Text>{form.values.notes}</Text>
+                </Card>
+              </Grid.Col>
+            )}
           </Grid>
         </Paper>
 

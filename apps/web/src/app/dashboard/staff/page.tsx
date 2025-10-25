@@ -1374,10 +1374,14 @@ const StaffManagement = () => {
               data={[
                 { value: 'DOCTOR', label: 'Doctor' },
                 { value: 'NURSE', label: 'Nurse' },
-                { value: 'TECHNICIAN' as any, label: 'Technician' },
+                { value: 'LAB_TECHNICIAN', label: 'Lab Technician' },
+                { value: 'RADIOLOGIST', label: 'Radiologist' },
                 { value: 'PHARMACIST', label: 'Pharmacist' },
+                { value: 'RECEPTIONIST', label: 'Receptionist' },
+                { value: 'ACCOUNTANT', label: 'Accountant' },
               ]}
               required
+              searchable
               value={newStaffForm.role}
               onChange={(value) => setNewStaffForm({ ...newStaffForm, role: value || '' })}
             />

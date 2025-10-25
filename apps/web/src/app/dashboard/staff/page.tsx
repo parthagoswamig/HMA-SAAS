@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Container,
   Paper,
@@ -72,6 +73,8 @@ import { UserRole, Status } from '../../../types/common';
 // Fallback empty data
 
 const StaffManagement = () => {
+  const router = useRouter();
+  
   // API State
   const [staff, setStaff] = useState<any[]>([]);
   const [staffStats, setStaffStats] = useState<any>(null);
@@ -632,58 +635,82 @@ const StaffManagement = () => {
               <Paper p="md" radius="md" withBorder mt="md">
                 <Group justify="space-between" mb="lg">
                   <Title order={3}>Departments</Title>
-                  <Button leftSection={<IconPlus size={16} />}>Add Department</Button>
+                  <Button 
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => router.push('/dashboard/departments')}
+                  >
+                    Manage Departments
+                  </Button>
                 </Group>
 
-                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
-                  {[].map(
-                    /* TODO: Fetch from API */ (dept) => (
+                {loadingDepartments ? (
+                  <Text>Loading departments...</Text>
+                ) : departments.length === 0 ? (
+                  <EmptyState
+                    title="No departments found"
+                    description="Create departments to organize your staff"
+                  />
+                ) : (
+                  <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                    {departments.map((dept) => (
                       <Card key={dept.id} padding="lg" radius="md" withBorder>
                         <Group justify="space-between" mb="md">
                           <div>
                             <Text fw={600} size="lg">
                               {dept.name}
                             </Text>
-                            <Text size="sm" c="dimmed">
-                              {dept.code}
-                            </Text>
+                            {dept.code && (
+                              <Text size="sm" c="dimmed">
+                                {dept.code}
+                              </Text>
+                            )}
                           </div>
                           <ThemeIcon size="lg" color="blue" variant="light">
                             <IconMedicalCross size={20} />
                           </ThemeIcon>
                         </Group>
 
-                        <Text size="sm" mb="md">
-                          {dept.description}
-                        </Text>
+                        {dept.description && (
+                          <Text size="sm" mb="md">
+                            {dept.description}
+                          </Text>
+                        )}
 
                         <Stack gap="xs">
                           <Group>
                             <Text size="sm" fw={500}>
-                              Head:
+                              Staff Count:
                             </Text>
-                            <Text size="sm">{dept.headOfDepartment}</Text>
+                            <Badge variant="light" color="blue">
+                              {dept._count?.staff || 0}
+                            </Badge>
                           </Group>
                           <Group>
                             <Text size="sm" fw={500}>
-                              Location:
+                              Status:
                             </Text>
-                            <Text size="sm">{dept.location}</Text>
+                            <Badge 
+                              variant="light" 
+                              color={dept.isActive ? 'green' : 'gray'}
+                            >
+                              {dept.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
                           </Group>
                         </Stack>
 
                         <Group justify="flex-end" mt="md">
-                          <ActionIcon variant="subtle" color="blue">
+                          <ActionIcon 
+                            variant="subtle" 
+                            color="blue"
+                            onClick={() => router.push('/dashboard/departments')}
+                          >
                             <IconEye size={16} />
-                          </ActionIcon>
-                          <ActionIcon variant="subtle" color="green">
-                            <IconEdit size={16} />
                           </ActionIcon>
                         </Group>
                       </Card>
-                    )
-                  )}
-                </SimpleGrid>
+                    ))}
+                  </SimpleGrid>
+                )}
               </Paper>
             </Tabs.Panel>
 

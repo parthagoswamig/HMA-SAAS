@@ -211,15 +211,22 @@ const StaffManagement = () => {
       setSubmitting(true);
 
       // Call API to create staff
-      await staffService.createStaff({
+      const staffData: any = {
         firstName: newStaffForm.firstName,
         lastName: newStaffForm.lastName,
         email: newStaffForm.email,
         phone: newStaffForm.phone,
-        role: newStaffForm.role as any,
-        ...(newStaffForm.departmentId && { departmentId: newStaffForm.departmentId }),
+        role: newStaffForm.role,
         experience: newStaffForm.experience.toString(),
-      });
+      };
+
+      // Only add departmentId if it's a non-empty string
+      if (newStaffForm.departmentId && newStaffForm.departmentId.trim() !== '') {
+        staffData.departmentId = newStaffForm.departmentId;
+      }
+
+      console.log('Creating staff with data:', staffData);
+      await staffService.createStaff(staffData);
 
       // Show success notification
       notifications.show({
@@ -1362,9 +1369,10 @@ const StaffManagement = () => {
                 label: dept.name,
               }))}
               searchable
+              clearable
               disabled={loadingDepartments}
               nothingFoundMessage="No departments found"
-              value={newStaffForm.departmentId}
+              value={newStaffForm.departmentId || null}
               onChange={(value) => setNewStaffForm({ ...newStaffForm, departmentId: value || '' })}
             />
           </SimpleGrid>

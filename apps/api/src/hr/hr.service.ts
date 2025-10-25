@@ -122,6 +122,25 @@ export class HrService {
     };
   }
 
+  async createDepartment(createDto: any, tenantId: string) {
+    const { name, code, description } = createDto;
+
+    const department = await this.prisma.department.create({
+      data: {
+        name,
+        code,
+        description,
+        tenantId,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Department created successfully',
+      data: department,
+    };
+  }
+
   async findAllDepartments(tenantId: string, query: any) {
     const { page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -152,6 +171,64 @@ export class HrService {
           pages: Math.ceil(total / limit),
         },
       },
+    };
+  }
+
+  async findOneDepartment(id: string, tenantId: string) {
+    const department = await this.prisma.department.findFirst({
+      where: { id, tenantId },
+      include: {
+        _count: {
+          select: { staff: true },
+        },
+      },
+    });
+
+    if (!department) {
+      throw new NotFoundException('Department not found');
+    }
+
+    return { success: true, data: department };
+  }
+
+  async updateDepartment(id: string, updateDto: any, tenantId: string) {
+    const department = await this.prisma.department.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!department) {
+      throw new NotFoundException('Department not found');
+    }
+
+    const updated = await this.prisma.department.update({
+      where: { id },
+      data: updateDto,
+    });
+
+    return {
+      success: true,
+      message: 'Department updated successfully',
+      data: updated,
+    };
+  }
+
+  async removeDepartment(id: string, tenantId: string) {
+    const department = await this.prisma.department.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!department) {
+      throw new NotFoundException('Department not found');
+    }
+
+    await this.prisma.department.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    return {
+      success: true,
+      message: 'Department deactivated successfully',
     };
   }
 

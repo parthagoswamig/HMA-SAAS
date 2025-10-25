@@ -61,8 +61,9 @@ import {
   SimpleBarChart,
 } from '../../../components/MantineChart';
 
-// Import API service
+// Import API services
 import staffService from '../../../services/staff.service';
+import hrService from '../../../services/hr.service';
 
 // Import types
 import { Staff } from '../../../types/staff';
@@ -74,7 +75,9 @@ const StaffManagement = () => {
   // API State
   const [staff, setStaff] = useState<any[]>([]);
   const [staffStats, setStaffStats] = useState<any>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // State management
@@ -97,6 +100,7 @@ const StaffManagement = () => {
   useEffect(() => {
     fetchStaff();
     fetchStats();
+    fetchDepartments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -140,6 +144,24 @@ const StaffManagement = () => {
         byRole: {},
         byDepartment: {},
       });
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const response = await hrService.getDepartments({ limit: 100 });
+      console.log('Departments API response:', response);
+      const departmentsData = response.data?.items || [];
+      setDepartments(departmentsData);
+    } catch (err: any) {
+      console.warn(
+        'Error fetching departments:',
+        err.response?.data?.message || err.message
+      );
+      setDepartments([]);
+    } finally {
+      setLoadingDepartments(false);
     }
   };
 
@@ -1183,9 +1205,13 @@ const StaffManagement = () => {
             <Select
               label="Department"
               placeholder="Select department"
-              data={[].map(
-                /* TODO: Fetch from API */ (dept) => ({ value: dept.name, label: dept.name })
-              )}
+              data={departments.map((dept) => ({
+                value: dept.id,
+                label: dept.name,
+              }))}
+              searchable
+              disabled={loadingDepartments}
+              nothingFoundMessage="No departments found"
               required
             />
           </SimpleGrid>
@@ -1267,10 +1293,14 @@ const StaffManagement = () => {
               <Select
                 label="Department"
                 placeholder="Select department"
-                data={[].map(
-                  /* TODO: Fetch from API */ (dept) => ({ value: dept.name, label: dept.name })
-                )}
-                defaultValue={selectedStaff.department?.name}
+                data={departments.map((dept) => ({
+                  value: dept.id,
+                  label: dept.name,
+                }))}
+                defaultValue={selectedStaff.department?.id}
+                searchable
+                disabled={loadingDepartments}
+                nothingFoundMessage="No departments found"
                 required
               />
             </SimpleGrid>

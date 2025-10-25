@@ -8,10 +8,10 @@ import {
   Delete,
   Query,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import { HrService } from './hr.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TenantId } from '../shared/decorators/tenant-id.decorator';
 
 @Controller('hr')
 @UseGuards(JwtAuthGuard)
@@ -19,20 +19,17 @@ export class HrController {
   constructor(private readonly hrService: HrService) {}
 
   @Post('staff')
-  createStaff(@Body() createDto: any, @Req() req: any) {
-    const tenantId = req.user.tenantId;
+  createStaff(@Body() createDto: any, @TenantId() tenantId: string) {
     return this.hrService.createStaff(createDto, tenantId);
   }
 
   @Get('staff')
-  findAllStaff(@Req() req: any, @Query() query: any) {
-    const tenantId = req.user.tenantId;
+  findAllStaff(@TenantId() tenantId: string, @Query() query: any) {
     return this.hrService.findAllStaff(tenantId, query);
   }
 
   @Get('staff/:id')
-  findOneStaff(@Param('id') id: string, @Req() req: any) {
-    const tenantId = req.user.tenantId;
+  findOneStaff(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.hrService.findOneStaff(id, tenantId);
   }
 
@@ -40,33 +37,52 @@ export class HrController {
   updateStaff(
     @Param('id') id: string,
     @Body() updateDto: any,
-    @Req() req: any,
+    @TenantId() tenantId: string,
   ) {
-    const tenantId = req.user.tenantId;
     return this.hrService.updateStaff(id, updateDto, tenantId);
   }
 
   @Delete('staff/:id')
-  removeStaff(@Param('id') id: string, @Req() req: any) {
-    const tenantId = req.user.tenantId;
+  removeStaff(@Param('id') id: string, @TenantId() tenantId: string) {
     return this.hrService.removeStaff(id, tenantId);
   }
 
+  @Post('departments')
+  createDepartment(@Body() createDto: any, @TenantId() tenantId: string) {
+    return this.hrService.createDepartment(createDto, tenantId);
+  }
+
   @Get('departments')
-  findAllDepartments(@Req() req: any, @Query() query: any) {
-    const tenantId = req.user.tenantId;
+  findAllDepartments(@TenantId() tenantId: string, @Query() query: any) {
     return this.hrService.findAllDepartments(tenantId, query);
   }
 
+  @Get('departments/:id')
+  findOneDepartment(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.hrService.findOneDepartment(id, tenantId);
+  }
+
+  @Patch('departments/:id')
+  updateDepartment(
+    @Param('id') id: string,
+    @Body() updateDto: any,
+    @TenantId() tenantId: string,
+  ) {
+    return this.hrService.updateDepartment(id, updateDto, tenantId);
+  }
+
+  @Delete('departments/:id')
+  removeDepartment(@Param('id') id: string, @TenantId() tenantId: string) {
+    return this.hrService.removeDepartment(id, tenantId);
+  }
+
   @Get('stats')
-  getStats(@Req() req: any) {
-    const tenantId = req.user.tenantId;
+  getStats(@TenantId() tenantId: string) {
     return this.hrService.getStats(tenantId);
   }
 
   @Get('attendance')
-  getAttendance(@Req() req: any, @Query() query: any) {
-    const tenantId = req.user.tenantId;
+  getAttendance(@TenantId() tenantId: string, @Query() query: any) {
     return this.hrService.getAttendance(tenantId, query);
   }
 }

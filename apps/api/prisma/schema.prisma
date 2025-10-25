@@ -19,6 +19,7 @@ model Department {
   appointments Appointment[]
   tenant       Tenant        @relation(fields: [tenantId], references: [id])
   staff        Staff[]
+  shifts       Shift[]
 
   @@index([name])
   @@index([isActive])
@@ -55,11 +56,52 @@ model Staff {
   department    Department? @relation(fields: [departmentId], references: [id])
   tenant        Tenant      @relation(fields: [tenantId], references: [id])
   user          User        @relation("UserStaff", fields: [userId], references: [id])
+  shifts        Shift[]
 
   @@index([userId])
   @@index([employeeId])
   @@index([departmentId])
   @@index([isActive])
+}
+
+model Shift {
+  id           String    @id @default(cuid())
+  staffId      String
+  departmentId String?
+  shiftType    ShiftType
+  startTime    DateTime
+  endTime      DateTime
+  date         DateTime
+  notes        String?
+  status       ShiftStatus @default(SCHEDULED)
+  isActive     Boolean   @default(true)
+  tenantId     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  staff        Staff     @relation(fields: [staffId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  tenant       Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([staffId])
+  @@index([departmentId])
+  @@index([date])
+  @@index([tenantId])
+}
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+  ON_CALL
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
 model Tenant {
@@ -103,6 +145,7 @@ model Tenant {
   reportTemplates           ReportTemplate[]
   specialties               Specialty[]
   staff                     Staff[]
+  shifts                    Shift[]
   studies                   Study[]
   surgeries                 Surgery[]
   telemedicineConsultations TelemedicineConsultation[]

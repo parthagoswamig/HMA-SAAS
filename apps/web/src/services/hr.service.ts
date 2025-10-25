@@ -189,6 +189,17 @@ const hrService = {
   // ==================== DEPARTMENT OPERATIONS ====================
 
   /**
+   * Create new department
+   */
+  createDepartment: async (data: {
+    name: string;
+    code?: string;
+    description?: string;
+  }): Promise<{ success: boolean; message: string; data: any }> => {
+    return enhancedApiClient.post('/hr/departments', data);
+  },
+
+  /**
    * Get all departments
    */
   getDepartments: async (filters?: {
@@ -196,6 +207,32 @@ const hrService = {
     limit?: number;
   }): Promise<DepartmentResponse> => {
     return enhancedApiClient.get('/hr/departments', filters);
+  },
+
+  /**
+   * Get department by ID
+   */
+  getDepartmentById: async (id: string): Promise<{ success: boolean; data: any }> => {
+    return enhancedApiClient.get(`/hr/departments/${id}`);
+  },
+
+  /**
+   * Update department
+   */
+  updateDepartment: async (id: string, data: {
+    name?: string;
+    code?: string;
+    description?: string;
+    isActive?: boolean;
+  }): Promise<{ success: boolean; message: string; data: any }> => {
+    return enhancedApiClient.patch(`/hr/departments/${id}`, data);
+  },
+
+  /**
+   * Delete/deactivate department
+   */
+  deleteDepartment: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return enhancedApiClient.delete(`/hr/departments/${id}`);
   },
 
   // ==================== STATISTICS ====================

@@ -22,6 +22,7 @@ import { RadiologyModule } from './radiology/radiology.module';
 import { PathologyModule } from './pathology/pathology.module';
 import { FinanceModule } from './finance/finance.module';
 import { HrModule } from './hr/hr.module';
+import { ShiftsModule } from './shifts/shifts.module';
 import { ReportsModule } from './reports/reports.module';
 import { PatientPortalModule } from './patient-portal/patient-portal.module';
 import { TelemedicineModule } from './telemedicine/telemedicine.module';
@@ -113,6 +114,7 @@ import { AppService } from './app.service';
     PathologyModule,
     FinanceModule,
     HrModule,
+    ShiftsModule,
     ReportsModule,
     PatientPortalModule,
     TelemedicineModule,

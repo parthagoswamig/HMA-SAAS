@@ -166,6 +166,7 @@ model User {
   passwordHash          String
   firstName             String
   lastName              String
+  phone                 String?
   role                  Role
   roleId                String?                    // RBAC role assignment
   specialization        String?

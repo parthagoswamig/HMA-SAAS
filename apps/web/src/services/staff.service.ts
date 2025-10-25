@@ -21,6 +21,7 @@ export interface CreateStaffDto {
   experience?: string;
   joiningDate?: string;
   employeeId?: string;
+  phone?: string;
 }
 
 export interface UpdateStaffDto {

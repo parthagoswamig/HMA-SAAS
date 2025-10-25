@@ -55,6 +55,7 @@ import {
   IconMedicalCross,
   IconAward,
   IconCalendarStats,
+  IconCheck,
 } from '@tabler/icons-react';
 import {
   MantineDonutChart,
@@ -98,6 +99,18 @@ const StaffManagement = () => {
     useDisclosure(false);
   const [addStaffOpened, { open: openAddStaff, close: closeAddStaff }] = useDisclosure(false);
   const [editStaffOpened, { open: openEditStaff, close: closeEditStaff }] = useDisclosure(false);
+
+  // Form state for new staff
+  const [newStaffForm, setNewStaffForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: '',
+    departmentId: '',
+    experience: 0,
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   // Fetch staff data
   useEffect(() => {
@@ -165,6 +178,68 @@ const StaffManagement = () => {
       setDepartments([]);
     } finally {
       setLoadingDepartments(false);
+    }
+  };
+
+  // Handle add staff
+  const handleAddStaff = async () => {
+    try {
+      // Validate required fields
+      if (!newStaffForm.firstName || !newStaffForm.lastName || !newStaffForm.email || !newStaffForm.role) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please fill in all required fields',
+          color: 'red',
+        });
+        return;
+      }
+
+      setSubmitting(true);
+
+      // Call API to create staff
+      await staffService.createStaff({
+        firstName: newStaffForm.firstName,
+        lastName: newStaffForm.lastName,
+        email: newStaffForm.email,
+        phone: newStaffForm.phone,
+        role: newStaffForm.role as any,
+        departmentId: newStaffForm.departmentId || undefined,
+        experience: newStaffForm.experience.toString(),
+      });
+
+      // Show success notification
+      notifications.show({
+        title: 'Success',
+        message: 'Staff member added successfully',
+        color: 'green',
+        icon: <IconCheck size={16} />,
+      });
+
+      // Reset form
+      setNewStaffForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        role: '',
+        departmentId: '',
+        experience: 0,
+      });
+
+      // Refresh staff list
+      fetchStaff();
+
+      // Close modal
+      closeAddStaff();
+    } catch (err: any) {
+      console.error('Error adding staff:', err);
+      notifications.show({
+        title: 'Error',
+        message: err.response?.data?.message || 'Failed to add staff member',
+        color: 'red',
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -540,6 +615,7 @@ const StaffManagement = () => {
                       <Table.Tr>
                         <Table.Th>Staff</Table.Th>
                         <Table.Th>ID</Table.Th>
+                        <Table.Th>Phone</Table.Th>
                         <Table.Th>Role</Table.Th>
                         <Table.Th>Department</Table.Th>
                         <Table.Th>Experience</Table.Th>
@@ -550,7 +626,7 @@ const StaffManagement = () => {
                     <Table.Tbody>
                       {filteredStaff.length === 0 ? (
                         <Table.Tr>
-                          <Table.Td colSpan={8}>
+                          <Table.Td colSpan={9}>
                             <EmptyState
                               icon={<IconUsers size={48} />}
                               title="No staff members"
@@ -579,6 +655,14 @@ const StaffManagement = () => {
                               </Group>
                             </Table.Td>
                             <Table.Td>{staff.staffId}</Table.Td>
+                            <Table.Td>
+                              <Group gap="xs">
+                                <IconPhone size={14} style={{ opacity: 0.6 }} />
+                                <Text size="sm">
+                                  {staff.user?.phone || staff.phone || 'N/A'}
+                                </Text>
+                              </Group>
+                            </Table.Td>
                             <Table.Td>
                               <Badge color={getRoleBadgeColor(staff.role)} variant="light">
                                 {staff.role ? staff.role.replace('_', ' ') : 'N/A'}
@@ -1208,13 +1292,38 @@ const StaffManagement = () => {
       <Modal opened={addStaffOpened} onClose={closeAddStaff} title="Add New Staff" size="lg">
         <Stack gap="md">
           <SimpleGrid cols={2}>
-            <TextInput label="First Name" placeholder="Enter first name" required />
-            <TextInput label="Last Name" placeholder="Enter last name" required />
+            <TextInput 
+              label="First Name" 
+              placeholder="Enter first name" 
+              required 
+              value={newStaffForm.firstName}
+              onChange={(e) => setNewStaffForm({ ...newStaffForm, firstName: e.target.value })}
+            />
+            <TextInput 
+              label="Last Name" 
+              placeholder="Enter last name" 
+              required 
+              value={newStaffForm.lastName}
+              onChange={(e) => setNewStaffForm({ ...newStaffForm, lastName: e.target.value })}
+            />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
-            <TextInput label="Email" placeholder="Enter email" required />
-            <TextInput label="Phone" placeholder="Enter phone number" required />
+            <TextInput 
+              label="Email" 
+              placeholder="Enter email" 
+              type="email"
+              required 
+              value={newStaffForm.email}
+              onChange={(e) => setNewStaffForm({ ...newStaffForm, email: e.target.value })}
+            />
+            <TextInput 
+              label="Phone" 
+              placeholder="Enter phone number" 
+              required 
+              value={newStaffForm.phone}
+              onChange={(e) => setNewStaffForm({ ...newStaffForm, phone: e.target.value })}
+            />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
@@ -1228,6 +1337,8 @@ const StaffManagement = () => {
                 { value: 'PHARMACIST', label: 'Pharmacist' },
               ]}
               required
+              value={newStaffForm.role}
+              onChange={(value) => setNewStaffForm({ ...newStaffForm, role: value || '' })}
             />
             <Select
               label="Department"
@@ -1239,7 +1350,8 @@ const StaffManagement = () => {
               searchable
               disabled={loadingDepartments}
               nothingFoundMessage="No departments found"
-              required
+              value={newStaffForm.departmentId}
+              onChange={(value) => setNewStaffForm({ ...newStaffForm, departmentId: value || '' })}
             />
           </SimpleGrid>
 
@@ -1248,21 +1360,17 @@ const StaffManagement = () => {
             placeholder="Enter years of experience"
             min={0}
             max={50}
+            value={newStaffForm.experience}
+            onChange={(value) => setNewStaffForm({ ...newStaffForm, experience: value as number })}
           />
 
           <Group justify="flex-end">
-            <Button variant="light" onClick={closeAddStaff}>
+            <Button variant="light" onClick={closeAddStaff} disabled={submitting}>
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                notifications.show({
-                  title: 'Success',
-                  message: 'New staff member added successfully',
-                  color: 'green',
-                });
-                closeAddStaff();
-              }}
+              onClick={handleAddStaff}
+              loading={submitting}
             >
               Add Staff
             </Button>

@@ -28,6 +28,7 @@ export class StaffService {
             passwordHash: hashedPassword,
             firstName: createStaffDto.firstName || '',
             lastName: createStaffDto.lastName || '',
+            phone: createStaffDto.phone,
             role: createStaffDto.role || 'DOCTOR',
             specialization: createStaffDto.specialization,
             licenseNumber: createStaffDto.licenseNumber,

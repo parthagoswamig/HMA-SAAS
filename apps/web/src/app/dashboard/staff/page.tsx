@@ -687,22 +687,22 @@ const StaffManagement = () => {
                                 </div>
                               </Group>
                             </Table.Td>
-                            <Table.Td>{staff.staffId}</Table.Td>
+                            <Table.Td>{staff.employeeId || staff.staffId || 'N/A'}</Table.Td>
                             <Table.Td>
                               <Group gap="xs">
                                 <IconPhone size={14} style={{ opacity: 0.6 }} />
                                 <Text size="sm">
-                                  {staff.user?.phone || staff.phone || 'N/A'}
+                                  {staff.user?.phone || 'N/A'}
                                 </Text>
                               </Group>
                             </Table.Td>
                             <Table.Td>
-                              <Badge color={getRoleBadgeColor(staff.role)} variant="light">
-                                {staff.role ? staff.role.replace('_', ' ') : 'N/A'}
+                              <Badge color={getRoleBadgeColor(staff.user?.role || staff.role)} variant="light">
+                                {(staff.user?.role || staff.role)?.replace('_', ' ') || 'N/A'}
                               </Badge>
                             </Table.Td>
                             <Table.Td>{staff.department?.name || 'No Department'}</Table.Td>
-                            <Table.Td>{staff.experience || 0} years</Table.Td>
+                            <Table.Td>{staff.user?.experience || staff.experience || 0} years</Table.Td>
                             <Table.Td>
                               <Badge color={getStatusBadgeColor(staff.status)} variant="light">
                                 {staff.status}

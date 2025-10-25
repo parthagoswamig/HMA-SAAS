@@ -674,15 +674,15 @@ const StaffManagement = () => {
                             <Table.Td>
                               <Group>
                                 <Avatar color="blue" radius="xl">
-                                  {staff.firstName[0]}
-                                  {staff.lastName[0]}
+                                  {staff.firstName?.[0] || staff.user?.firstName?.[0] || '?'}
+                                  {staff.lastName?.[0] || staff.user?.lastName?.[0] || '?'}
                                 </Avatar>
                                 <div>
                                   <Text fw={500}>
-                                    {staff.firstName} {staff.lastName}
+                                    {staff.firstName || staff.user?.firstName || 'N/A'} {staff.lastName || staff.user?.lastName || 'N/A'}
                                   </Text>
                                   <Text size="sm" c="dimmed">
-                                    {staff.contactInfo.email}
+                                    {staff.contactInfo?.email || staff.user?.email || 'N/A'}
                                   </Text>
                                 </div>
                               </Group>
@@ -1188,15 +1188,15 @@ const StaffManagement = () => {
             {/* Basic Info */}
             <Group>
               <Avatar size="xl" color="blue" radius="xl">
-                {selectedStaff.firstName[0]}
-                {selectedStaff.lastName[0]}
+                {selectedStaff.firstName?.[0] || selectedStaff.user?.firstName?.[0] || '?'}
+                {selectedStaff.lastName?.[0] || selectedStaff.user?.lastName?.[0] || '?'}
               </Avatar>
               <div>
                 <Title order={3}>
-                  {selectedStaff.firstName} {selectedStaff.lastName}
+                  {selectedStaff.firstName || selectedStaff.user?.firstName || 'N/A'} {selectedStaff.lastName || selectedStaff.user?.lastName || 'N/A'}
                 </Title>
                 <Text c="dimmed">
-                  {selectedStaff.staffId} • {selectedStaff.department.name}
+                  {selectedStaff.staffId} • {selectedStaff.department?.name || 'No Department'}
                 </Text>
                 <Badge color={getRoleBadgeColor(selectedStaff.role)} variant="light" mt="xs">
                   {selectedStaff.role.replace('_', ' ')}

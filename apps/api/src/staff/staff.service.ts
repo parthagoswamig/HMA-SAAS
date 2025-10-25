@@ -28,7 +28,7 @@ export class StaffService {
             passwordHash: hashedPassword,
             firstName: createStaffDto.firstName || '',
             lastName: createStaffDto.lastName || '',
-            phone: createStaffDto.phone,
+            // phone: createStaffDto.phone, // TODO: Add after migration
             role: createStaffDto.role || 'DOCTOR',
             specialization: createStaffDto.specialization,
             licenseNumber: createStaffDto.licenseNumber,

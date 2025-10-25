@@ -112,6 +112,20 @@ const StaffManagement = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // Handler to open Add Staff modal with clean form
+  const handleOpenAddStaff = () => {
+    setNewStaffForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      role: '',
+      departmentId: '',
+      experience: 0,
+    });
+    openAddStaff();
+  };
+
   // Fetch staff data
   useEffect(() => {
     fetchStaff();
@@ -203,7 +217,7 @@ const StaffManagement = () => {
         email: newStaffForm.email,
         phone: newStaffForm.phone,
         role: newStaffForm.role as any,
-        departmentId: newStaffForm.departmentId || undefined,
+        ...(newStaffForm.departmentId && { departmentId: newStaffForm.departmentId }),
         experience: newStaffForm.experience.toString(),
       });
 
@@ -456,7 +470,7 @@ const StaffManagement = () => {
           </Text>
         </div>
         <Group>
-          <Button leftSection={<IconUserPlus size={16} />} onClick={openAddStaff}>
+          <Button leftSection={<IconUserPlus size={16} />} onClick={handleOpenAddStaff}>
             Add Staff
           </Button>
         </Group>

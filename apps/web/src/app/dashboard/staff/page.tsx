@@ -701,8 +701,8 @@ const StaffManagement = () => {
                                 {staff.role ? staff.role.replace('_', ' ') : 'N/A'}
                               </Badge>
                             </Table.Td>
-                            <Table.Td>{staff.department.name}</Table.Td>
-                            <Table.Td>{staff.experience} years</Table.Td>
+                            <Table.Td>{staff.department?.name || 'No Department'}</Table.Td>
+                            <Table.Td>{staff.experience || 0} years</Table.Td>
                             <Table.Td>
                               <Badge color={getStatusBadgeColor(staff.status)} variant="light">
                                 {staff.status}

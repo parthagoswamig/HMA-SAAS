@@ -218,10 +218,14 @@ const StaffManagement = () => {
         lastName: newStaffForm.lastName,
         email: newStaffForm.email,
         password: newStaffForm.password,
-        phone: newStaffForm.phone,
         role: newStaffForm.role,
         experience: newStaffForm.experience.toString(),
       };
+
+      // Add phone only if provided (in case backend doesn't have phone column yet)
+      if (newStaffForm.phone) {
+        staffData.phone = newStaffForm.phone;
+      }
 
       // Only add departmentId if it's a non-empty string
       if (newStaffForm.departmentId && newStaffForm.departmentId.trim() !== '') {
@@ -1382,6 +1386,7 @@ const StaffManagement = () => {
               ]}
               required
               searchable
+              maxDropdownHeight={200}
               value={newStaffForm.role}
               onChange={(value) => setNewStaffForm({ ...newStaffForm, role: value || '' })}
             />

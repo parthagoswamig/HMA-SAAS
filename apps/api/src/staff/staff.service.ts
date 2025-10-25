@@ -22,18 +22,28 @@ export class StaffService {
       if (!userId && createStaffDto.email && createStaffDto.password) {
         const hashedPassword = await bcrypt.hash(createStaffDto.password, 10);
 
+        const userData: any = {
+          email: createStaffDto.email,
+          passwordHash: hashedPassword,
+          firstName: createStaffDto.firstName || '',
+          lastName: createStaffDto.lastName || '',
+          role: createStaffDto.role || 'DOCTOR',
+          specialization: createStaffDto.specialization,
+          licenseNumber: createStaffDto.licenseNumber,
+          tenantId,
+        };
+
+        // Try to add phone if provided (gracefully handle if column doesn't exist yet)
+        if (createStaffDto.phone) {
+          try {
+            userData.phone = createStaffDto.phone;
+          } catch (err) {
+            this.logger.warn('Phone field not available in database yet');
+          }
+        }
+
         const user = await this.prisma.user.create({
-          data: {
-            email: createStaffDto.email,
-            passwordHash: hashedPassword,
-            firstName: createStaffDto.firstName || '',
-            lastName: createStaffDto.lastName || '',
-            phone: createStaffDto.phone,
-            role: createStaffDto.role || 'DOCTOR',
-            specialization: createStaffDto.specialization,
-            licenseNumber: createStaffDto.licenseNumber,
-            tenantId,
-          },
+          data: userData,
         });
         userId = user.id;
       }
@@ -66,6 +76,7 @@ export class StaffService {
               email: true,
               firstName: true,
               lastName: true,
+              phone: true,
               role: true,
               specialization: true,
               licenseNumber: true,

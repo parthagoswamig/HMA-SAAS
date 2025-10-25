@@ -105,6 +105,7 @@ const StaffManagement = () => {
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phone: '',
     role: '',
     departmentId: '',
@@ -118,6 +119,7 @@ const StaffManagement = () => {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
       phone: '',
       role: '',
       departmentId: '',
@@ -199,10 +201,10 @@ const StaffManagement = () => {
   const handleAddStaff = async () => {
     try {
       // Validate required fields
-      if (!newStaffForm.firstName || !newStaffForm.lastName || !newStaffForm.email || !newStaffForm.role) {
+      if (!newStaffForm.firstName || !newStaffForm.lastName || !newStaffForm.email || !newStaffForm.password || !newStaffForm.role) {
         notifications.show({
           title: 'Validation Error',
-          message: 'Please fill in all required fields',
+          message: 'Please fill in all required fields (First Name, Last Name, Email, Password, Role)',
           color: 'red',
         });
         return;
@@ -215,6 +217,7 @@ const StaffManagement = () => {
         firstName: newStaffForm.firstName,
         lastName: newStaffForm.lastName,
         email: newStaffForm.email,
+        password: newStaffForm.password,
         phone: newStaffForm.phone,
         role: newStaffForm.role,
         experience: newStaffForm.experience.toString(),
@@ -241,6 +244,7 @@ const StaffManagement = () => {
         firstName: '',
         lastName: '',
         email: '',
+        password: '',
         phone: '',
         role: '',
         departmentId: '',
@@ -254,9 +258,17 @@ const StaffManagement = () => {
       closeAddStaff();
     } catch (err: any) {
       console.error('Error adding staff:', err);
+      console.error('Error response data:', err.response?.data);
+      
+      // Extract error message
+      const errorMessage = err.response?.data?.message;
+      const displayMessage = Array.isArray(errorMessage) 
+        ? errorMessage.join(', ') 
+        : errorMessage || 'Failed to add staff member';
+      
       notifications.show({
         title: 'Error',
-        message: err.response?.data?.message || 'Failed to add staff member',
+        message: displayMessage,
         color: 'red',
       });
     } finally {
@@ -1329,19 +1341,27 @@ const StaffManagement = () => {
             />
           </SimpleGrid>
 
+          <TextInput 
+            label="Email" 
+            placeholder="Enter email" 
+            type="email"
+            required 
+            value={newStaffForm.email}
+            onChange={(e) => setNewStaffForm({ ...newStaffForm, email: e.target.value })}
+          />
+
           <SimpleGrid cols={2}>
             <TextInput 
-              label="Email" 
-              placeholder="Enter email" 
-              type="email"
+              label="Password" 
+              placeholder="Enter password" 
+              type="password"
               required 
-              value={newStaffForm.email}
-              onChange={(e) => setNewStaffForm({ ...newStaffForm, email: e.target.value })}
+              value={newStaffForm.password}
+              onChange={(e) => setNewStaffForm({ ...newStaffForm, password: e.target.value })}
             />
             <TextInput 
               label="Phone" 
               placeholder="Enter phone number" 
-              required 
               value={newStaffForm.phone}
               onChange={(e) => setNewStaffForm({ ...newStaffForm, phone: e.target.value })}
             />

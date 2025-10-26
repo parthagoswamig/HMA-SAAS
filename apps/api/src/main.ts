@@ -25,21 +25,16 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      console.log('CORS Origin:', origin);
-      console.log('Parsed Origins:', parsedOrigins);
-
-      // Allow requests with no origin (mobile apps, etc.)
+      // Allow requests with no origin (health checks, server-to-server, mobile apps, etc.)
       if (!origin) return callback(null, true);
 
       // Check if origin is in allowed list
       if (parsedOrigins.includes(origin)) {
-        console.log('Origin allowed from list:', origin);
         return callback(null, true);
       }
 
       // Allow all Vercel domains
       if (origin.endsWith('.vercel.app') || origin.endsWith('.vercel.com')) {
-        console.log('Origin allowed as Vercel domain:', origin);
         return callback(null, true);
       }
 
@@ -48,17 +43,16 @@ async function bootstrap() {
         origin.startsWith('http://localhost:') ||
         origin.startsWith('http://127.0.0.1:')
       ) {
-        console.log('Origin allowed as localhost:', origin);
         return callback(null, true);
       }
 
       // Reject other origins
-      console.log('Origin rejected:', origin);
+      logger.warn(`CORS: Rejected origin - ${origin}`);
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-Tenant-Id'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     maxAge: 3600,
   });

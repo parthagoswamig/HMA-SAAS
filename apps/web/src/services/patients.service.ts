@@ -63,14 +63,13 @@ const patientsService = {
       
       const response = await enhancedApiClient.post('/patients', formattedData);
       
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to create patient');
-      }
-      
-      return response;
-    } catch (error) {
+      return {
+        success: true,
+        data: response.data || response,
+      };
+    } catch (error: any) {
       console.error('Error creating patient:', error);
-      throw new Error(error.response?.data?.message || 'Failed to create patient');
+      throw error;
     }
   },
 
@@ -78,42 +77,66 @@ const patientsService = {
    * Get all patients with filters
    */
   getPatients: async (filters?: PatientFilters): Promise<PatientsListResponse> => {
-    return enhancedApiClient.get('/patients', filters);
+    const response = await enhancedApiClient.get('/patients', filters);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Get patient by ID
    */
   getPatientById: async (id: string): Promise<PatientResponse> => {
-    return enhancedApiClient.get(`/patients/${id}`);
+    const response = await enhancedApiClient.get(`/patients/${id}`);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Update patient
    */
   updatePatient: async (id: string, data: Partial<CreatePatientDto>): Promise<PatientResponse> => {
-    return enhancedApiClient.patch(`/patients/${id}`, data);
+    const response = await enhancedApiClient.patch(`/patients/${id}`, data);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Delete patient
    */
   deletePatient: async (id: string): Promise<PatientResponse> => {
-    return enhancedApiClient.delete(`/patients/${id}`);
+    const response = await enhancedApiClient.delete(`/patients/${id}`);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Search patients
    */
   searchPatients: async (query: string): Promise<PatientResponse> => {
-    return enhancedApiClient.get('/patients/search', { q: query });
+    const response = await enhancedApiClient.get('/patients/search', { q: query });
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Get patient statistics
    */
   getPatientStats: async (): Promise<PatientStatsResponse> => {
-    return enhancedApiClient.get('/patients/stats');
+    const response = await enhancedApiClient.get('/patients/stats');
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
@@ -129,8 +152,9 @@ const patientsService = {
       });
 
       // Use fetch directly for multipart/form-data
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/patients/${patientId}/documents`, {
+      const token = localStorage.getItem('accessToken');
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiBaseUrl}/patients/${patientId}/documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -154,14 +178,22 @@ const patientsService = {
    * Get documents for a patient
    */
   getPatientDocuments: async (patientId: string): Promise<PatientResponse> => {
-    return enhancedApiClient.get(`/patients/${patientId}/documents`);
+    const response = await enhancedApiClient.get(`/patients/${patientId}/documents`);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 
   /**
    * Delete a patient document
    */
   deletePatientDocument: async (patientId: string, documentId: string): Promise<PatientResponse> => {
-    return enhancedApiClient.delete(`/patients/${patientId}/documents/${documentId}`);
+    const response = await enhancedApiClient.delete(`/patients/${patientId}/documents/${documentId}`);
+    return {
+      success: true,
+      data: response.data || response,
+    };
   },
 };
 

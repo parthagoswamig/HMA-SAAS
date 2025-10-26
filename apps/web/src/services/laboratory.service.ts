@@ -1,4 +1,4 @@
-import { apiClient } from './api-client';
+import { enhancedApiClient } from '../lib/api-client';
 
 /**
  * Laboratory Management API Service
@@ -59,35 +59,35 @@ const laboratoryService = {
    * Create new lab test
    */
   createLabTest: async (data: CreateLabTestDto) => {
-    return apiClient.post('/laboratory/tests', data);
+    return enhancedApiClient.post('/laboratory/tests', data);
   },
 
   /**
    * Get all lab tests with filters
    */
   getLabTests: async (filters?: LabTestFilters) => {
-    return apiClient.get('/laboratory/tests', filters);
+    return enhancedApiClient.get('/laboratory/tests', filters);
   },
 
   /**
    * Get lab test by ID
    */
   getLabTestById: async (id: string) => {
-    return apiClient.get(`/laboratory/tests/${id}`);
+    return enhancedApiClient.get(`/laboratory/tests/${id}`);
   },
 
   /**
    * Update lab test
    */
   updateLabTest: async (id: string, data: Partial<CreateLabTestDto>) => {
-    return apiClient.patch(`/laboratory/tests/${id}`, data);
+    return enhancedApiClient.patch(`/laboratory/tests/${id}`, data);
   },
 
   /**
    * Delete lab test (deactivate)
    */
   deleteLabTest: async (id: string) => {
-    return apiClient.delete(`/laboratory/tests/${id}`);
+    return enhancedApiClient.delete(`/laboratory/tests/${id}`);
   },
 
   // ==================== LAB ORDERS ====================
@@ -96,49 +96,49 @@ const laboratoryService = {
    * Create new lab order
    */
   createLabOrder: async (data: CreateLabOrderDto) => {
-    return apiClient.post('/laboratory/orders', data);
+    return enhancedApiClient.post('/laboratory/orders', data);
   },
 
   /**
    * Get all lab orders with filters
    */
   getLabOrders: async (filters?: LabOrderFilters) => {
-    return apiClient.get('/laboratory/orders', filters);
+    return enhancedApiClient.get('/laboratory/orders', filters);
   },
 
   /**
    * Get lab order by ID
    */
   getLabOrderById: async (id: string) => {
-    return apiClient.get(`/laboratory/orders/${id}`);
+    return enhancedApiClient.get(`/laboratory/orders/${id}`);
   },
 
   /**
    * Update lab order
    */
   updateLabOrder: async (id: string, data: UpdateLabOrderDto) => {
-    return apiClient.patch(`/laboratory/orders/${id}`, data);
+    return enhancedApiClient.patch(`/laboratory/orders/${id}`, data);
   },
 
   /**
    * Update test result in an order
    */
   updateTestResult: async (orderId: string, testId: string, data: UpdateTestResultDto) => {
-    return apiClient.patch(`/laboratory/orders/${orderId}/tests/${testId}/result`, data);
+    return enhancedApiClient.patch(`/laboratory/orders/${orderId}/tests/${testId}/result`, data);
   },
 
   /**
    * Cancel lab order
    */
   cancelLabOrder: async (id: string) => {
-    return apiClient.delete(`/laboratory/orders/${id}`);
+    return enhancedApiClient.delete(`/laboratory/orders/${id}`);
   },
 
   /**
    * Get laboratory statistics
    */
   getLabStats: async () => {
-    return apiClient.get('/laboratory/orders/stats');
+    return enhancedApiClient.get('/laboratory/orders/stats');
   },
 };
 

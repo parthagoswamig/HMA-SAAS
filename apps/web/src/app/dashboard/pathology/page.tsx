@@ -66,8 +66,8 @@ import {
   IconFileReport,
 } from '@tabler/icons-react';
 
-// Import types and mock data - using any for flexibility
-// Mock data imports removed
+// Import types and services
+// API data only - no mock data
 import pathologyService from '../../../services/pathology.service';
 
 const PathologyManagement = () => {

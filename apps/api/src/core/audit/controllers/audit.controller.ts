@@ -8,6 +8,14 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AuditService } from '../services/audit.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../rbac/guards/permissions.guard';
@@ -16,6 +24,8 @@ import { Permission } from '../../rbac/enums/permissions.enum';
 import { QueryAuditLogsDto, GetStatisticsDto, MarkReviewedDto } from '../dto/audit.dto';
 import { AuditEntityType } from '../entities/audit-log.entity';
 
+@ApiTags('Audit Logs')
+@ApiBearerAuth()
 @Controller('audit')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AuditController {
@@ -27,6 +37,8 @@ export class AuditController {
    */
   @Get('logs')
   @Permissions(Permission.VIEW_AUDIT_LOGS)
+  @ApiOperation({ summary: 'Query audit logs with filters' })
+  @ApiResponse({ status: 200, description: 'Audit logs retrieved successfully' })
   async queryLogs(@Query() query: QueryAuditLogsDto) {
     return this.auditService.query({
       ...query,
@@ -43,6 +55,10 @@ export class AuditController {
    */
   @Get('entity/:entityType/:entityId')
   @Permissions(Permission.VIEW_AUDIT_LOGS)
+  @ApiOperation({ summary: 'Get audit trail for specific entity' })
+  @ApiParam({ name: 'entityType', description: 'Type of entity' })
+  @ApiParam({ name: 'entityId', description: 'Entity ID' })
+  @ApiResponse({ status: 200, description: 'Entity trail retrieved successfully' })
   async getEntityTrail(
     @Param('entityType') entityType: AuditEntityType,
     @Param('entityId') entityId: string,
@@ -57,6 +73,9 @@ export class AuditController {
    */
   @Get('user/:userId')
   @Permissions(Permission.VIEW_AUDIT_LOGS)
+  @ApiOperation({ summary: 'Get user activity history' })
+  @ApiParam({ name: 'userId', description: 'User ID' })
+  @ApiResponse({ status: 200, description: 'User activity retrieved successfully' })
   async getUserActivity(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Query('tenantId') tenantId?: string,

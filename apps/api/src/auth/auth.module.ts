@@ -6,12 +6,13 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtSupabaseStrategy } from './jwt-supabase.strategy';
 import { SupabaseAuthService } from './services/supabase-auth.service';
 
 @Module({
   imports: [
     PrismaModule,
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -22,7 +23,7 @@ import { SupabaseAuthService } from './services/supabase-auth.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, SupabaseAuthService],
-  exports: [AuthService, SupabaseAuthService],
+  providers: [AuthService, JwtStrategy, JwtSupabaseStrategy, SupabaseAuthService],
+  exports: [AuthService, SupabaseAuthService, JwtModule, PassportModule],
 })
 export class AuthModule {}

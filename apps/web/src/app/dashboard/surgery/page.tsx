@@ -66,9 +66,8 @@ import {
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
 
-// Import types and mock data
-// Types will be defined inline since they don't exist yet
-// Mock data removed - using API data only
+// Import types and services
+// API data only - no mock data
 
 const SurgeryManagement = () => {
   // State management

@@ -52,22 +52,7 @@ import type {
   BedFilters,
 } from '../../services/ipd.service';
 
-const mockUser: User = {
-  id: '1',
-  username: 'admin',
-  email: 'admin@hospital.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  role: UserRole.ADMIN,
-  permissions: [],
-  isActive: true,
-  tenantInfo: {
-    tenantId: 'T001',
-    tenantName: 'Main Hospital',
-  },
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+// User will be fetched from app store
 
 function IpdPage() {
   const { user, setUser } = useAppStore();
@@ -87,49 +72,28 @@ function IpdPage() {
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
 
   useEffect(() => {
-    if (!user) {
-      setUser(mockUser);
-    }
     fetchWards();
     fetchBeds();
     fetchStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, setUser]);
+  }, []);
 
   const fetchWards = async () => {
     setLoading(true);
     try {
       const filters: WardFilters = {
-        page: 1,
+        search: searchQuery || undefined,
         limit: 100,
       };
-
       const response = await ipdService.getWards(filters);
       if (response.success && response.data) {
-        let filteredWards = response.data.items;
-
-        // Apply search filter
-        if (searchQuery) {
-          filteredWards = filteredWards.filter(
-            (w) =>
-              w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              (w.location && w.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
-              (w.description && w.description.toLowerCase().includes(searchQuery.toLowerCase()))
-          );
-        }
-
-        setWards(filteredWards);
+        setWards(response.data.items || []);
       }
     } catch (error: any) {
       console.error('Error fetching wards:', error);
       notifications.show({
-        title: 'Error Loading Wards',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to fetch wards. Please try again.',
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to fetch wards',
         color: 'red',
-        autoClose: 5000,
       });
     } finally {
       setLoading(false);
@@ -137,43 +101,24 @@ function IpdPage() {
   };
 
   const fetchBeds = async () => {
-    setLoading(true);
     try {
       const filters: BedFilters = {
-        page: 1,
+        wardId: wardFilter || undefined,
+        status: statusFilter || undefined,
+        search: searchQuery || undefined,
         limit: 100,
       };
-      if (wardFilter) filters.wardId = wardFilter;
-      if (statusFilter) filters.status = statusFilter;
-
       const response = await ipdService.getBeds(filters);
       if (response.success && response.data) {
-        let filteredBeds = response.data.items;
-
-        // Apply search filter
-        if (searchQuery) {
-          filteredBeds = filteredBeds.filter(
-            (b) =>
-              b.bedNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              (b.ward && b.ward.name.toLowerCase().includes(searchQuery.toLowerCase()))
-          );
-        }
-
-        setBeds(filteredBeds);
+        setBeds(response.data.items || []);
       }
     } catch (error: any) {
       console.error('Error fetching beds:', error);
       notifications.show({
-        title: 'Error Loading Beds',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to fetch beds. Please try again.',
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to fetch beds',
         color: 'red',
-        autoClose: 5000,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -185,6 +130,14 @@ function IpdPage() {
       }
     } catch (error: any) {
       console.error('Error fetching stats:', error);
+      // Set default stats on error
+      setStats({
+        totalWards: 0,
+        totalBeds: 0,
+        occupiedBeds: 0,
+        availableBeds: 0,
+        occupancyRate: 0,
+      });
       notifications.show({
         title: 'Error Loading Statistics',
         message:
@@ -192,104 +145,60 @@ function IpdPage() {
           error?.message ||
           'Failed to fetch IPD statistics. Please try again.',
         color: 'red',
-        autoClose: 5000,
       });
     }
   };
 
-  const handleCreateWard = async (data: CreateWardDto) => {
+  const handleSubmitWard = async (data: CreateWardDto | UpdateWardDto) => {
     try {
-      const response = await ipdService.createWard(data);
-
+      let response;
+      if (selectedWard) {
+        response = await ipdService.updateWard(selectedWard.id, data as UpdateWardDto);
+      } else {
+        response = await ipdService.createWard(data as CreateWardDto);
+      }
+      
       if (response.success) {
         notifications.show({
           title: 'Success',
-          message: 'Ward created successfully',
+          message: selectedWard ? 'Ward updated successfully' : 'Ward created successfully',
           color: 'green',
-          autoClose: 3000,
         });
-
-        closeWardForm();
         fetchWards();
         fetchStats();
-      }
-    } catch (error: any) {
-      console.error('Error creating ward:', error);
-      notifications.show({
-        title: 'Error Creating Ward',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to create ward. Please try again.',
-        color: 'red',
-        autoClose: 5000,
-      });
-      throw error;
-    }
-  };
-
-  const handleUpdateWard = async (data: UpdateWardDto) => {
-    if (!selectedWard) return;
-
-    try {
-      const response = await ipdService.updateWard(selectedWard.id, data);
-
-      if (response.success) {
-        notifications.show({
-          title: 'Success',
-          message: 'Ward updated successfully',
-          color: 'green',
-          autoClose: 3000,
-        });
-
         closeWardForm();
         setSelectedWard(null);
-        fetchWards();
-        fetchStats();
       }
     } catch (error: any) {
-      console.error('Error updating ward:', error);
       notifications.show({
-        title: 'Error Updating Ward',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to update ward. Please try again.',
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to save ward',
         color: 'red',
-        autoClose: 5000,
       });
-      throw error;
     }
   };
 
-  const handleCreateBed = async (data: CreateBedDto) => {
+  const handleSubmitBed = async (data: CreateBedDto) => {
     try {
       const response = await ipdService.createBed(data);
-
+      
       if (response.success) {
         notifications.show({
           title: 'Success',
-          message: 'Bed created successfully',
+          message: 'Bed added successfully',
           color: 'green',
-          autoClose: 3000,
         });
-
-        closeBedForm();
         fetchBeds();
         fetchStats();
+        closeBedForm();
+        setSelectedBed(null);
       }
     } catch (error: any) {
-      console.error('Error creating bed:', error);
       notifications.show({
-        title: 'Error Creating Bed',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to create bed. Please try again.',
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to add bed',
         color: 'red',
-        autoClose: 5000,
       });
-      throw error;
     }
   };
 
@@ -302,22 +211,16 @@ function IpdPage() {
           title: 'Success',
           message: 'Bed status updated successfully',
           color: 'green',
-          autoClose: 3000,
         });
-
         fetchBeds();
         fetchStats();
       }
     } catch (error: any) {
       console.error('Error updating bed status:', error);
       notifications.show({
-        title: 'Error Updating Status',
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          'Failed to update bed status. Please try again.',
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to update bed status',
         color: 'red',
-        autoClose: 5000,
       });
     }
   };
@@ -434,30 +337,55 @@ function IpdPage() {
         const ward = record as any;
         return (
           <Group gap="xs">
-            <ActionIcon variant="subtle" onClick={() => handleViewWard(ward)}>
+            <ActionIcon
+              variant="subtle"
+              color="blue"
+              onClick={() => {
+                setSelectedWard(ward);
+                openDetails();
+              }}
+              title="View Details"
+            >
               <IconEye size={16} />
             </ActionIcon>
-            <ActionIcon variant="subtle" onClick={() => handleEditWard(ward)}>
+            <ActionIcon
+              variant="subtle"
+              color="green"
+              onClick={() => {
+                setSelectedWard(ward);
+                openWardForm();
+              }}
+              title="Edit Ward"
+            >
               <IconEdit size={16} />
             </ActionIcon>
-            <Menu position="bottom-end">
-              <Menu.Target>
-                <ActionIcon variant="subtle">
-                  <IconDotsVertical size={16} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item leftSection={<IconEye size={14} />} onClick={() => handleViewWard(ward)}>
-                  View Details
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<IconEdit size={14} />}
-                  onClick={() => handleEditWard(ward)}
-                >
-                  Edit Ward
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={async () => {
+                if (confirm('Are you sure you want to delete this ward?')) {
+                  try {
+                    await ipdService.deleteWard(ward.id);
+                    notifications.show({
+                      title: 'Success',
+                      message: 'Ward deleted successfully',
+                      color: 'green',
+                    });
+                    fetchWards();
+                    fetchStats();
+                  } catch (error: any) {
+                    notifications.show({
+                      title: 'Error',
+                      message: error?.response?.data?.message || 'Failed to delete ward',
+                      color: 'red',
+                    });
+                  }
+                }
+              }}
+              title="Delete Ward"
+            >
+              <IconX size={16} />
+            </ActionIcon>
           </Group>
         );
       },
@@ -556,12 +484,18 @@ function IpdPage() {
     },
   ];
 
-  const layoutUser = user || mockUser;
+  const layoutUser = user || {
+    id: '1',
+    firstName: 'Admin',
+    lastName: 'User',
+    email: 'admin@hospital.com',
+    role: 'ADMIN',
+  };
   const userForLayout = {
     id: layoutUser.id,
     name: `${layoutUser.firstName} ${layoutUser.lastName}`,
     email: layoutUser.email,
-    role: layoutUser.role,
+    role: layoutUser.role as any,
   };
 
   return (
@@ -777,7 +711,7 @@ function IpdPage() {
         opened={wardFormOpened}
         onClose={closeWardForm}
         ward={selectedWard}
-        onSubmit={selectedWard ? handleUpdateWard : handleCreateWard}
+        onSubmit={handleSubmitWard}
       />
 
       {/* Bed Form Modal */}
@@ -785,7 +719,7 @@ function IpdPage() {
         opened={bedFormOpened}
         onClose={closeBedForm}
         bed={selectedBed}
-        onSubmit={handleCreateBed}
+        onSubmit={handleSubmitBed}
       />
 
       {/* Ward Details Modal */}

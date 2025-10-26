@@ -1,9 +1,8 @@
 'use client';
-import Layout from '../components/Layout';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 import React, { useState } from 'react';
+import Layout from '../../components/shared/Layout';
+import { Card, Button, TextInput } from '@mantine/core';
+import { useAppStore } from '../../stores/appStore';
 
 interface InventoryItem {
   id: string;
@@ -44,6 +43,7 @@ interface InventoryItem {
 }
 
 const InventoryPage = () => {
+  const { user } = useAppStore();
   const [currentTab, setCurrentTab] = useState<
     'inventory' | 'orders' | 'movements' | 'suppliers' | 'analytics' | 'alerts'
   >('inventory');
@@ -53,19 +53,7 @@ const InventoryPage = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showItemModal, setShowItemModal] = useState(false);
 
-  const filteredItems = [].filter(
-    /* TODO: API */ (item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.itemCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
-      const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
-
-      return matchesSearch && matchesCategory && matchesStatus;
-    }
-  );
+  const filteredItems = [];
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -453,7 +441,9 @@ const InventoryPage = () => {
           <Card>
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#10b981', marginBottom: '0.5rem' }}>📦</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>{0}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
+                {filteredItems.length}
+              </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Items</div>
             </div>
           </Card>
@@ -461,7 +451,7 @@ const InventoryPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#f59e0b', marginBottom: '0.5rem' }}>⚠️</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {[].filter(/* TODO: API */ (item) => item.status === 'LOW_STOCK').length}
+                {filteredItems.filter((item) => item.status === 'LOW_STOCK').length}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Low Stock</div>
             </div>
@@ -470,7 +460,7 @@ const InventoryPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#ef4444', marginBottom: '0.5rem' }}>🚫</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {[].filter(/* TODO: API */ (item) => item.status === 'OUT_OF_STOCK').length}
+                {filteredItems.filter((item) => item.status === 'OUT_OF_STOCK').length}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Out of Stock</div>
             </div>
@@ -480,9 +470,7 @@ const InventoryPage = () => {
               <div style={{ fontSize: '2rem', color: '#3b82f6', marginBottom: '0.5rem' }}>💰</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
                 $
-                {[]
-                  .reduce(/* TODO: API */ (sum, item) => sum + item.totalValue, 0)
-                  .toLocaleString()}
+                {filteredItems.reduce((sum, item) => sum + item.totalValue, 0).toLocaleString()}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Value</div>
             </div>
@@ -540,7 +528,7 @@ const InventoryPage = () => {
             <Card style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '250px' }}>
-                  <Input
+                  <TextInput
                     placeholder="Search items..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

@@ -19,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 import { PharmacyService } from './pharmacy.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateMedicationDto,
   UpdateMedicationDto,
@@ -28,18 +31,18 @@ import {
   PharmacyOrderQueryDto,
   MedicationQueryDto,
 } from './dto';
-import { TenantId } from '../shared/decorators/tenant-id.decorator';
 
 @ApiTags('Pharmacy')
 @ApiBearerAuth()
 @Controller('pharmacy')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class PharmacyController {
   constructor(private readonly pharmacyService: PharmacyService) {}
 
   // ==================== Medications Endpoints ====================
 
   @Post('medications')
+  @RequirePermissions('pharmacy.create', 'PHARMACY_CREATE', 'MEDICATION_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new medication' })
   @ApiResponse({ status: 201, description: 'Medication created successfully' })
@@ -52,6 +55,7 @@ export class PharmacyController {
   }
 
   @Get('medications')
+  @RequirePermissions('pharmacy.view', 'PHARMACY_READ', 'VIEW_PHARMACY')
   @ApiOperation({ summary: 'Get all medications with pagination' })
   @ApiResponse({ status: 200, description: 'Medications retrieved successfully' })
   async findAllMedications(
@@ -62,6 +66,7 @@ export class PharmacyController {
   }
 
   @Get('medications/:id')
+  @RequirePermissions('pharmacy.view', 'PHARMACY_READ', 'VIEW_PHARMACY')
   @ApiOperation({ summary: 'Get medication by ID' })
   @ApiResponse({ status: 200, description: 'Medication retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Medication not found' })
@@ -73,6 +78,7 @@ export class PharmacyController {
   }
 
   @Patch('medications/:id')
+  @RequirePermissions('pharmacy.update', 'PHARMACY_UPDATE', 'MEDICATION_UPDATE')
   @ApiOperation({ summary: 'Update medication by ID' })
   @ApiResponse({ status: 200, description: 'Medication updated successfully' })
   @ApiResponse({ status: 404, description: 'Medication not found' })
@@ -85,6 +91,7 @@ export class PharmacyController {
   }
 
   @Delete('medications/:id')
+  @RequirePermissions('pharmacy.delete', 'PHARMACY_DELETE', 'MEDICATION_DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft delete medication by ID' })
   @ApiResponse({ status: 204, description: 'Medication deleted successfully' })
@@ -99,6 +106,7 @@ export class PharmacyController {
   // ==================== Pharmacy Orders Endpoints ====================
 
   @Post('orders')
+  @RequirePermissions('pharmacy.order.create', 'PHARMACY_ORDER_CREATE', 'DISPENSE_MEDICATION')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new pharmacy order' })
   @ApiResponse({ status: 201, description: 'Pharmacy order created successfully' })
@@ -111,6 +119,7 @@ export class PharmacyController {
   }
 
   @Get('orders')
+  @RequirePermissions('pharmacy.order.view', 'PHARMACY_ORDER_READ', 'VIEW_PHARMACY_ORDERS')
   @ApiOperation({ summary: 'Get all pharmacy orders with pagination' })
   @ApiResponse({ status: 200, description: 'Pharmacy orders retrieved successfully' })
   async findAllPharmacyOrders(
@@ -121,6 +130,7 @@ export class PharmacyController {
   }
 
   @Get('orders/stats')
+  @RequirePermissions('pharmacy.view', 'PHARMACY_READ', 'VIEW_REPORTS')
   @ApiOperation({ summary: 'Get pharmacy statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
   async getPharmacyStats(@TenantId() tenantId: string) {
@@ -128,6 +138,7 @@ export class PharmacyController {
   }
 
   @Get('orders/:id')
+  @RequirePermissions('pharmacy.order.view', 'PHARMACY_ORDER_READ', 'VIEW_PHARMACY_ORDERS')
   @ApiOperation({ summary: 'Get pharmacy order by ID' })
   @ApiResponse({ status: 200, description: 'Pharmacy order retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Pharmacy order not found' })
@@ -139,6 +150,7 @@ export class PharmacyController {
   }
 
   @Patch('orders/:id')
+  @RequirePermissions('pharmacy.order.update', 'PHARMACY_ORDER_UPDATE', 'DISPENSE_MEDICATION')
   @ApiOperation({ summary: 'Update pharmacy order by ID' })
   @ApiResponse({ status: 200, description: 'Pharmacy order updated successfully' })
   @ApiResponse({ status: 404, description: 'Pharmacy order not found' })
@@ -155,6 +167,7 @@ export class PharmacyController {
   }
 
   @Patch('orders/:orderId/items/:itemId')
+  @RequirePermissions('pharmacy.order.update', 'PHARMACY_ORDER_UPDATE', 'DISPENSE_MEDICATION')
   @ApiOperation({ summary: 'Update pharmacy order item status' })
   @ApiResponse({ status: 200, description: 'Order item updated successfully' })
   @ApiResponse({ status: 404, description: 'Order or item not found' })
@@ -173,6 +186,7 @@ export class PharmacyController {
   }
 
   @Delete('orders/:id')
+  @RequirePermissions('pharmacy.order.delete', 'PHARMACY_ORDER_DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancel pharmacy order by ID' })
   @ApiResponse({ status: 204, description: 'Pharmacy order cancelled successfully' })

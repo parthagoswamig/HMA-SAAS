@@ -34,6 +34,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import EmptyState from '../../../components/EmptyState';
 import { notifications } from '@mantine/notifications';
+import MedicationForm from '../../../components/pharmacy/MedicationForm';
 import {
   MantineDonutChart,
   SimpleAreaChart,
@@ -66,7 +67,7 @@ import {
 
 // Import types and services
 import pharmacyService from '../../../services/pharmacy.service';
-// Mock data imports removed
+// API data only - no mock data
 const PharmacyManagement = () => {
   // State management
   const [activeTab, setActiveTab] = useState<string>('medications');
@@ -100,10 +101,10 @@ const PharmacyManagement = () => {
       } catch (err: any) {
         console.error('Error loading pharmacy data:', err);
         _setError(err.response?.data?.message || err.message || 'Failed to load pharmacy data');
-        // Fallback to mock data
-        setPharmacyStats([] /* TODO: Fetch from API */);
-        setMedications([] /* TODO: Fetch from API */);
-        setPharmacyOrders([] /* TODO: Fetch from API */);
+        // Set empty data on error
+        setPharmacyStats({});
+        setMedications([]);
+        setPharmacyOrders([]);
       } finally {
         _setLoading(false);
       }
@@ -1653,6 +1654,17 @@ const PharmacyManagement = () => {
           </Group>
         </Stack>
       </Modal>
+
+      {/* Add/Edit Medication Form */}
+      <MedicationForm
+        opened={addMedicationOpened}
+        onClose={closeAddMedication}
+        medication={selectedMedication}
+        onSuccess={() => {
+          fetchMedications();
+          fetchStats();
+        }}
+      />
       </Stack>
     </Container>
   );

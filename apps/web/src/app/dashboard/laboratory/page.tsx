@@ -64,10 +64,10 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 
-// Import types, services and mock data
+// Import types and services
 import { LabTest, TestCategory, LabOrder, Sample } from '../../../types/laboratory';
 import laboratoryService from '../../../services/laboratory.service';
-// Mock data imports removed
+// API data only - no mock data
 const LaboratoryManagement = () => {
   // State management
   const [activeTab, setActiveTab] = useState<string>('tests');
@@ -109,9 +109,9 @@ const LaboratoryManagement = () => {
     } catch (err: any) {
       console.error('Error loading laboratory data:', err);
       _setError(err.response?.data?.message || err.message || 'Failed to load laboratory data');
-      // Fallback to mock data
-      setLabTests([] /* TODO: Fetch from API */);
-      setLabOrders([] /* TODO: Fetch from API */);
+      // Set empty data on error
+      setLabTests([]);
+      setLabOrders([]);
     } finally {
       _setLoading(false);
     }

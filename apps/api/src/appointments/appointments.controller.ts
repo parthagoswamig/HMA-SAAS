@@ -28,15 +28,18 @@ import {
   CalendarQueryDto,
 } from './dto/appointment.dto';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 
 @ApiTags('Appointments')
 @ApiBearerAuth()
 @Controller('appointments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
+  @RequirePermissions('appointment.create', 'APPOINTMENT_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new appointment' })
   @ApiResponse({ status: 201, description: 'Appointment created successfully' })
@@ -49,6 +52,7 @@ export class AppointmentsController {
   }
 
   @Get()
+  @RequirePermissions('appointment.view', 'APPOINTMENT_READ')
   @ApiOperation({ summary: 'Get all appointments with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Appointments retrieved successfully' })
   async findAll(
@@ -59,6 +63,7 @@ export class AppointmentsController {
   }
 
   @Get('calendar')
+  @RequirePermissions('appointment.view', 'VIEW_SCHEDULE')
   @ApiOperation({ summary: 'Get appointments in calendar view' })
   @ApiResponse({ status: 200, description: 'Calendar data retrieved successfully' })
   async getCalendar(
@@ -69,6 +74,7 @@ export class AppointmentsController {
   }
 
   @Get('availability')
+  @RequirePermissions('appointment.view', 'VIEW_SCHEDULE')
   @ApiOperation({ summary: 'Check doctor availability for a specific date' })
   @ApiResponse({ status: 200, description: 'Availability slots retrieved' })
   async checkAvailability(
@@ -79,6 +85,7 @@ export class AppointmentsController {
   }
 
   @Get('stats')
+  @RequirePermissions('appointment.view', 'APPOINTMENT_READ')
   @ApiOperation({ summary: 'Get appointment statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
   async getStats(@TenantId() tenantId: string) {
@@ -86,6 +93,7 @@ export class AppointmentsController {
   }
 
   @Get(':id')
+  @RequirePermissions('appointment.view', 'APPOINTMENT_READ')
   @ApiOperation({ summary: 'Get appointment by ID' })
   @ApiResponse({ status: 200, description: 'Appointment retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
@@ -94,6 +102,7 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
+  @RequirePermissions('appointment.update', 'APPOINTMENT_UPDATE')
   @ApiOperation({ summary: 'Update appointment by ID' })
   @ApiResponse({ status: 200, description: 'Appointment updated successfully' })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
@@ -106,6 +115,7 @@ export class AppointmentsController {
   }
 
   @Patch(':id/status')
+  @RequirePermissions('appointment.update', 'APPOINTMENT_UPDATE')
   @ApiOperation({ summary: 'Update appointment status' })
   @ApiResponse({ status: 200, description: 'Status updated successfully' })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
@@ -122,6 +132,7 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
+  @RequirePermissions('appointment.delete', 'APPOINTMENT_DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete appointment by ID' })
   @ApiResponse({ status: 204, description: 'Appointment deleted successfully' })

@@ -1,8 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Card, TextInput } from '@mantine/core';
+import React, { useState, useEffect } from 'react';
+import { 
+  Button, 
+  Card, 
+  TextInput, 
+  Select, 
+  Badge, 
+  Table, 
+  Group, 
+  ActionIcon,
+  Text,
+  Modal,
+  Stack,
+  Alert,
+  LoadingOverlay
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useDisclosure } from '@mantine/hooks';
+import { IconPlus, IconEdit, IconTrash, IconEye, IconCheck, IconX, IconClock } from '@tabler/icons-react';
 import Layout from '../../components/shared/Layout';
+import appointmentsService from '../../services/appointments.service';
+import patientsService from '../../services/patients.service';
+import staffService from '../../services/staff.service';
+import AppointmentForm from '../../components/appointments/AppointmentForm';
 
 interface Appointment {
   id: string;
@@ -28,84 +49,169 @@ interface Appointment {
 }
 
 const AppointmentsPage = () => {
-  const [currentView, setCurrentView] = useState<'calendar' | 'list'>('calendar');
+  const [currentView, setCurrentView] = useState<'calendar' | 'list'>('list');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [formOpened, { open: openForm, close: closeForm }] = useDisclosure(false);
+  const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
 
-  const [appointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      patientId: 'p1',
-      patientName: 'John Doe',
-      doctorId: 'd1',
-      doctorName: 'Dr. Sarah Wilson',
-      department: 'Cardiology',
-      startTime: '2024-12-05T09:00:00',
-      endTime: '2024-12-05T09:30:00',
-      status: 'SCHEDULED',
-      reason: 'Regular checkup',
-      type: 'consultation',
-      priority: 'medium',
-    },
-    {
-      id: '2',
-      patientId: 'p2',
-      patientName: 'Emily Johnson',
-      doctorId: 'd2',
-      doctorName: 'Dr. Michael Chen',
-      department: 'Pediatrics',
-      startTime: '2024-12-05T10:30:00',
-      endTime: '2024-12-05T11:00:00',
-      status: 'IN_PROGRESS',
-      reason: 'Vaccination',
-      type: 'consultation',
-      priority: 'low',
-    },
-    {
-      id: '3',
-      patientId: 'p3',
-      patientName: 'Robert Smith',
-      doctorId: 'd3',
-      doctorName: 'Dr. Lisa Rodriguez',
-      department: 'Orthopedics',
-      startTime: '2024-12-05T14:00:00',
-      endTime: '2024-12-05T14:45:00',
-      status: 'SCHEDULED',
-      reason: 'Knee pain assessment',
-      type: 'consultation',
-      priority: 'high',
-    },
-    {
-      id: '4',
-      patientId: 'p4',
-      patientName: 'Maria Garcia',
-      doctorId: 'd1',
-      doctorName: 'Dr. Sarah Wilson',
-      department: 'Cardiology',
-      startTime: '2024-12-05T16:30:00',
-      endTime: '2024-12-05T17:15:00',
-      status: 'COMPLETED',
-      reason: 'Post-surgery follow-up',
-      type: 'follow_up',
-      priority: 'high',
-    },
-    {
-      id: '5',
-      patientId: 'p5',
-      patientName: 'David Wilson',
-      doctorId: 'd4',
-      doctorName: 'Dr. James Kumar',
-      department: 'Emergency',
-      startTime: '2024-12-05T08:15:00',
-      endTime: '2024-12-05T09:00:00',
-      status: 'COMPLETED',
-      reason: 'Chest pain',
-      type: 'emergency',
-      priority: 'urgent',
-    },
-  ]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentStats, setAppointmentStats] = useState({
+    total: 0,
+    today: 0,
+    pending: 0,
+    completed: 0,
+  });
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAppointments();
+    fetchPatients();
+    fetchDoctors();
+    fetchStats();
+  }, [selectedDate, filterStatus]);
+
+  const fetchAppointments = async () => {
+    setLoading(true);
+    try {
+      const filters: any = {
+        startDate: selectedDate,
+        endDate: selectedDate,
+      };
+      if (filterStatus !== 'all') {
+        filters.status = filterStatus;
+      }
+      if (searchTerm) {
+        filters.search = searchTerm;
+      }
+
+      const response = await appointmentsService.getAppointments(filters);
+      if (response.success && response.data) {
+        const mappedAppointments = response.data.map((apt: any) => ({
+          id: apt.id,
+          patientId: apt.patientId,
+          patientName: apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : 'Unknown',
+          doctorId: apt.doctorId,
+          doctorName: apt.doctor ? `Dr. ${apt.doctor.firstName} ${apt.doctor.lastName}` : 'Unknown',
+          department: apt.department?.name || 'General',
+          startTime: apt.appointmentDateTime,
+          endTime: new Date(new Date(apt.appointmentDateTime).getTime() + 30 * 60000).toISOString(),
+          status: apt.status || 'SCHEDULED',
+          reason: apt.reason || '',
+          notes: apt.notes || '',
+          type: 'consultation' as const,
+          priority: 'medium' as const,
+        }));
+        setAppointments(mappedAppointments);
+      }
+    } catch (error: any) {
+      console.error('Error fetching appointments:', error);
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to fetch appointments',
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const response = await patientsService.getPatients({ limit: 100 });
+      if (response.success && response.data) {
+        setPatients(response.data.patients || []);
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await staffService.getStaff({ role: 'DOCTOR', limit: 100 });
+      if (response.success && response.data) {
+        setDoctors(response.data.staff || []);
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await appointmentsService.getAppointmentStats();
+      if (response.success && response.data) {
+        setAppointmentStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const handleCreateAppointment = async (data: any) => {
+    try {
+      const response = await appointmentsService.createAppointment(data);
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: 'Appointment scheduled successfully',
+          color: 'green',
+        });
+        fetchAppointments();
+        fetchStats();
+        closeForm();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to schedule appointment',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const response = await appointmentsService.updateAppointmentStatus(id, status);
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: `Appointment ${status.toLowerCase()}`,
+          color: 'green',
+        });
+        fetchAppointments();
+        fetchStats();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to update appointment',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleCancelAppointment = async (id: string) => {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    await handleUpdateStatus(id, 'CANCELLED');
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    openDetails();
+  };
+
+  const handleEditAppointment = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    openForm();
+  };
 
   const departments = [
     'Cardiology',
@@ -280,20 +386,42 @@ const AppointmentsPage = () => {
           </span>
 
           <div style={{ display: 'flex', gap: '0.25rem' }}>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => (window.location.href = `/appointments/${appointment.id}`)}
+            <ActionIcon
+              variant="subtle"
+              color="blue"
+              onClick={() => handleViewDetails(appointment)}
+              title="View Details"
             >
-              View
-            </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => (window.location.href = `/appointments/${appointment.id}/edit`)}
+              <IconEye size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              color="green"
+              onClick={() => handleEditAppointment(appointment)}
+              title="Edit Appointment"
             >
-              Edit
-            </Button>
+              <IconEdit size={16} />
+            </ActionIcon>
+            {appointment.status === 'SCHEDULED' && (
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                onClick={() => handleCancelAppointment(appointment.id)}
+                title="Cancel Appointment"
+              >
+                <IconX size={16} />
+              </ActionIcon>
+            )}
+            {appointment.status === 'SCHEDULED' && (
+              <ActionIcon
+                variant="subtle"
+                color="teal"
+                onClick={() => handleUpdateStatus(appointment.id, 'IN_PROGRESS')}
+                title="Start Appointment"
+              >
+                <IconCheck size={16} />
+              </ActionIcon>
+            )}
           </div>
         </div>
       </div>
@@ -409,7 +537,7 @@ const AppointmentsPage = () => {
                         fontSize: '0.75rem',
                         cursor: 'pointer',
                       }}
-                      onClick={() => (window.location.href = `/appointments/${appointment.id}`)}
+                      onClick={() => handleViewDetails(appointment)}
                     >
                       <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
                         {appointment.patientName}
@@ -459,8 +587,8 @@ const AppointmentsPage = () => {
               Manage patient appointments, scheduling, and medical consultations
             </p>
           </div>
-          <Button onClick={() => (window.location.href = '/appointments/new')}>
-            + Schedule New Appointment
+          <Button onClick={() => { setSelectedAppointment(null); openForm(); }} leftIcon={<IconPlus size={16} />}>
+            Schedule New Appointment
           </Button>
         </div>
 
@@ -658,63 +786,168 @@ const AppointmentsPage = () => {
           </Card>
         </div>
 
-        {/* Main Content */}
-        {currentView === 'calendar' ? (
-          <CalendarView />
-        ) : (
+        {/* List View */}
+        {currentView === 'list' ? (
           <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem',
-              }}
-            >
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937' }}>
-                Appointments ({filteredAppointments.length})
-              </h2>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Button variant="secondary" size="sm">
-                  Export
-                </Button>
-                <Button variant="secondary" size="sm">
-                  Print Schedule
-                </Button>
-              </div>
-            </div>
-
-            {filteredAppointments.length > 0 ? (
-              filteredAppointments
-                .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                .map((appointment) => (
-                  <AppointmentCard key={appointment.id} appointment={appointment} />
-                ))
-            ) : (
-              <Card>
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
-                  <h3
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: '600',
-                      color: '#1f2937',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    No appointments found
-                  </h3>
-                  <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-                    No appointments match your current search criteria for the selected date.
-                  </p>
-                  <Button onClick={() => (window.location.href = '/appointments/new')}>
-                    Schedule New Appointment
-                  </Button>
-                </div>
-              </Card>
-            )}
+            <LoadingOverlay visible={loading} />
+            <Table>
+              <thead>
+                <tr>
+                  <th>Appointment ID</th>
+                  <th>Patient Name</th>
+                  <th>Doctor Name</th>
+                  <th>Department</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAppointments.map((appointment) => (
+                  <tr key={appointment.id}>
+                    <td>{appointment.id}</td>
+                    <td>{appointment.patientName}</td>
+                    <td>{appointment.doctorName}</td>
+                    <td>{appointment.department}</td>
+                    <td>
+                      <Badge color={getStatusColor(appointment.status).slice(1)} variant="filled">
+                        {appointment.status}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Group justify="flex-end">
+                        <Button
+                          variant="subtle"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            openDetails();
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          variant="subtle"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            openForm();
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="subtle"
+                          color="red"
+                          onClick={() => {
+                            handleCancelAppointment(appointment.id);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </Group>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           </div>
+        ) : (
+          <CalendarView />
         )}
+
+        {/* Appointment Form Modal */}
+        <AppointmentForm
+          opened={formOpened}
+          onClose={closeForm}
+          appointment={selectedAppointment}
+          onSubmit={selectedAppointment ? 
+            (data) => appointmentsService.updateAppointment(selectedAppointment.id, data).then(() => {
+              notifications.show({ title: 'Success', message: 'Appointment updated', color: 'green' });
+              closeForm();
+              fetchAppointments();
+            }) :
+            handleCreateAppointment
+          }
+          patients={patients}
+          doctors={doctors}
+        />
+
+        {/* Appointment Details Modal */}
+        <Modal
+          opened={detailsOpened}
+          onClose={closeDetails}
+          title="Appointment Details"
+          size="lg"
+        >
+          {selectedAppointment && (
+            <Stack>
+              <Alert icon={<IconClock size={20} />} color="blue" variant="light">
+                <Text size="sm">Appointment scheduled for {new Date(selectedAppointment.startTime).toLocaleString()}</Text>
+              </Alert>
+              
+              <Group justify="space-between">
+                <div>
+                  <Text size="sm" color="dimmed">Patient</Text>
+                  <Text fw={500}>{selectedAppointment.patientName}</Text>
+                </div>
+                <div>
+                  <Text size="sm" color="dimmed">Doctor</Text>
+                  <Text fw={500}>{selectedAppointment.doctorName}</Text>
+                </div>
+              </Group>
+
+              <Group justify="space-between">
+                <div>
+                  <Text size="sm" color="dimmed">Department</Text>
+                  <Text fw={500}>{selectedAppointment.department}</Text>
+                </div>
+                <div>
+                  <Text size="sm" color="dimmed">Status</Text>
+                  <Badge color={getStatusColor(selectedAppointment.status).slice(1)} variant="filled">
+                    {selectedAppointment.status}
+                  </Badge>
+                </div>
+              </Group>
+
+              <div>
+                <Text size="sm" color="dimmed">Reason for Visit</Text>
+                <Text fw={500}>{selectedAppointment.reason}</Text>
+              </div>
+
+              {selectedAppointment.notes && (
+                <div>
+                  <Text size="sm" color="dimmed">Notes</Text>
+                  <Text>{selectedAppointment.notes}</Text>
+                </div>
+              )}
+
+              <Group justify="flex-end" mt="md">
+                <Button variant="subtle" onClick={closeDetails}>Close</Button>
+                {selectedAppointment.status === 'SCHEDULED' && (
+                  <>
+                    <Button 
+                      color="green" 
+                      onClick={() => {
+                        handleUpdateStatus(selectedAppointment.id, 'IN_PROGRESS');
+                        closeDetails();
+                      }}
+                    >
+                      Start Appointment
+                    </Button>
+                    <Button 
+                      color="red" 
+                      variant="outline"
+                      onClick={() => {
+                        handleCancelAppointment(selectedAppointment.id);
+                        closeDetails();
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </Group>
+            </Stack>
+          )}
+        </Modal>
       </div>
     </Layout>
   );

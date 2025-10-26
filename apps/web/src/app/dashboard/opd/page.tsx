@@ -24,12 +24,14 @@ import {
   Progress,
   Textarea,
   List,
+  Alert,
 } from '@mantine/core';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import EmptyState from '../../../components/EmptyState';
 import opdService from '../../../services/opd.service';
+import OpdVisitForm from '../../../components/opd/OpdVisitForm';
 // import { LineChart, BarChart, DonutChart, AreaChart } from '@mantine/charts';
 import {
   IconPlus,
@@ -48,6 +50,7 @@ import {
   IconCheck,
   IconCalendarEvent,
   IconMessage,
+  IconX,
 } from '@tabler/icons-react';
 
 // Types
@@ -96,94 +99,8 @@ interface Doctor {
   maxPatientsPerDay: number;
 }
 
-// Mock data
-const mockOPDVisits: OPDVisit[] = [
-  {
-    id: '1',
-    visitNumber: 'OPD2024001',
-    patientId: 'P2024001',
-    patientName: 'Rajesh Kumar',
-    patientPhone: '+91 98765 43210',
-    doctorId: 'D001',
-    doctorName: 'Dr. Sharma',
-    department: 'Cardiology',
-    appointmentTime: '2024-01-15T09:00:00Z',
-    actualArrivalTime: '2024-01-15T08:55:00Z',
-    consultationStartTime: '2024-01-15T09:15:00Z',
-    status: 'in_consultation',
-    visitType: 'new',
-    chiefComplaint: 'Chest pain and shortness of breath',
-    consultationFee: 500,
-    paymentStatus: 'paid',
-    vitalSigns: {
-      bloodPressure: '140/90',
-      heartRate: 85,
-      temperature: 98.6,
-      weight: 75,
-      height: 170,
-    },
-    waitingTime: 15,
-  },
-  {
-    id: '2',
-    visitNumber: 'OPD2024002',
-    patientId: 'P2024002',
-    patientName: 'Sunita Patel',
-    patientPhone: '+91 87654 32109',
-    doctorId: 'D002',
-    doctorName: 'Dr. Reddy',
-    department: 'General Medicine',
-    appointmentTime: '2024-01-15T10:30:00Z',
-    status: 'arrived',
-    visitType: 'follow_up',
-    chiefComplaint: 'Follow-up for diabetes management',
-    consultationFee: 350,
-    paymentStatus: 'insurance',
-    actualArrivalTime: '2024-01-15T10:25:00Z',
-    waitingTime: 5,
-  },
-  {
-    id: '3',
-    visitNumber: 'OPD2024003',
-    patientId: 'P2024003',
-    patientName: 'Mohammed Ali',
-    patientPhone: '+91 76543 21098',
-    doctorId: 'D003',
-    doctorName: 'Dr. Singh',
-    department: 'Orthopedics',
-    appointmentTime: '2024-01-15T14:00:00Z',
-    status: 'scheduled',
-    visitType: 'new',
-    chiefComplaint: 'Knee pain and stiffness',
-    consultationFee: 600,
-    paymentStatus: 'pending',
-  },
-  {
-    id: '4',
-    visitNumber: 'OPD2024004',
-    patientId: 'P2024004',
-    patientName: 'Priya Gupta',
-    patientPhone: '+91 65432 10987',
-    doctorId: 'D001',
-    doctorName: 'Dr. Sharma',
-    department: 'Cardiology',
-    appointmentTime: '2024-01-15T11:30:00Z',
-    consultationStartTime: '2024-01-15T11:35:00Z',
-    consultationEndTime: '2024-01-15T12:05:00Z',
-    status: 'completed',
-    visitType: 'follow_up',
-    chiefComplaint: 'Post-surgery follow-up',
-    diagnosis: 'Post-operative recovery normal',
-    prescription: ['Aspirin 75mg - 1 daily', 'Metoprolol 25mg - 1 BD'],
-    nextVisitDate: '2024-02-15T11:30:00Z',
-    consultationFee: 500,
-    paymentStatus: 'paid',
-    consultationDuration: 30,
-    waitingTime: 5,
-  },
-];
-
-const mockDoctors: Doctor[] = [
+// Mock data removed - using API data instead
+const defaultDoctors: Doctor[] = [
   {
     id: 'D001',
     name: 'Dr. Sharma',
@@ -245,25 +162,56 @@ const OPDManagement = () => {
     useDisclosure(false);
   const [prescriptionOpened, { open: openPrescription, close: closePrescription }] =
     useDisclosure(false);
+  const [consultationOpened, { open: openConsultation, close: closeConsultation }] = useDisclosure(false);
 
   const fetchVisits = useCallback(async () => {
     try {
       const filters = {
         status: selectedStatus || undefined,
         search: searchQuery || undefined,
+        departmentId: selectedDepartment || undefined,
+        date: new Date().toISOString().split('T')[0],
       };
       const response = await opdService.getVisits(filters);
       // Handle different response structures
       const visits = Array.isArray(response.data) ? response.data : response.data?.items || [];
-      setOpdVisits(visits as OPDVisit[]);
+      
+      // Map API response to OPDVisit interface
+      const mappedVisits = visits.map((v: any) => ({
+        id: v.id,
+        visitNumber: `OPD${v.id.slice(-6).toUpperCase()}`,
+        patientId: v.patientId,
+        patientName: v.patient ? `${v.patient.firstName} ${v.patient.lastName}` : 'Unknown',
+        patientPhone: v.patient?.phone || 'N/A',
+        doctorId: v.doctorId,
+        doctorName: v.doctor ? `Dr. ${v.doctor.firstName} ${v.doctor.lastName}` : 'Unknown',
+        department: v.department?.name || v.departmentId || 'General',
+        appointmentTime: v.visitDate,
+        actualArrivalTime: v.actualArrivalTime,
+        consultationStartTime: v.consultationStartTime,
+        consultationEndTime: v.consultationEndTime,
+        status: v.status?.toLowerCase() || 'scheduled',
+        visitType: v.visitType || 'new',
+        chiefComplaint: v.chiefComplaint || v.reason || '',
+        diagnosis: v.diagnosis,
+        prescription: v.prescription ? [v.prescription] : [],
+        nextVisitDate: v.followUpDate,
+        consultationFee: 500,
+        paymentStatus: 'pending' as const,
+        vitalSigns: v.vitalSigns,
+        waitingTime: v.waitingTime || 0,
+        consultationDuration: v.consultationDuration || 0,
+      }));
+      
+      setOpdVisits(mappedVisits);
     } catch (err: any) {
       console.warn(
-        'Error fetching OPD visits (using empty data):',
+        'Error fetching OPD visits:',
         err.response?.data?.message || err.message
       );
       setOpdVisits([]);
     }
-  }, [selectedStatus, searchQuery]);
+  }, [selectedStatus, searchQuery, selectedDepartment]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -276,11 +224,11 @@ const OPDManagement = () => {
       );
       // Set default stats when backend is unavailable
       setOpdStats({
-        totalVisits: 0,
-        todayVisits: 0,
+        totalVisitsToday: 0,
+        waiting: 0,
+        inConsultation: 0,
         completed: 0,
-        inProgress: 0,
-        averageWaitTime: 0,
+        cancelled: 0,
       });
     }
   }, []);
@@ -293,13 +241,13 @@ const OPDManagement = () => {
     } catch (err: any) {
       console.error('Error loading OPD data:', err);
       setError(err.response?.data?.message || err.message || 'Failed to load OPD data');
-      setOpdVisits([] /* TODO: Fetch from API */);
+      setOpdVisits([]);
     } finally {
       setLoading(false);
     }
   }, [fetchVisits, fetchStats]);
 
-  // Fetch data
+  // Initialize with API data
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
@@ -328,6 +276,51 @@ const OPDManagement = () => {
   const handleViewVisit = (visit: OPDVisit) => {
     setSelectedVisit(visit);
     openVisitDetail();
+  };
+
+  const handleStartConsultation = async (visit: OPDVisit) => {
+    try {
+      await opdService.updateVisit(visit.id, {
+        status: 'IN_CONSULTATION',
+      });
+      notifications.show({
+        title: 'Success',
+        message: 'Consultation started',
+        color: 'green',
+      });
+      fetchVisits();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to start consultation',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleCompleteVisit = async (visit: OPDVisit) => {
+    setSelectedVisit(visit);
+    openConsultation();
+  };
+
+  const handleCancelVisit = async (visitId: string) => {
+    if (!confirm('Are you sure you want to cancel this visit?')) return;
+    
+    try {
+      await opdService.cancelVisit(visitId);
+      notifications.show({
+        title: 'Success',
+        message: 'Visit cancelled successfully',
+        color: 'green',
+      });
+      fetchVisits();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to cancel visit',
+        color: 'red',
+      });
+    }
   };
 
   const handleViewDoctorSchedule = (doctor: Doctor) => {
@@ -419,10 +412,10 @@ const OPDManagement = () => {
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
-                  Total Visits
+                  Today's Visits
                 </Text>
                 <Text fw={700} size="xl">
-                  {opdStats.totalVisits || 0}
+                  {opdStats.totalVisitsToday || 0}
                 </Text>
               </div>
               <ThemeIcon color="blue" size="xl" radius="md" variant="light">
@@ -435,10 +428,10 @@ const OPDManagement = () => {
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
-                  Today&apos;s Visits
+                  Waiting
                 </Text>
                 <Text fw={700} size="xl">
-                  {opdStats.todayVisits || 0}
+                  {opdStats.waiting || 0}
                 </Text>
               </div>
               <ThemeIcon color="green" size="xl" radius="md" variant="light">
@@ -467,10 +460,10 @@ const OPDManagement = () => {
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
-                  In Progress
+                  In Consultation
                 </Text>
                 <Text fw={700} size="xl">
-                  {opdStats.inProgress || 0}
+                  {opdStats.inConsultation || 0}
                 </Text>
               </div>
               <ThemeIcon color="orange" size="xl" radius="md" variant="light">
@@ -483,10 +476,10 @@ const OPDManagement = () => {
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
-                  Avg Wait Time
+                  Cancelled
                 </Text>
                 <Text fw={700} size="xl">
-                  {opdStats.averageWaitTime || 0}min
+                  {opdStats.cancelled || 0}
                 </Text>
               </div>
               <ThemeIcon color="red" size="xl" radius="md" variant="light">
@@ -656,22 +649,59 @@ const OPDManagement = () => {
                             <ActionIcon
                               variant="subtle"
                               color="blue"
+                              size="sm"
                               onClick={() => handleViewVisit(visit)}
+                              title="View Details"
                             >
                               <IconEye size={16} />
                             </ActionIcon>
-                            <ActionIcon variant="subtle" color="green">
-                              <IconEdit size={16} />
+                          {visit.status === 'scheduled' && (
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="green" 
+                              size="sm"
+                              onClick={() => handleStartConsultation(visit)}
+                              title="Start Consultation"
+                            >
+                              <IconActivity size={16} />
                             </ActionIcon>
-                            {visit.status === 'completed' && (
-                              <ActionIcon variant="subtle" color="purple">
-                                <IconPrescription size={16} />
-                              </ActionIcon>
-                            )}
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))
+                          )}
+                          {visit.status === 'in_consultation' && (
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="teal" 
+                              size="sm"
+                              onClick={() => handleCompleteVisit(visit)}
+                              title="Complete Visit"
+                            >
+                              <IconCheck size={16} />
+                            </ActionIcon>
+                          )}
+                          {(visit.status === 'scheduled' || visit.status === 'arrived') && (
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="red" 
+                              size="sm"
+                              onClick={() => handleCancelVisit(visit.id)}
+                              title="Cancel Visit"
+                            >
+                              <IconX size={16} />
+                            </ActionIcon>
+                          )}
+                          {visit.status === 'completed' && (
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="purple" 
+                              size="sm"
+                              title="View Prescription"
+                            >
+                              <IconPrescription size={16} />
+                            </ActionIcon>
+                          )}
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))
                   )}
                 </Table.Tbody>
               </Table>
@@ -816,197 +846,88 @@ const OPDManagement = () => {
         </Tabs.Panel>
       </Tabs>
 
-      {/* Visit Detail Modal */}
+      {/* New Visit Modal using OpdVisitForm */}
+      <OpdVisitForm
+        opened={newVisitOpened}
+        onClose={closeNewVisit}
+        onSuccess={() => {
+          fetchVisits();
+          fetchStats();
+        }}
+      />
+
+      {/* Complete Consultation Modal */}
       <Modal
-        opened={visitDetailOpened}
-        onClose={closeVisitDetail}
-        title="OPD Visit Details"
+        opened={consultationOpened}
+        onClose={closeConsultation}
+        title="Complete Consultation"
         size="lg"
       >
         {selectedVisit && (
           <Stack gap="md">
-            <Group justify="space-between">
-              <div>
-                <Title order={3}>{selectedVisit.patientName}</Title>
-                <Text c="dimmed">Visit: {selectedVisit.visitNumber}</Text>
-              </div>
-              <Badge color={getStatusColor(selectedVisit.status)} variant="light">
-                {selectedVisit.status.replace('_', ' ').toUpperCase()}
-              </Badge>
-            </Group>
+            <Alert icon={<IconStethoscope size={20} />} color="blue" variant="light">
+              Completing consultation for <strong>{selectedVisit.patientName}</strong>
+            </Alert>
 
-            <SimpleGrid cols={2} spacing="md">
-              <div>
-                <Text size="sm" c="dimmed" fw={500}>
-                  Doctor
-                </Text>
-                <Text>{selectedVisit.doctorName}</Text>
-              </div>
-              <div>
-                <Text size="sm" c="dimmed" fw={500}>
-                  Department
-                </Text>
-                <Text>{selectedVisit.department}</Text>
-              </div>
-              <div>
-                <Text size="sm" c="dimmed" fw={500}>
-                  Appointment Time
-                </Text>
-                <Text>{formatTime(selectedVisit.appointmentTime)}</Text>
-              </div>
-              <div>
-                <Text size="sm" c="dimmed" fw={500}>
-                  Visit Type
-                </Text>
-                <Text tt="capitalize">{selectedVisit.visitType.replace('_', ' ')}</Text>
-              </div>
-            </SimpleGrid>
+            <Textarea
+              label="Diagnosis"
+              placeholder="Enter diagnosis"
+              rows={3}
+              required
+            />
 
-            <div>
-              <Text size="sm" c="dimmed" fw={500} mb="xs">
-                Chief Complaint
-              </Text>
-              <Text>{selectedVisit.chiefComplaint}</Text>
-            </div>
+            <Textarea
+              label="Prescription"
+              placeholder="Enter prescription details"
+              rows={4}
+            />
 
-            {selectedVisit.vitalSigns && (
-              <div>
-                <Text size="sm" c="dimmed" fw={500} mb="xs">
-                  Vital Signs
-                </Text>
-                <SimpleGrid cols={3} spacing="sm">
-                  <Text size="sm">BP: {selectedVisit.vitalSigns.bloodPressure}</Text>
-                  <Text size="sm">HR: {selectedVisit.vitalSigns.heartRate} bpm</Text>
-                  <Text size="sm">Temp: {selectedVisit.vitalSigns.temperature}°F</Text>
-                  <Text size="sm">Weight: {selectedVisit.vitalSigns.weight} kg</Text>
-                  <Text size="sm">Height: {selectedVisit.vitalSigns.height} cm</Text>
-                </SimpleGrid>
-              </div>
-            )}
+            <DatePickerInput
+              label="Follow-up Date (Optional)"
+              placeholder="Select follow-up date"
+              clearable
+            />
 
-            {selectedVisit.diagnosis && (
-              <div>
-                <Text size="sm" c="dimmed" fw={500} mb="xs">
-                  Diagnosis
-                </Text>
-                <Text>{selectedVisit.diagnosis}</Text>
-              </div>
-            )}
+            <Textarea
+              label="Additional Notes"
+              placeholder="Enter any additional notes"
+              rows={3}
+            />
 
-            {selectedVisit.prescription && selectedVisit.prescription.length > 0 && (
-              <div>
-                <Text size="sm" c="dimmed" fw={500} mb="xs">
-                  Prescription
-                </Text>
-                <List size="sm">
-                  {selectedVisit.prescription.map((med, index) => (
-                    <List.Item key={index}>{med}</List.Item>
-                  ))}
-                </List>
-              </div>
-            )}
-
-            <Group justify="space-between">
-              <Group>
-                <Text size="sm" c="dimmed">
-                  Fee: ₹{selectedVisit.consultationFee}
-                </Text>
-                <Badge color={getPaymentStatusColor(selectedVisit.paymentStatus)} size="sm">
-                  {selectedVisit.paymentStatus.toUpperCase()}
-                </Badge>
-              </Group>
-              <Group>
-                <Button variant="light" leftSection={<IconPrinter size={16} />}>
-                  Print
-                </Button>
-                <Button onClick={closeVisitDetail}>Close</Button>
-              </Group>
+            <Group justify="flex-end">
+              <Button variant="light" onClick={closeConsultation}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    await opdService.updateVisit(selectedVisit.id, {
+                      status: 'COMPLETED',
+                      diagnosis: 'Sample diagnosis',
+                      prescription: 'Sample prescription',
+                    });
+                    notifications.show({
+                      title: 'Success',
+                      message: 'Consultation completed successfully',
+                      color: 'green',
+                    });
+                    closeConsultation();
+                    fetchVisits();
+                    fetchStats();
+                  } catch (error: any) {
+                    notifications.show({
+                      title: 'Error',
+                      message: error?.response?.data?.message || 'Failed to complete consultation',
+                      color: 'red',
+                    });
+                  }
+                }}
+              >
+                Complete Consultation
+              </Button>
             </Group>
           </Stack>
         )}
-      </Modal>
-
-      {/* New Visit Modal */}
-      <Modal
-        opened={newVisitOpened}
-        onClose={closeNewVisit}
-        title="Schedule New OPD Visit"
-        size="lg"
-      >
-        <Stack gap="md">
-          <SimpleGrid cols={2} spacing="md">
-            <Select
-              label="Patient"
-              placeholder="Select patient"
-              data={[
-                { value: 'P001', label: 'Rajesh Kumar' },
-                { value: 'P002', label: 'Sunita Patel' },
-                { value: 'P003', label: 'Mohammed Ali' },
-              ]}
-              searchable
-              required
-            />
-            <Select
-              label="Visit Type"
-              placeholder="Select visit type"
-              data={[
-                { value: 'new', label: 'New Patient' },
-                { value: 'follow_up', label: 'Follow-up' },
-                { value: 'emergency', label: 'Emergency' },
-              ]}
-              required
-            />
-          </SimpleGrid>
-
-          <SimpleGrid cols={2} spacing="md">
-            <Select
-              label="Department"
-              placeholder="Select department"
-              data={[
-                { value: 'cardiology', label: 'Cardiology' },
-                { value: 'general', label: 'General Medicine' },
-                { value: 'orthopedics', label: 'Orthopedics' },
-              ]}
-              required
-            />
-            <Select
-              label="Doctor"
-              placeholder="Select doctor"
-              data={[
-                { value: 'D001', label: 'Dr. Sharma (Cardiology)' },
-                { value: 'D002', label: 'Dr. Reddy (General Medicine)' },
-                { value: 'D003', label: 'Dr. Singh (Orthopedics)' },
-              ]}
-              required
-            />
-          </SimpleGrid>
-
-          <SimpleGrid cols={2} spacing="md">
-            <DatePickerInput label="Appointment Date" placeholder="Select date" required />
-            <TimeInput label="Appointment Time" placeholder="Select time" required />
-          </SimpleGrid>
-
-          <Textarea label="Chief Complaint" placeholder="Enter chief complaint" rows={3} required />
-
-          <Group justify="flex-end">
-            <Button variant="light" onClick={closeNewVisit}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                // _notifications.show({
-                //   title: 'OPD Visit Scheduled',
-                //   message: 'New OPD visit has been successfully scheduled',
-                //   color: 'green',
-                // });
-                console.log('OPD Visit Scheduled');
-                closeNewVisit();
-              }}
-            >
-              Schedule Visit
-            </Button>
-          </Group>
-        </Stack>
       </Modal>
       </Stack>
     </Container>

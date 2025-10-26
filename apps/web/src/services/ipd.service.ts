@@ -173,6 +173,13 @@ const ipdService = {
     return enhancedApiClient.patch(`/ipd/wards/${id}`, data);
   },
 
+  /**
+   * Delete ward
+   */
+  deleteWard: async (id: string): Promise<WardResponse> => {
+    return enhancedApiClient.delete(`/ipd/wards/${id}`);
+  },
+
   // ==================== BED OPERATIONS ====================
 
   /**

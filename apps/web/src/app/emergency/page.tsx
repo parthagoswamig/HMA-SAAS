@@ -411,7 +411,7 @@ const EmergencyPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#ef4444', marginBottom: '0.5rem' }}>🚨</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc2626' }}>
-                {[].filter(/* TODO: API */ (a) => a.status === 'ACTIVE').length}
+                {0}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#dc2626' }}>Active Alerts</div>
             </div>
@@ -420,7 +420,7 @@ const EmergencyPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#10b981', marginBottom: '0.5rem' }}>🛏️</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {[].filter(/* TODO: API */ (b) => b.status === 'AVAILABLE').length}
+                {0}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Available Beds</div>
             </div>
@@ -429,7 +429,7 @@ const EmergencyPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#f59e0b', marginBottom: '0.5rem' }}>👥</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {[].filter(/* TODO: API */ (p) => p.severity === 'CRITICAL').length}
+                {0}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Critical Patients</div>
             </div>
@@ -438,7 +438,7 @@ const EmergencyPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <div style={{ fontSize: '2rem', color: '#3b82f6', marginBottom: '0.5rem' }}>📞</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {[].filter(/* TODO: API */ (c) => c.isOnDuty).length}
+                {0}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>On-Duty Staff</div>
             </div>

@@ -77,8 +77,8 @@ import {
   IconPlayerPause,
 } from '@tabler/icons-react';
 
-// Import types and mock data - using any for now due to type mismatches
-// Mock data imports removed
+// Import types and services
+// API data only - no mock data
 import radiologyService from '../../../services/radiology.service';
 
 const RadiologyManagement = () => {

@@ -255,9 +255,7 @@ function PatientForm({
     let convertedDate: Date | undefined;
     if (values.dateOfBirth) {
       try {
-        convertedDate = values.dateOfBirth instanceof Date 
-          ? values.dateOfBirth 
-          : new Date(values.dateOfBirth);
+        convertedDate = new Date(values.dateOfBirth);
       } catch (error) {
         console.error('Date conversion error:', error);
         convertedDate = undefined;

@@ -333,6 +333,7 @@ export class StaffService {
           email: true,
           firstName: true,
           lastName: true,
+          phone: true,
           role: true,
           specialization: true,
           licenseNumber: true,

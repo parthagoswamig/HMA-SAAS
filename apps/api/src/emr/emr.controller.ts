@@ -21,6 +21,8 @@ import {
 import { EmrService } from './emr.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateMedicalRecordDto,
   UpdateMedicalRecordDto,
@@ -28,13 +30,14 @@ import {
 } from './dto';
 
 @ApiTags('Electronic Medical Records (EMR)')
-@Controller('emr')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
+@Controller('emr')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class EmrController {
   constructor(private readonly emrService: EmrService) {}
 
   @Post('records')
+  @RequirePermissions('medical.record.create', 'MEDICAL_RECORD_CREATE', 'CREATE_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Create a new medical record' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -49,6 +52,7 @@ export class EmrController {
   }
 
   @Get('records')
+  @RequirePermissions('medical.record.view', 'MEDICAL_RECORD_READ', 'VIEW_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Get all medical records with filtering' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -59,6 +63,7 @@ export class EmrController {
   }
 
   @Get('records/patient/:patientId')
+  @RequirePermissions('medical.record.view', 'MEDICAL_RECORD_READ', 'VIEW_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Get all medical records for a specific patient' })
   @ApiParam({ name: 'patientId', description: 'Patient ID' })
   @ApiResponse({
@@ -74,6 +79,7 @@ export class EmrController {
   }
 
   @Get('records/:id')
+  @RequirePermissions('medical.record.view', 'MEDICAL_RECORD_READ', 'VIEW_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Get a specific medical record' })
   @ApiParam({ name: 'id', description: 'Medical record ID' })
   @ApiResponse({
@@ -89,6 +95,7 @@ export class EmrController {
   }
 
   @Patch('records/:id')
+  @RequirePermissions('medical.record.update', 'MEDICAL_RECORD_UPDATE', 'UPDATE_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Update a medical record' })
   @ApiParam({ name: 'id', description: 'Medical record ID' })
   @ApiResponse({
@@ -108,6 +115,7 @@ export class EmrController {
   }
 
   @Delete('records/:id')
+  @RequirePermissions('medical.record.delete', 'MEDICAL_RECORD_DELETE', 'DELETE_MEDICAL_RECORDS')
   @ApiOperation({ summary: 'Soft delete a medical record' })
   @ApiParam({ name: 'id', description: 'Medical record ID' })
   @ApiResponse({
@@ -123,6 +131,7 @@ export class EmrController {
   }
 
   @Get('stats')
+  @RequirePermissions('medical.record.view', 'MEDICAL_RECORD_READ', 'VIEW_REPORTS')
   @ApiOperation({ summary: 'Get EMR statistics and analytics' })
   @ApiResponse({
     status: HttpStatus.OK,

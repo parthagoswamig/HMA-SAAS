@@ -244,6 +244,13 @@ const patientPortalService = {
     return enhancedApiClient.get('/patient-portal/my-medical-records', filters);
   },
 
+  /**
+   * Get my medical records (alias)
+   */
+  getMyMedicalRecords: async (filters?: any): Promise<MedicalRecordsResponse> => {
+    return enhancedApiClient.get('/patient-portal/my-medical-records', filters);
+  },
+
   // ==================== LAB RESULTS ====================
 
   /**

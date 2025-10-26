@@ -11,16 +11,21 @@ import {
   type UserRole as RBACUserRole,
 } from '@/lib/rbac';
 import { User } from '../../types/common';
+import dashboardService, { DashboardStats } from '../../services/dashboard.service';
 
 export default function EnhancedDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
     todaysAppointments: 0,
     pendingBills: 0,
     activeDoctors: 0,
+    myAppointments: 0,
+    medicalRecords: 0,
+    prescriptions: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('accessToken');
@@ -34,16 +39,22 @@ export default function EnhancedDashboard() {
     const userData = JSON.parse(storedUser);
     setUser(userData);
 
-    // Stats will be fetched from API - showing zeros until implemented
-    setStats({
-      totalPatients: 0,
-      todaysAppointments: 0,
-      pendingBills: 0,
-      activeDoctors: 0,
-    });
+    // Fetch real stats from API
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        const response = await dashboardService.getStats();
+        if (response.success && response.data) {
+          setStats(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // TODO: Fetch real stats from API
-    // fetchDashboardStats().then(data => setStats(data));
+    fetchStats();
   }, [router]);
 
   const accessibleModules = useMemo(() => {
@@ -140,28 +151,28 @@ export default function EnhancedDashboard() {
           ? [
               {
                 label: 'My Appointments',
-                value: stats.todaysAppointments,
+                value: stats.myAppointments || 0,
                 color: '#4ecdc4',
                 icon: '📅',
                 bg: 'rgba(78, 205, 196, 0.1)',
               },
               {
                 label: 'Pending Bills',
-                value: stats.pendingBills,
+                value: stats.pendingBills || 0,
                 color: '#45b7d1',
                 icon: '💰',
                 bg: 'rgba(69, 183, 209, 0.1)',
               },
               {
                 label: 'Medical Records',
-                value: 0,
+                value: stats.medicalRecords || 0,
                 color: '#ff6b6b',
                 icon: '📋',
                 bg: 'rgba(255, 107, 107, 0.1)',
               },
               {
                 label: 'Prescriptions',
-                value: 0,
+                value: stats.prescriptions || 0,
                 color: '#96ceb4',
                 icon: '💊',
                 bg: 'rgba(150, 206, 180, 0.1)',
@@ -170,28 +181,28 @@ export default function EnhancedDashboard() {
           : [
               {
                 label: 'Total Patients',
-                value: stats.totalPatients,
+                value: loading ? '...' : (stats.totalPatients || 0),
                 color: '#ff6b6b',
                 icon: '👥',
                 bg: 'rgba(255, 107, 107, 0.1)',
               },
               {
                 label: "Today's Appointments",
-                value: stats.todaysAppointments,
+                value: loading ? '...' : (stats.todaysAppointments || 0),
                 color: '#4ecdc4',
                 icon: '📅',
                 bg: 'rgba(78, 205, 196, 0.1)',
               },
               {
                 label: 'Pending Bills',
-                value: stats.pendingBills,
+                value: loading ? '...' : (stats.pendingBills || 0),
                 color: '#45b7d1',
                 icon: '💰',
                 bg: 'rgba(69, 183, 209, 0.1)',
               },
               {
                 label: 'Active Doctors',
-                value: stats.activeDoctors,
+                value: loading ? '...' : (stats.activeDoctors || 0),
                 color: '#96ceb4',
                 icon: '👨‍⚕️',
                 bg: 'rgba(150, 206, 180, 0.1)',

@@ -3,7 +3,10 @@ import Layout from '../components/Layout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import staffService from '../../services/staff.service';
+import { notifications } from '@mantine/notifications';
+import { Loader } from '@mantine/core';
 
 interface StaffMember {
   id: string;
@@ -14,15 +17,13 @@ interface StaffMember {
   email: string;
   phone: string;
   role:
-    | 'SUPER_ADMIN'
     | 'ADMIN'
     | 'DOCTOR'
     | 'NURSE'
     | 'LAB_TECHNICIAN'
-    | 'RADIOLOGIST'
     | 'PHARMACIST'
     | 'RECEPTIONIST'
-    | 'ACCOUNTANT';
+    | 'RADIOLOGIST';
   department: string;
   designation: string;
   qualification: string;
@@ -37,6 +38,23 @@ interface StaffMember {
   lastLoginAt?: string;
 }
 
+interface StaffFormData {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  role: StaffMember['role'];
+  designation?: string;
+  specialization?: string;
+  departmentId?: string;
+  licenseNumber?: string;
+  qualification?: string;
+  experience?: string;
+  joiningDate?: string;
+  employeeId?: string;
+  phone?: string;
+}
+
 const StaffPage = () => {
   const [currentTab, setCurrentTab] = useState<'directory' | 'schedule' | 'performance'>(
     'directory'
@@ -45,113 +63,263 @@ const StaffPage = () => {
   const [filterRole, setFilterRole] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  const [staff] = useState<StaffMember[]>([
-    {
-      id: '1',
-      userId: 'u1',
-      employeeId: 'EMP001',
-      firstName: 'Dr. Sarah',
-      lastName: 'Wilson',
-      email: 'sarah.wilson@hospital.com',
-      phone: '+91-9876543210',
-      role: 'DOCTOR',
-      department: 'Cardiology',
-      designation: 'Senior Cardiologist',
-      qualification: 'MD Cardiology, MBBS',
-      experience: '8 years',
-      joiningDate: '2020-01-15',
-      isActive: true,
-      specialization: 'Interventional Cardiology',
-      licenseNumber: 'MED12345',
-      shift: 'morning',
-      salary: 150000,
-      performanceRating: 4.8,
-      lastLoginAt: '2024-12-05T08:30:00',
-    },
-    {
-      id: '2',
-      userId: 'u2',
-      employeeId: 'EMP002',
-      firstName: 'Nurse',
-      lastName: 'Jennifer',
-      email: 'jennifer@hospital.com',
-      phone: '+91-9876543211',
-      role: 'NURSE',
-      department: 'Emergency',
-      designation: 'Head Nurse',
-      qualification: 'BSc Nursing',
-      experience: '5 years',
-      joiningDate: '2021-03-10',
-      isActive: true,
-      shift: 'night',
-      salary: 45000,
-      performanceRating: 4.6,
-      lastLoginAt: '2024-12-04T20:15:00',
-    },
-    {
-      id: '3',
-      userId: 'u3',
-      employeeId: 'EMP003',
-      firstName: 'Dr. Michael',
-      lastName: 'Chen',
-      email: 'michael.chen@hospital.com',
-      phone: '+91-9876543212',
-      role: 'DOCTOR',
-      department: 'Pediatrics',
-      designation: 'Pediatric Specialist',
-      qualification: 'MD Pediatrics, MBBS',
-      experience: '6 years',
-      joiningDate: '2019-08-22',
-      isActive: true,
-      specialization: 'Child Development',
-      licenseNumber: 'MED12346',
-      shift: 'evening',
-      salary: 120000,
-      performanceRating: 4.7,
-      lastLoginAt: '2024-12-05T14:20:00',
-    },
-    {
-      id: '4',
-      userId: 'u4',
-      employeeId: 'EMP004',
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john.smith@hospital.com',
-      phone: '+91-9876543213',
-      role: 'LAB_TECHNICIAN',
-      department: 'Laboratory',
-      designation: 'Senior Lab Technician',
-      qualification: 'BSc Medical Laboratory Technology',
-      experience: '4 years',
-      joiningDate: '2022-02-14',
-      isActive: true,
-      shift: 'morning',
-      salary: 35000,
-      performanceRating: 4.5,
-      lastLoginAt: '2024-12-05T07:45:00',
-    },
-    {
-      id: '5',
-      userId: 'u5',
-      employeeId: 'EMP005',
-      firstName: 'Lisa',
-      lastName: 'Rodriguez',
-      email: 'lisa.rodriguez@hospital.com',
-      phone: '+91-9876543214',
-      role: 'PHARMACIST',
-      department: 'Pharmacy',
-      designation: 'Chief Pharmacist',
-      qualification: 'PharmD',
-      experience: '7 years',
-      joiningDate: '2018-11-05',
-      isActive: false,
-      shift: 'rotating',
-      salary: 80000,
-      performanceRating: 4.9,
-      lastLoginAt: '2024-11-30T16:00:00',
-    },
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [formData, setFormData] = useState<StaffFormData>({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    role: 'DOCTOR',
+    designation: '',
+    specialization: '',
+    departmentId: '',
+    licenseNumber: '',
+    qualification: '',
+    experience: '',
+    joiningDate: new Date().toISOString().split('T')[0],
+    employeeId: '',
+    phone: '',
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [staff, setStaff] = useState<StaffMember[]>([
   ]);
+
+  const [staffStats, setStaffStats] = useState({
+    totalStaff: 0,
+    activeStaff: 0,
+    inactiveStaff: 0,
+    byRole: {
+      doctors: 0,
+      nurses: 0,
+      labTechnicians: 0,
+      pharmacists: 0,
+    },
+  });
+
+  // Fetch staff data from API
+  useEffect(() => {
+    fetchStaffData();
+    fetchStaffStats();
+  }, []);
+
+  const fetchStaffData = async () => {
+    setLoading(true);
+    try {
+      const response = await staffService.getStaff({ limit: 100 });
+      if (response.success && response.data) {
+        const staffData = response.data.staff.map((s: any) => ({
+          id: s.id,
+          userId: s.userId,
+          employeeId: s.employeeId || 'EMP' + s.id.slice(0, 4).toUpperCase(),
+          firstName: s.user?.firstName || '',
+          lastName: s.user?.lastName || '',
+          email: s.user?.email || '',
+          phone: s.user?.phone || '',
+          role: s.user?.role || 'DOCTOR',
+          department: s.department?.name || 'General',
+          designation: s.designation || '',
+          qualification: s.qualification || '',
+          experience: s.experience || '',
+          joiningDate: s.joiningDate || s.createdAt,
+          isActive: s.isActive,
+          specialization: s.user?.specialization || '',
+          licenseNumber: s.user?.licenseNumber || '',
+          shift: 'morning' as const,
+          salary: 50000,
+          performanceRating: 4.5,
+          lastLoginAt: s.user?.lastLoginAt,
+        }));
+        setStaff(staffData);
+      }
+    } catch (error: any) {
+      console.error('Error fetching staff:', error);
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to fetch staff data',
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStaffStats = async () => {
+    try {
+      const response = await staffService.getStaffStats();
+      if (response.success && response.data) {
+        setStaffStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching staff stats:', error);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.firstName.trim()) errors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email format';
+    if (!showEditModal && !formData.password) errors.password = 'Password is required for new staff';
+    if (!formData.role) errors.role = 'Role is required';
+    if (!formData.phone.trim()) errors.phone = 'Phone number is required';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleAddStaff = async () => {
+    if (!validateForm()) {
+      notifications.show({
+        title: 'Validation Error',
+        message: 'Please fill in all required fields',
+        color: 'red',
+      });
+      return;
+    }
+
+    try {
+      const response = await staffService.createStaff({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+        designation: formData.designation,
+        specialization: formData.specialization,
+        departmentId: formData.departmentId || undefined,
+        licenseNumber: formData.licenseNumber,
+        qualification: formData.qualification,
+        experience: formData.experience,
+        joiningDate: formData.joiningDate,
+        employeeId: formData.employeeId,
+        phone: formData.phone,
+      });
+
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: 'Staff member added successfully',
+          color: 'green',
+        });
+        setShowAddModal(false);
+        resetForm();
+        fetchStaffData();
+        fetchStaffStats();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to add staff member',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleEditStaff = async () => {
+    if (!editingStaff || !validateForm()) return;
+
+    try {
+      const response = await staffService.updateStaff(editingStaff.id, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        designation: formData.designation,
+        specialization: formData.specialization,
+        departmentId: formData.departmentId || undefined,
+        licenseNumber: formData.licenseNumber,
+        qualification: formData.qualification,
+        experience: formData.experience,
+        joiningDate: formData.joiningDate,
+        employeeId: formData.employeeId,
+        isActive: true,
+      });
+
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: 'Staff member updated successfully',
+          color: 'green',
+        });
+        setShowEditModal(false);
+        setEditingStaff(null);
+        resetForm();
+        fetchStaffData();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to update staff member',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this staff member?')) return;
+
+    try {
+      const response = await staffService.deleteStaff(id);
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: 'Staff member deleted successfully',
+          color: 'green',
+        });
+        fetchStaffData();
+        fetchStaffStats();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to delete staff member',
+        color: 'red',
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+      firstName: '',
+      lastName: '',
+      role: 'DOCTOR',
+      designation: '',
+      specialization: '',
+      departmentId: '',
+      licenseNumber: '',
+      qualification: '',
+      experience: '',
+      joiningDate: new Date().toISOString().split('T')[0],
+      employeeId: '',
+      phone: '',
+    });
+    setFormErrors({});
+  };
+
+  const openEditForm = (member: StaffMember) => {
+    setEditingStaff(member);
+    setFormData({
+      email: member.email,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      role: member.role,
+      designation: member.designation,
+      specialization: member.specialization || '',
+      departmentId: '',
+      licenseNumber: member.licenseNumber || '',
+      qualification: member.qualification,
+      experience: member.experience,
+      joiningDate: member.joiningDate.split('T')[0],
+      employeeId: member.employeeId,
+      phone: member.phone,
+    });
+    setShowEditModal(true);
+  };
 
   const departments = [
     'Cardiology',
@@ -417,16 +585,16 @@ const StaffPage = () => {
           <Button
             size="sm"
             variant="primary"
-            onClick={() => (window.location.href = `/staff/${member.id}/edit`)}
+            onClick={() => openEditForm(member)}
           >
             Edit
           </Button>
           <Button
             size="sm"
-            variant="secondary"
-            onClick={() => (window.location.href = `/staff/${member.id}/schedule`)}
+            variant="danger"
+            onClick={() => handleDeleteStaff(member.id)}
           >
-            Schedule
+            Delete
           </Button>
         </div>
       </div>
@@ -460,7 +628,7 @@ const StaffPage = () => {
               Manage hospital staff, roles, schedules, and performance tracking
             </p>
           </div>
-          <Button onClick={() => (window.location.href = '/staff/new')}>
+          <Button onClick={() => setShowAddModal(true)}>
             + Add New Staff Member
           </Button>
         </div>
@@ -643,7 +811,7 @@ const StaffPage = () => {
               <Card variant="bordered">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#3b82f6' }}>
-                    {staff.length}
+                    {staffStats.totalStaff}
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Staff</div>
                 </div>
@@ -652,7 +820,7 @@ const StaffPage = () => {
               <Card variant="bordered">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>
-                    {staff.filter((s) => s.isActive).length}
+                    {staffStats.activeStaff}
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Active</div>
                 </div>
@@ -661,7 +829,7 @@ const StaffPage = () => {
               <Card variant="bordered">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#8b5cf6' }}>
-                    {staff.filter((s) => s.role === 'DOCTOR').length}
+                    {staffStats.byRole.doctors}
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Doctors</div>
                 </div>
@@ -670,16 +838,21 @@ const StaffPage = () => {
               <Card variant="bordered">
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>
-                    {Math.round(
-                      (staff.reduce((acc, s) => acc + s.performanceRating, 0) / staff.length) * 10
-                    ) / 10}
+                    {staffStats.byRole.nurses}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Avg Rating</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Nurses</div>
                 </div>
               </Card>
             </div>
 
             {/* Staff List */}
+            {loading ? (
+              <Card>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+                  <Loader size="lg" />
+                </div>
+              </Card>
+            ) : (
             <div>
               <div
                 style={{
@@ -735,6 +908,7 @@ const StaffPage = () => {
                 </Card>
               )}
             </div>
+            )}
           </>
         )}
 
@@ -866,6 +1040,373 @@ const StaffPage = () => {
           </div>
         )}
       </div>
+
+      {/* Add Staff Modal */}
+      {showAddModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginBottom: '1.5rem', color: '#1f2937' }}>Add New Staff Member</h2>
+            
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="First Name *"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    error={formErrors.firstName}
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Last Name *"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    error={formErrors.lastName}
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Email *"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    error={formErrors.email}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Password *"
+                    type="password"
+                    value={formData.password || ''}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    error={formErrors.password}
+                    placeholder="Enter password"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Phone *"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    error={formErrors.phone}
+                    placeholder="+91-XXXXXXXXXX"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Role *</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as StaffMember['role'] })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <option value="DOCTOR">Doctor</option>
+                    <option value="NURSE">Nurse</option>
+                    <option value="LAB_TECHNICIAN">Lab Technician</option>
+                    <option value="PHARMACIST">Pharmacist</option>
+                    <option value="RECEPTIONIST">Receptionist</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Employee ID"
+                    value={formData.employeeId || ''}
+                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    placeholder="EMP001"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Designation"
+                    value={formData.designation || ''}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    placeholder="Enter designation"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Qualification"
+                    value={formData.qualification || ''}
+                    onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                    placeholder="MBBS, MD, etc."
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Experience"
+                    value={formData.experience || ''}
+                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                    placeholder="e.g., 5 years"
+                  />
+                </div>
+              </div>
+
+              {formData.role === 'DOCTOR' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <Input
+                      label="Specialization"
+                      value={formData.specialization || ''}
+                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                      placeholder="Enter specialization"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      label="License Number"
+                      value={formData.licenseNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                      placeholder="MED12345"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Input
+                  label="Joining Date"
+                  type="date"
+                  value={formData.joiningDate || ''}
+                  onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+              <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddStaff}>
+                Add Staff Member
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Staff Modal */}
+      {showEditModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => { setShowEditModal(false); setEditingStaff(null); resetForm(); }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginBottom: '1.5rem', color: '#1f2937' }}>Edit Staff Member</h2>
+            
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="First Name *"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    error={formErrors.firstName}
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Last Name *"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    error={formErrors.lastName}
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Phone *"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    error={formErrors.phone}
+                    placeholder="+91-XXXXXXXXXX"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600' }}>Role</label>
+                  <select
+                    value={formData.role}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: '#f3f4f6',
+                    }}
+                  >
+                    <option value="DOCTOR">Doctor</option>
+                    <option value="NURSE">Nurse</option>
+                    <option value="LAB_TECHNICIAN">Lab Technician</option>
+                    <option value="PHARMACIST">Pharmacist</option>
+                    <option value="RECEPTIONIST">Receptionist</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <Input
+                    label="Designation"
+                    value={formData.designation || ''}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    placeholder="Enter designation"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Employee ID"
+                    value={formData.employeeId || ''}
+                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    placeholder="EMP001"
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Experience"
+                    value={formData.experience || ''}
+                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                    placeholder="e.g., 5 years"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <Input
+                    label="Qualification"
+                    value={formData.qualification || ''}
+                    onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                    placeholder="MBBS, MD, etc."
+                  />
+                </div>
+                <div>
+                  <Input
+                    label="Joining Date"
+                    type="date"
+                    value={formData.joiningDate || ''}
+                    onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {formData.role === 'DOCTOR' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <Input
+                      label="Specialization"
+                      value={formData.specialization || ''}
+                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                      placeholder="Enter specialization"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      label="License Number"
+                      value={formData.licenseNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                      placeholder="MED12345"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+              <Button variant="outline" onClick={() => { setShowEditModal(false); setEditingStaff(null); resetForm(); }}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditStaff}>
+                Update Staff Member
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

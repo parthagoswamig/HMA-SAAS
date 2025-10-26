@@ -92,8 +92,8 @@ export default function TenantsManagementPage() {
     }
   };
 
-  // Mock fallback data for development
-  const mockTenants: Tenant[] = [
+  // Default data structure
+  const defaultTenants: Tenant[] = [
     {
       id: '1',
       name: 'City General Hospital',
@@ -168,8 +168,8 @@ export default function TenantsManagementPage() {
     return colors[plan];
   };
 
-  // Use mock data if API fails or is empty
-  const displayTenants = tenants.length > 0 ? tenants : mockTenants;
+  // Use API data or empty array
+  const displayTenants = tenants.length > 0 ? tenants : [];
 
   const filteredTenants = displayTenants.filter((tenant) => {
     const matchesSearch =

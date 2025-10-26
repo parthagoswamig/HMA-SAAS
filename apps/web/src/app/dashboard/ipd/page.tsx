@@ -25,6 +25,10 @@ import { useDisclosure } from '@mantine/hooks';
 import EmptyState from '../../../components/EmptyState';
 import { notifications } from '@mantine/notifications';
 import ipdService from '../../../services/ipd.service';
+// TODO: Create these forms
+// import AdmissionForm from '../../../components/ipd/AdmissionForm';
+// import DischargeForm from '../../../components/ipd/DischargeForm';
+// import BedManagementForm from '../../../components/ipd/BedManagementForm';
 // import { LineChart, BarChart, DonutChart, AreaChart } from '@mantine/charts';
 import {
   IconActivity,

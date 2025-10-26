@@ -22,6 +22,8 @@ import {
 import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
@@ -34,7 +36,7 @@ import {
 @ApiTags('Billing')
 @ApiBearerAuth()
 @Controller('billing')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
@@ -44,6 +46,7 @@ export class BillingController {
    * Create a new invoice
    */
   @Post('invoices')
+  @RequirePermissions('billing.create', 'BILLING_CREATE', 'INVOICE_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Create a new invoice',
@@ -80,6 +83,7 @@ export class BillingController {
    * Get all invoices with filters
    */
   @Get('invoices')
+  @RequirePermissions('billing.view', 'BILLING_VIEW', 'INVOICE_READ')
   @ApiOperation({ 
     summary: 'Get all invoices',
     description: 'Retrieves paginated list of invoices with optional filters'
@@ -107,6 +111,7 @@ export class BillingController {
    * Get billing statistics
    */
   @Get('invoices/stats')
+  @RequirePermissions('billing.view', 'BILLING_VIEW', 'VIEW_REPORTS')
   @ApiOperation({ 
     summary: 'Get billing statistics',
     description: 'Retrieves billing statistics including revenue, invoice counts, and payment methods'
@@ -128,6 +133,7 @@ export class BillingController {
    * Get revenue report
    */
   @Get('invoices/reports/revenue')
+  @RequirePermissions('billing.view', 'BILLING_VIEW', 'VIEW_REPORTS')
   @ApiOperation({ 
     summary: 'Get revenue report',
     description: 'Generates revenue report for a specific date range'
@@ -169,6 +175,7 @@ export class BillingController {
    * Get invoice by ID
    */
   @Get('invoices/:id')
+  @RequirePermissions('billing.view', 'BILLING_VIEW', 'INVOICE_READ')
   @ApiOperation({ 
     summary: 'Get invoice by ID',
     description: 'Retrieves a specific invoice with all its details'
@@ -205,6 +212,7 @@ export class BillingController {
    * Update invoice
    */
   @Patch('invoices/:id')
+  @RequirePermissions('billing.update', 'BILLING_UPDATE', 'INVOICE_UPDATE')
   @ApiOperation({ 
     summary: 'Update invoice',
     description: 'Updates an existing invoice'
@@ -243,6 +251,7 @@ export class BillingController {
    * Cancel invoice
    */
   @Delete('invoices/:id')
+  @RequirePermissions('billing.delete', 'BILLING_DELETE', 'INVOICE_DELETE')
   @ApiOperation({ 
     summary: 'Cancel invoice',
     description: 'Cancels an existing invoice (soft delete)'
@@ -285,6 +294,7 @@ export class BillingController {
    * Create a payment
    */
   @Post('payments')
+  @RequirePermissions('payment.create', 'PAYMENT_CREATE', 'BILLING_PAYMENT')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Record a payment',
@@ -321,6 +331,7 @@ export class BillingController {
    * Get all payments with filters
    */
   @Get('payments')
+  @RequirePermissions('payment.view', 'PAYMENT_VIEW', 'BILLING_VIEW')
   @ApiOperation({ 
     summary: 'Get all payments',
     description: 'Retrieves paginated list of payments with optional filters'
@@ -348,6 +359,7 @@ export class BillingController {
    * Get payment by ID
    */
   @Get('payments/:id')
+  @RequirePermissions('payment.view', 'PAYMENT_VIEW', 'BILLING_VIEW')
   @ApiOperation({ 
     summary: 'Get payment by ID',
     description: 'Retrieves a specific payment with all its details'
@@ -384,6 +396,7 @@ export class BillingController {
    * Update payment
    */
   @Patch('payments/:id')
+  @RequirePermissions('payment.update', 'PAYMENT_UPDATE', 'BILLING_PAYMENT')
   @ApiOperation({ 
     summary: 'Update payment',
     description: 'Updates an existing payment'

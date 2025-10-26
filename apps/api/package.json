@@ -10,7 +10,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node src/scripts/seed.ts",
+    "prisma:seed": "ts-node prisma/seed-full.ts",
+    "prisma:seed:clean": "ts-node prisma/seed.ts",
     "postinstall": "prisma generate",
     "db:setup": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed",
     "deploy:migrate": "prisma migrate deploy && node dist/main",
@@ -123,5 +124,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

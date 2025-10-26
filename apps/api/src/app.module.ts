@@ -38,6 +38,8 @@ import { ResearchModule } from './research/research.module';
 import { IntegrationModule } from './integration/integration.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { RbacModule } from './rbac/rbac.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { UsersModule } from './users/users.module';
 
 // Basic controllers and services
 import { AppController } from './app.controller';
@@ -130,6 +132,8 @@ import { AppService } from './app.service';
     IntegrationModule,
     SubscriptionModule,
     RbacModule,
+    UsersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

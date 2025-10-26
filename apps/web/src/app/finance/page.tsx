@@ -47,22 +47,6 @@ import { User, UserRole, TableColumn } from '../../types/common';
 import financeService from '../../services/finance.service';
 import type { CreateTransactionDto, UpdateTransactionDto } from '../../services/finance.service';
 
-const mockUser: User = {
-  id: '1',
-  username: 'admin',
-  email: 'admin@hospital.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  role: UserRole.ADMIN,
-  permissions: [],
-  isActive: true,
-  tenantInfo: {
-    tenantId: 'T001',
-    tenantName: 'Main Hospital',
-  },
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 function FinancePage() {
   const { user, setUser } = useAppStore();
@@ -80,14 +64,11 @@ function FinancePage() {
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
 
   useEffect(() => {
-    if (!user) {
-      setUser(mockUser);
-    }
     fetchTransactions();
     fetchInvoices();
     fetchPayments();
     fetchStats();
-  }, [user, setUser]);
+  }, []);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -115,34 +96,8 @@ function FinancePage() {
 
         setTransactions(transformedTransactions);
       } else {
-        // Fallback to mock data if no real payments exist
-        const mockTransactions = [
-          {
-            id: '1',
-            type: 'INCOME',
-            category: 'CONSULTATION_FEES',
-            amount: 1500,
-            description: 'Consultation fee for patient John Doe',
-            date: new Date().toISOString(),
-            paymentMethod: 'CASH',
-            referenceNumber: 'REF001',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            type: 'EXPENSE',
-            category: 'MEDICAL_SUPPLIES',
-            amount: 5000,
-            description: 'Purchase of medical supplies',
-            date: new Date(Date.now() - 86400000).toISOString(),
-            paymentMethod: 'BANK_TRANSFER',
-            referenceNumber: 'REF002',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-        setTransactions(mockTransactions);
+        // No transactions available yet
+        setTransactions([]);
       }
     } catch (error: any) {
       console.error('Error fetching transactions:', error);
@@ -158,22 +113,8 @@ function FinancePage() {
         autoClose: 5000,
       });
 
-      // Fallback to mock data on error
-      const mockTransactions = [
-        {
-          id: '1',
-          type: 'INCOME',
-          category: 'CONSULTATION_FEES',
-          amount: 1500,
-          description: 'Consultation fee for patient John Doe',
-          date: new Date().toISOString(),
-          paymentMethod: 'CASH',
-          referenceNumber: 'REF001',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-      setTransactions(mockTransactions);
+      // Set empty array on error
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -465,10 +406,10 @@ function FinancePage() {
               role: user.role,
             }
           : {
-              id: mockUser.id,
-              name: `${mockUser.firstName} ${mockUser.lastName}`,
-              email: mockUser.email,
-              role: mockUser.role,
+              id: '',
+              name: 'Guest User',
+              email: '',
+              role: 'USER' as UserRole,
             }
       }
       notifications={0}

@@ -7,30 +7,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { CustomPrismaService } from '../prisma/custom-prisma.service';
 import * as bcrypt from 'bcryptjs';
-
-export interface RegisterUserDto {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  tenantId: string;
-  role?: string;
-}
-
-export interface LoginDto {
-  email: string;
-  password: string;
-}
-
-export interface ForgotPasswordDto {
-  email: string;
-}
-
-export interface ResetPasswordDto {
-  token: string;
-  newPassword: string;
-}
+import {
+  RegisterUserDto,
+  LoginDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
+} from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -275,5 +258,103 @@ export class AuthService {
       }
       throw error;
     }
+  }
+
+  async refreshToken(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        tenant: true,
+        tenantRole: {
+          include: {
+            rolePermissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    const permissions = user.tenantRole
+      ? user.tenantRole.rolePermissions.map((rp) => rp.permission.name)
+      : [];
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      tenantId: user.tenantId,
+      role: user.role,
+      roleId: user.roleId,
+      permissions,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        roleId: user.roleId,
+        tenantId: user.tenantId,
+        permissions,
+      },
+    };
+  }
+
+  async logout(userId: string) {
+    // Update last login timestamp
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
+
+    // In a production app, you might want to blacklist the token here
+    // For now, we'll just return a success message
+    return {
+      success: true,
+      message: 'Logged out successfully',
+    };
+  }
+
+  async changePassword(userId: string, oldPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify old password
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: hashedPassword,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Password changed successfully',
+    };
   }
 }

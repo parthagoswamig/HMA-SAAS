@@ -12,7 +12,7 @@ export interface CreateStaffDto {
   password?: string;
   firstName: string;
   lastName: string;
-  role: 'DOCTOR' | 'NURSE' | 'LAB_TECHNICIAN' | 'PHARMACIST' | 'RECEPTIONIST' | 'ADMIN';
+  role: 'DOCTOR' | 'NURSE' | 'LAB_TECHNICIAN' | 'PHARMACIST' | 'RECEPTIONIST' | 'ADMIN' | 'RADIOLOGIST';
   designation?: string;
   specialization?: string;
   departmentId?: string;
@@ -65,6 +65,7 @@ export interface StaffResponse {
       email: string;
       firstName: string;
       lastName: string;
+      phone?: string;
       role: string;
       specialization?: string;
       licenseNumber?: string;

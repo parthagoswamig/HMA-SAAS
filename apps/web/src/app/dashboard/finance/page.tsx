@@ -92,7 +92,7 @@ import {
   // FinancialStats,
   // FinancialFilters
 } from '../../../types/finance';
-// Mock data imports removed
+// API data only - no mock data
 const FinanceManagement = () => {
   // State management
   const [activeTab, setActiveTab] = useState<string>('overview');

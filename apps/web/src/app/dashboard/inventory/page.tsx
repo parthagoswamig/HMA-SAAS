@@ -78,14 +78,15 @@ import {
   IconClipboard,
 } from '@tabler/icons-react';
 
-// Import types, services and mock data
+// Import types and services
 import {
   InventoryItem,
   PurchaseOrder,
   Equipment,
 } from '../../../types/inventory';
 import inventoryService from '../../../services/inventory.service';
-// Mock data imports removed
+import InventoryItemForm from '../../../components/inventory/InventoryItemForm';
+// API data only - no mock data
 
 const InventoryManagement = () => {
   // State management
@@ -126,9 +127,9 @@ const InventoryManagement = () => {
     } catch (err: any) {
       console.error('Error loading inventory data:', err);
       _setError(err.response?.data?.message || err.message || 'Failed to load inventory data');
-      // Fallback to mock data
-      setInventoryItems([] /* TODO: Fetch from API */);
-      setInventoryStats([] /* TODO: Fetch from API */);
+      // Set empty data on error
+      setInventoryItems([]);
+      setInventoryStats({});
     } finally {
       _setLoading(false);
     }
@@ -314,6 +315,34 @@ const InventoryManagement = () => {
     openItemDetail();
   };
 
+  const handleEditItem = (item: InventoryItem) => {
+    setSelectedItem(item);
+    openAddItem();
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    
+    try {
+      const response = await inventoryService.deleteItem(itemId);
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: 'Item deleted successfully',
+          color: 'green',
+        });
+        fetchInventoryItems();
+        fetchInventoryStats();
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.response?.data?.message || 'Failed to delete item',
+        color: 'red',
+      });
+    }
+  };
+
   const handleViewOrder = (order: PurchaseOrder) => {
     setSelectedOrder(order);
     openOrderDetail();
@@ -397,7 +426,7 @@ const InventoryManagement = () => {
           </Text>
         </div>
         <Group>
-          <Button leftSection={<IconPlus size={16} />} onClick={openAddItem}>
+          <Button leftSection={<IconPlus size={16} />} onClick={() => { setSelectedItem(null); openAddItem(); }}>
             Add Item
           </Button>
           <Button
@@ -631,8 +660,20 @@ const InventoryManagement = () => {
                         >
                           <IconEye size={16} />
                         </ActionIcon>
-                        <ActionIcon variant="subtle" color="green">
+                        <ActionIcon
+                          variant="subtle"
+                          color="orange"
+                          onClick={() => handleEditItem(item as any)}
+                        >
                           <IconEdit size={16} />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="red"
+                          onClick={() => handleDeleteItem(item.id)}
+                          title="Delete Item"
+                        >
+                          <IconTrash size={16} />
                         </ActionIcon>
                         <Menu>
                           <Menu.Target>
@@ -1109,6 +1150,16 @@ const InventoryManagement = () => {
           </Group>
         </Stack>
       </Modal>
+      {/* Inventory Item Form */}
+      <InventoryItemForm
+        opened={addItemOpened}
+        onClose={closeAddItem}
+        item={selectedItem}
+        onSuccess={() => {
+          fetchInventoryItems();
+          fetchInventoryStats();
+        }}
+      />
       </Stack>
     </Container>
   );

@@ -20,6 +20,8 @@ import {
 import { EmergencyService } from './emergency.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateEmergencyCaseDto,
   UpdateEmergencyCaseDto,
@@ -30,11 +32,12 @@ import {
 @ApiTags('Emergency')
 @ApiBearerAuth()
 @Controller('emergency')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class EmergencyController {
   constructor(private readonly service: EmergencyService) {}
 
   @Post('cases')
+  @RequirePermissions('emergency.create', 'EMERGENCY_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create emergency case' })
   @ApiResponse({ status: 201, description: 'Emergency case created successfully' })
@@ -46,6 +49,7 @@ export class EmergencyController {
   }
 
   @Get('cases')
+  @RequirePermissions('emergency.view', 'EMERGENCY_READ', 'VIEW_EMERGENCY')
   @ApiOperation({ summary: 'Get all emergency cases' })
   @ApiResponse({ status: 200, description: 'Emergency cases retrieved successfully' })
   findAll(
@@ -56,6 +60,7 @@ export class EmergencyController {
   }
 
   @Get('cases/:id')
+  @RequirePermissions('emergency.view', 'EMERGENCY_READ', 'VIEW_EMERGENCY')
   @ApiOperation({ summary: 'Get emergency case by ID' })
   @ApiResponse({ status: 200, description: 'Emergency case retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Emergency case not found' })
@@ -68,6 +73,7 @@ export class EmergencyController {
   }
 
   @Patch('cases/:id')
+  @RequirePermissions('emergency.update', 'EMERGENCY_UPDATE')
   @ApiOperation({ summary: 'Update emergency case' })
   @ApiResponse({ status: 200, description: 'Emergency case updated successfully' })
   @ApiResponse({ status: 404, description: 'Emergency case not found' })
@@ -81,6 +87,7 @@ export class EmergencyController {
   }
 
   @Patch('cases/:id/triage')
+  @RequirePermissions('emergency.update', 'EMERGENCY_UPDATE', 'TRIAGE_PATIENTS')
   @ApiOperation({ summary: 'Update triage level' })
   @ApiResponse({ status: 200, description: 'Triage level updated successfully' })
   @ApiResponse({ status: 404, description: 'Emergency case not found' })
@@ -94,6 +101,7 @@ export class EmergencyController {
   }
 
   @Get('queue')
+  @RequirePermissions('emergency.view', 'EMERGENCY_READ', 'VIEW_EMERGENCY')
   @ApiOperation({ summary: 'Get emergency queue' })
   @ApiResponse({ status: 200, description: 'Emergency queue retrieved successfully' })
   getQueue(@TenantId() tenantId: string) {
@@ -101,6 +109,7 @@ export class EmergencyController {
   }
 
   @Get('stats')
+  @RequirePermissions('emergency.view', 'EMERGENCY_READ', 'VIEW_REPORTS')
   @ApiOperation({ summary: 'Get emergency statistics' })
   @ApiResponse({ status: 200, description: 'Emergency statistics retrieved successfully' })
   getStats(@TenantId() tenantId: string) {

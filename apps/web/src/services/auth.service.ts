@@ -11,6 +11,8 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   role?: string;
+  tenantId?: string;
+  phone?: string;
 }
 
 export interface AuthResponse {
@@ -20,10 +22,14 @@ export interface AuthResponse {
     firstName: string;
     lastName: string;
     role: string;
+    roleId?: string;
+    permissions?: string[];
     tenant?: {
       id: string;
       name: string;
+      type?: string;
     };
+    tenantId?: string;
   };
   accessToken: string;
   refreshToken: string;
@@ -35,23 +41,44 @@ class AuthService {
    */
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post('/auth/register', data);
-
-      // Backend returns { user: {...}, tokens: { accessToken, refreshToken } }
-      const { user, tokens } = response.data;
-
-      // Store tokens and user info
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', tokens.accessToken);
-        localStorage.setItem('refreshToken', tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-
-      return {
-        user,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+      // Add default tenantId if not provided
+      const registerData = {
+        ...data,
+        tenantId: data.tenantId || 'demo-hospital', // Use demo tenant by default
       };
+      
+      const response = await apiClient.post('/auth/register', registerData);
+
+      // Handle the response based on what backend actually returns
+      const responseData = response.data;
+      
+      // If registration successful but no tokens (need to login separately)
+      if (responseData.success && responseData.data) {
+        // Auto-login after successful registration
+        return this.login({
+          email: data.email,
+          password: data.password,
+        });
+      }
+      
+      // If tokens are returned directly
+      if (responseData.accessToken) {
+        const { user, accessToken } = responseData;
+        
+        // Store tokens and user info
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', accessToken);
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        
+        return {
+          user,
+          accessToken,
+          refreshToken: '', // No refresh token in current implementation
+        };
+      }
+      
+      throw new Error('Unexpected response format from registration');
     } catch (error) {
       throw new Error(handleApiError(error));
     }
@@ -64,20 +91,29 @@ class AuthService {
     try {
       const response = await apiClient.post('/auth/login', credentials);
 
-      // Backend returns { user: {...}, tokens: { accessToken, refreshToken } }
-      const { user, tokens } = response.data;
+      // Backend returns { accessToken, user: {...} }
+      const { user, accessToken } = response.data;
 
       // Store tokens and user info
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', tokens.accessToken);
-        localStorage.setItem('refreshToken', tokens.refreshToken);
+        localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('user', JSON.stringify(user));
+        
+        // Store tenant info separately for easy access
+        if (user.tenant) {
+          localStorage.setItem('tenant', JSON.stringify(user.tenant));
+        }
+        
+        // Store permissions for RBAC
+        if (user.permissions) {
+          localStorage.setItem('permissions', JSON.stringify(user.permissions));
+        }
       }
 
       return {
         user,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken,
+        refreshToken: '', // No refresh token in current implementation
       };
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -92,6 +128,10 @@ class AuthService {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('tenant');
+      localStorage.removeItem('permissions');
+      // Redirect to login page
+      window.location.href = '/login';
     }
   }
 
@@ -137,6 +177,11 @@ class AuthService {
         typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
 
       if (!refreshToken) {
+        // No refresh token, try to get profile with current access token
+        const profile = await this.getProfile();
+        if (profile) {
+          return localStorage.getItem('accessToken') || '';
+        }
         throw new Error('No refresh token available');
       }
 
@@ -152,6 +197,54 @@ class AuthService {
       this.logout();
       throw new Error(handleApiError(error));
     }
+  }
+  
+  /**
+   * Get user permissions
+   */
+  getUserPermissions(): string[] {
+    if (typeof window !== 'undefined') {
+      const permissionsStr = localStorage.getItem('permissions');
+      return permissionsStr ? JSON.parse(permissionsStr) : [];
+    }
+    return [];
+  }
+  
+  /**
+   * Check if user has specific permission
+   */
+  hasPermission(permission: string): boolean {
+    const user = this.getCurrentUser();
+    if (user?.role === 'SUPER_ADMIN' || user?.role === 'HOSPITAL_ADMIN') {
+      return true; // Admins have all permissions
+    }
+    
+    const permissions = this.getUserPermissions();
+    return permissions.includes(permission);
+  }
+  
+  /**
+   * Check if user has any of the specified permissions
+   */
+  hasAnyPermission(permissions: string[]): boolean {
+    const user = this.getCurrentUser();
+    if (user?.role === 'SUPER_ADMIN' || user?.role === 'HOSPITAL_ADMIN') {
+      return true;
+    }
+    
+    const userPermissions = this.getUserPermissions();
+    return permissions.some(p => userPermissions.includes(p));
+  }
+  
+  /**
+   * Get tenant info
+   */
+  getTenant(): any | null {
+    if (typeof window !== 'undefined') {
+      const tenantStr = localStorage.getItem('tenant');
+      return tenantStr ? JSON.parse(tenantStr) : null;
+    }
+    return null;
   }
 }
 

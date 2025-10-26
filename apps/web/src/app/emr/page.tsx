@@ -43,28 +43,13 @@ import { useAppStore } from '../../stores/appStore';
 import { User, UserRole, TableColumn } from '../../types/common';
 import emrService from '../../services/emr.service';
 import patientsService from '../../services/patients.service';
+import staffService from '../../services/staff.service';
 import type {
   CreateMedicalRecordDto,
   UpdateMedicalRecordDto,
   EmrFilters,
 } from '../../services/emr.service';
 
-const mockUser: User = {
-  id: '1',
-  username: 'admin',
-  email: 'admin@hospital.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  role: UserRole.ADMIN,
-  permissions: [],
-  isActive: true,
-  tenantInfo: {
-    tenantId: 'T001',
-    tenantName: 'Main Hospital',
-  },
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 function EmrPage() {
   const { user, setUser } = useAppStore();
@@ -82,14 +67,12 @@ function EmrPage() {
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
 
   useEffect(() => {
-    if (!user) {
-      setUser(mockUser);
-    }
     fetchRecords();
     fetchPatients();
     fetchDoctors();
+    fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, setUser]);
+  }, []);
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -138,13 +121,22 @@ function EmrPage() {
 
   const fetchDoctors = async () => {
     try {
-      // Mock doctors - in production, fetch from staff API
-      setDoctors([
-        { id: '1', firstName: 'John', lastName: 'Smith', specialization: 'General Medicine' },
-        { id: '2', firstName: 'Sarah', lastName: 'Johnson', specialization: 'Cardiology' },
-      ]);
+      // Fetch from staff API
+      const response = await staffService.getStaff({ role: 'DOCTOR', limit: 100 });
+      if (response.success && response.data) {
+        const doctorsList = response.data.staff.map((s: any) => ({
+          id: s.id,
+          firstName: s.user?.firstName || '',
+          lastName: s.user?.lastName || '',
+          specialization: s.user?.specialization || ''
+        }));
+        setDoctors(doctorsList);
+      } else {
+        setDoctors([]);
+      }
     } catch (error: any) {
       console.error('Error fetching doctors:', error);
+      setDoctors([]);
     }
   };
 
@@ -368,7 +360,7 @@ function EmrPage() {
 
   return (
     <Layout
-      user={user ? { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, role: user.role } : { id: mockUser.id, name: `${mockUser.firstName} ${mockUser.lastName}`, email: mockUser.email, role: mockUser.role }}
+      user={user ? { id: user.id, name: `${user.firstName} ${user.lastName}`, email: user.email, role: user.role } : { id: '', name: 'Guest User', email: '', role: 'USER' as UserRole }}
       notifications={0}
       onLogout={() => {}}
     >

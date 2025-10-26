@@ -44,22 +44,6 @@ import { User, UserRole, TableColumn } from '../../types/common';
 import hrService from '../../services/hr.service';
 import type { CreateStaffDto, UpdateStaffDto, HrFilters } from '../../services/hr.service';
 
-const mockUser: User = {
-  id: '1',
-  username: 'admin',
-  email: 'admin@hospital.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  role: UserRole.ADMIN,
-  permissions: [],
-  isActive: true,
-  tenantInfo: {
-    tenantId: 'T001',
-    tenantName: 'Main Hospital',
-  },
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 function HrPage() {
   const { user, setUser } = useAppStore();
@@ -77,13 +61,10 @@ function HrPage() {
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
 
   useEffect(() => {
-    if (!user) {
-      setUser(mockUser);
-    }
     fetchStaff();
     fetchDepartments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, setUser]);
+  }, []);
 
   const fetchStaff = async () => {
     setLoading(true);
@@ -407,10 +388,10 @@ function HrPage() {
               role: user.role,
             }
           : {
-              id: mockUser.id,
-              name: `${mockUser.firstName} ${mockUser.lastName}`,
-              email: mockUser.email,
-              role: mockUser.role,
+              id: '',
+              name: 'Guest User',
+              email: '',
+              role: 'USER' as UserRole,
             }
       }
       notifications={0}

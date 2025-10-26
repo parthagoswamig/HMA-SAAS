@@ -21,15 +21,18 @@ import { StaffService } from './staff.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateStaffDto, UpdateStaffDto, StaffQueryDto } from './dto';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 
 @ApiTags('Staff')
 @ApiBearerAuth()
 @Controller('staff')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   @Post()
+  @RequirePermissions('staff.create', 'STAFF_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new staff member' })
   @ApiResponse({ status: 201, description: 'Staff member created successfully' })
@@ -42,6 +45,7 @@ export class StaffController {
   }
 
   @Get()
+  @RequirePermissions('staff.view', 'STAFF_READ')
   @ApiOperation({ summary: 'Get all staff members with pagination' })
   @ApiResponse({ status: 200, description: 'Staff members retrieved successfully' })
   async findAll(
@@ -52,6 +56,7 @@ export class StaffController {
   }
 
   @Get('search')
+  @RequirePermissions('staff.view', 'STAFF_READ')
   @ApiOperation({ summary: 'Search staff members by query' })
   @ApiResponse({ status: 200, description: 'Search results retrieved' })
   async search(
@@ -62,6 +67,7 @@ export class StaffController {
   }
 
   @Get('stats')
+  @RequirePermissions('staff.view', 'STAFF_READ')
   @ApiOperation({ summary: 'Get staff statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
   async getStats(@TenantId() tenantId: string) {
@@ -69,6 +75,7 @@ export class StaffController {
   }
 
   @Get(':id')
+  @RequirePermissions('staff.view', 'STAFF_READ')
   @ApiOperation({ summary: 'Get staff member by ID' })
   @ApiResponse({ status: 200, description: 'Staff member retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Staff member not found' })
@@ -80,6 +87,7 @@ export class StaffController {
   }
 
   @Patch(':id')
+  @RequirePermissions('staff.update', 'STAFF_UPDATE')
   @ApiOperation({ summary: 'Update staff member by ID' })
   @ApiResponse({ status: 200, description: 'Staff member updated successfully' })
   @ApiResponse({ status: 404, description: 'Staff member not found' })
@@ -92,6 +100,7 @@ export class StaffController {
   }
 
   @Delete(':id')
+  @RequirePermissions('staff.delete', 'STAFF_DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft delete staff member by ID' })
   @ApiResponse({ status: 204, description: 'Staff member deleted successfully' })

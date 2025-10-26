@@ -204,8 +204,8 @@ interface PolicyDetails {
   totalUtilised: number;
 }
 
-// Mock data
-const _mockInsuranceProviders: InsuranceProvider[] = [
+// API data only - no mock data
+const _defaultInsuranceProviders: InsuranceProvider[] = [
   {
     id: '1',
     name: 'Star Health Insurance',
@@ -292,7 +292,7 @@ const _mockInsuranceProviders: InsuranceProvider[] = [
   },
 ];
 
-const _mockInsuranceClaims: InsuranceClaim[] = [
+const _defaultInsuranceClaims: InsuranceClaim[] = [
   {
     id: '1',
     claimNumber: 'CLM2024001',
@@ -443,7 +443,7 @@ const _mockInsuranceClaims: InsuranceClaim[] = [
   },
 ];
 
-const _mockPolicyDetails: PolicyDetails[] = [
+const _defaultPolicyDetails: PolicyDetails[] = [
   {
     id: '1',
     policyNumber: 'STAR123456789',

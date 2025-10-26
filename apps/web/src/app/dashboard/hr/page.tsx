@@ -91,7 +91,7 @@ import {
   IconBriefcase,
 } from '@tabler/icons-react';
 
-// Import types and mock data
+// Import types and services
 import {
   Employee,
   EmployeeStatus,
@@ -112,7 +112,7 @@ import {
   // HRStats,
   // HRFilters
 } from '../../../types/hr';
-// Mock data imports removed
+// API data only - no mock data
 
 const HRManagement = () => {
   // State management

@@ -55,12 +55,11 @@ import {
   IconBell,
 } from '@tabler/icons-react';
 
-// Import types and mock data
-// Types are inferred from mock data
-// Mock data imports removed
+// Import types and services
+// API data only - no mock data
 const PatientPortal = () => {
-  // Current logged-in patient (mock data)
-  const currentPatient = []; // TODO: Fetch from API
+  // Current logged-in patient from API
+  const [currentPatient, setCurrentPatient] = useState<any>(null);
 
   // State management
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -86,40 +85,94 @@ const PatientPortal = () => {
   const fetchAppointments = useCallback(async () => {
     try {
       const response = await patientPortalService.getMyAppointments();
-      setAppointments(response.data || []);
+      if (response.success && response.data) {
+        const mappedAppointments = response.data.map((apt: any) => ({
+          id: apt.id,
+          date: apt.appointmentDateTime,
+          time: new Date(apt.appointmentDateTime).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          doctor: apt.doctor ? `Dr. ${apt.doctor.firstName} ${apt.doctor.lastName}` : 'Unknown',
+          department: apt.department?.name || 'General',
+          status: apt.status || 'SCHEDULED',
+          reason: apt.reason || '',
+        }));
+        setAppointments(mappedAppointments);
+      } else {
+        setAppointments([]);
+      }
     } catch (err) {
       console.error('Error fetching appointments:', err);
-      setAppointments([] /* TODO: Fetch from API */);
+      setAppointments([]);
     }
   }, []);
 
   const fetchPrescriptions = useCallback(async () => {
     try {
       const response = await patientPortalService.getMyPrescriptions();
-      setPrescriptions(response.data || []);
+      if (response.success && response.data) {
+        const mappedPrescriptions = response.data.map((presc: any) => ({
+          id: presc.id,
+          date: presc.prescriptionDate || presc.createdAt,
+          medications: presc.medications || [],
+          doctor: presc.doctor ? `Dr. ${presc.doctor.firstName} ${presc.doctor.lastName}` : 'Unknown',
+          status: presc.status || 'active',
+          notes: presc.notes || '',
+        }));
+        setPrescriptions(mappedPrescriptions);
+      } else {
+        setPrescriptions([]);
+      }
     } catch (err) {
       console.error('Error fetching prescriptions:', err);
-      setPrescriptions([] /* TODO: Fetch from API */);
+      setPrescriptions([]);
     }
   }, []);
 
   const fetchLabResults = useCallback(async () => {
     try {
       const response = await patientPortalService.getMyLabResults();
-      setLabResults(response.data || []);
+      if (response.success && response.data) {
+        const mappedResults = response.data.map((result: any) => ({
+          id: result.id,
+          testName: result.testName || 'Unknown Test',
+          date: result.testDate || result.createdAt,
+          status: result.status || 'completed',
+          result: result.result || 'Pending',
+          normalRange: result.normalRange || '',
+          doctor: result.doctor ? `Dr. ${result.doctor.firstName} ${result.doctor.lastName}` : 'Unknown',
+        }));
+        setLabResults(mappedResults);
+      } else {
+        setLabResults([]);
+      }
     } catch (err) {
       console.error('Error fetching lab results:', err);
-      setLabResults([] /* TODO: Fetch from API */);
+      setLabResults([]);
     }
   }, []);
 
   const fetchMedicalRecords = useCallback(async () => {
     try {
-      const response = await patientPortalService.getMyRecords();
-      setMedicalRecords(response.data || []);
+      const response = await patientPortalService.getMyMedicalRecords();
+      if (response.success && response.data) {
+        const mappedRecords = response.data.map((record: any) => ({
+          id: record.id,
+          type: record.recordType || 'General',
+          date: record.recordDate || record.createdAt,
+          title: record.title || 'Medical Record',
+          description: record.description || '',
+          doctor: record.doctor ? `Dr. ${record.doctor.firstName} ${record.doctor.lastName}` : 'Unknown',
+          attachments: record.attachments || [],
+        }));
+        setMedicalRecords(mappedRecords);
+      } else {
+        setMedicalRecords([]);
+      }
     } catch (err) {
       console.error('Error fetching medical records:', err);
-      setMedicalRecords([] /* TODO: Fetch from API */);
+      setMedicalRecords([]);
     }
   }, []);
 
@@ -136,10 +189,10 @@ const PatientPortal = () => {
     } catch (err: any) {
       console.error('Error loading patient portal data:', err);
       setError(err.response?.data?.message || 'Failed to load data');
-      setAppointments([] /* TODO: Fetch from API */);
-      setPrescriptions([] /* TODO: Fetch from API */);
-      setLabResults([] /* TODO: Fetch from API */);
-      setMedicalRecords([] /* TODO: Fetch from API */);
+      setAppointments([]);
+      setPrescriptions([]);
+      setLabResults([]);
+      setMedicalRecords([]);
     } finally {
       setLoading(false);
     }
@@ -294,25 +347,25 @@ const PatientPortal = () => {
   const quickStats = [
     {
       title: 'Upcoming Appointments',
-      value: 0 /* TODO: Fetch from API */,
+      value: appointments.filter((apt) => apt.status === 'scheduled' || apt.status === 'confirmed').length,
       icon: IconCalendarEvent,
       color: 'blue',
     },
     {
       title: 'Active Prescriptions',
-      value: 0 /* TODO: Fetch from API */,
+      value: prescriptions.filter((presc) => presc.status === 'active').length,
       icon: IconPill,
       color: 'green',
     },
     {
       title: 'Test Results',
-      value: 0 /* TODO: Fetch from API */,
+      value: labResults.length,
       icon: IconFlask,
       color: 'orange',
     },
     {
       title: 'Medical Records',
-      value: 0 /* TODO: Fetch from API */,
+      value: medicalRecords.length,
       icon: IconMessage,
       color: 'red',
     },
@@ -344,7 +397,14 @@ const PatientPortal = () => {
           </Indicator>
           <Button
             leftSection={<IconCalendarEvent size={16} />}
-            onClick={openBookAppointment}
+            onClick={() => {
+              notifications.show({
+                title: 'Book Appointment',
+                message: 'Please select a doctor and time slot from the appointments tab',
+                color: 'blue',
+              });
+              setActiveTab('appointments');
+            }}
             color="blue"
           >
             Book Appointment
@@ -541,7 +601,7 @@ const PatientPortal = () => {
                 Recent Test Results
               </Title>
               <Stack gap="sm">
-                {[] /* TODO: Fetch from API */
+                {labResults
                   .slice(0, 3)
                   .map((result) => (
                     <Card key={result.id} padding="sm" withBorder>
@@ -549,7 +609,7 @@ const PatientPortal = () => {
                         <div>
                           <Text fw={500}>{result.testName}</Text>
                           <Text size="sm" c="dimmed">
-                            Ordered by: Dr. {result.orderedBy}
+                            Ordered by: Dr. {result.doctor}
                           </Text>
                         </div>
                         <Badge
@@ -614,12 +674,10 @@ const PatientPortal = () => {
               />
               <Select
                 placeholder="Doctor"
-                data={[].map(
-                  /* TODO: Fetch from API */ (doctor) => ({
-                    value: doctor.id,
-                    label: doctor.name,
-                  })
-                )}
+                data={appointments.map((appointment) => ({
+                  value: appointment.doctor,
+                  label: appointment.doctor,
+                }))}
                 value={selectedDoctor}
                 onChange={setSelectedDoctor}
                 clearable
@@ -721,95 +779,93 @@ const PatientPortal = () => {
 
             {/* Prescriptions Grid */}
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
-              {[].map(
-                /* TODO: Fetch from API */ (prescription) => (
-                  <Card key={prescription.id} padding="lg" radius="md" withBorder>
-                    <Group justify="space-between" mb="md">
-                      <div>
-                        <Text fw={600} size="lg">
-                          {prescription.medicationName}
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          Prescribed by: Dr. {prescription.doctorName}
-                        </Text>
-                      </div>
-                      <Badge color={prescription.isActive ? 'green' : 'gray'} variant="light">
-                        {prescription.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </Group>
-
-                    <Stack gap="sm" mb="md">
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Dosage
-                        </Text>
-                        <Text size="sm" fw={500}>
-                          {prescription.dosage}
-                        </Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Frequency
-                        </Text>
-                        <Text size="sm">{prescription.frequency}</Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Duration
-                        </Text>
-                        <Text size="sm">{prescription.duration}</Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Refills Left
-                        </Text>
-                        <Text
-                          size="sm"
-                          fw={500}
-                          c={prescription.refillsLeft === 0 ? 'red' : 'blue'}
-                        >
-                          {prescription.refillsLeft}
-                        </Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Prescribed Date
-                        </Text>
-                        <Text size="sm">{formatDate(prescription.prescribedDate)}</Text>
-                      </Group>
-                    </Stack>
-
-                    {prescription.instructions && (
-                      <Text size="sm" c="dimmed" lineClamp={2} mb="md">
-                        Instructions: {prescription.instructions}
+              {prescriptions.map((prescription) => (
+                <Card key={prescription.id} padding="lg" radius="md" withBorder>
+                  <Group justify="space-between" mb="md">
+                    <div>
+                      <Text fw={600} size="lg">
+                        {prescription.medications[0].name}
                       </Text>
-                    )}
+                      <Text size="sm" c="dimmed">
+                        Prescribed by: Dr. {prescription.doctor}
+                      </Text>
+                    </div>
+                    <Badge color={prescription.status === 'active' ? 'green' : 'gray'} variant="light">
+                      {prescription.status.replace('_', ' ').toUpperCase()}
+                    </Badge>
+                  </Group>
 
+                  <Stack gap="sm" mb="md">
                     <Group justify="space-between">
-                      <Text size="xs" c="dimmed">
-                        Pharmacy: {prescription.pharmacyName || 'Any Pharmacy'}
+                      <Text size="sm" c="dimmed">
+                        Dosage
                       </Text>
-                      <Group gap="xs">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          onClick={() => handleViewPrescription(prescription)}
-                        >
-                          <IconEye size={16} />
-                        </ActionIcon>
-                        <ActionIcon variant="subtle" color="green">
-                          <IconDownload size={16} />
-                        </ActionIcon>
-                        {prescription.refillsLeft > 0 && prescription.isActive && (
-                          <ActionIcon variant="subtle" color="orange">
-                            <IconRefresh size={16} />
-                          </ActionIcon>
-                        )}
-                      </Group>
+                      <Text size="sm" fw={500}>
+                        {prescription.medications[0].dosage}
+                      </Text>
                     </Group>
-                  </Card>
-                )
-              )}
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Frequency
+                      </Text>
+                      <Text size="sm">{prescription.medications[0].frequency}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Duration
+                      </Text>
+                      <Text size="sm">{prescription.medications[0].duration}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Refills Left
+                      </Text>
+                      <Text
+                        size="sm"
+                        fw={500}
+                        c={prescription.medications[0].refillsLeft === 0 ? 'red' : 'blue'}
+                      >
+                        {prescription.medications[0].refillsLeft}
+                      </Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Prescribed Date
+                      </Text>
+                      <Text size="sm">{formatDate(prescription.date)}</Text>
+                    </Group>
+                  </Stack>
+
+                  {prescription.notes && (
+                    <Text size="sm" c="dimmed" lineClamp={2} mb="md">
+                      Instructions: {prescription.notes}
+                    </Text>
+                  )}
+
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Pharmacy: {prescription.pharmacyName || 'Any Pharmacy'}
+                    </Text>
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="subtle"
+                        color="blue"
+                        onClick={() => handleViewPrescription(prescription)}
+                      >
+                        <IconEye size={16} />
+                      </ActionIcon>
+                      <ActionIcon variant="subtle" color="green">
+                        <IconDownload size={16} />
+                      </ActionIcon>
+                      {prescription.medications[0].refillsLeft > 0 && prescription.status === 'active' && (
+                        <ActionIcon variant="subtle" color="orange">
+                          <IconRefresh size={16} />
+                        </ActionIcon>
+                      )}
+                    </Group>
+                  </Group>
+                </Card>
+              ))}
             </SimpleGrid>
           </Paper>
         </Tabs.Panel>
@@ -826,112 +882,110 @@ const PatientPortal = () => {
 
             {/* Test Results Grid */}
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
-              {[].map(
-                /* TODO: Fetch from API */ (result) => (
-                  <Card key={result.id} padding="lg" radius="md" withBorder>
-                    <Group justify="space-between" mb="md">
-                      <div>
-                        <Text fw={600} size="lg">
-                          {result.testName}
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          {result.category} - {result.testCode}
-                        </Text>
-                      </div>
-                      <Badge
-                        color={
-                          result.status === 'completed'
-                            ? 'green'
-                            : result.status === 'pending'
-                              ? 'orange'
-                              : result.status === 'in_progress'
-                                ? 'blue'
-                                : 'gray'
-                        }
-                        variant="light"
-                      >
-                        {result.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </Group>
-
-                    <Stack gap="sm" mb="md">
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Test Date
-                        </Text>
-                        <Text size="sm" fw={500}>
-                          {formatDate(result.testDate)}
-                        </Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Ordered by
-                        </Text>
-                        <Text size="sm">Dr. {result.orderedBy}</Text>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                          Lab/Facility
-                        </Text>
-                        <Text size="sm">{result.labName}</Text>
-                      </Group>
-                      {result.status === 'completed' && result.resultDate && (
-                        <Group justify="space-between">
-                          <Text size="sm" c="dimmed">
-                            Result Date
-                          </Text>
-                          <Text size="sm">{formatDate(result.resultDate)}</Text>
-                        </Group>
-                      )}
-                      {result.priority && (
-                        <Group justify="space-between">
-                          <Text size="sm" c="dimmed">
-                            Priority
-                          </Text>
-                          <Badge
-                            color={getPriorityColor(result.priority)}
-                            variant="light"
-                            size="sm"
-                          >
-                            {result.priority.toUpperCase()}
-                          </Badge>
-                        </Group>
-                      )}
-                    </Stack>
-
-                    {result.notes && (
-                      <Text size="sm" c="dimmed" lineClamp={2} mb="md">
-                        Notes: {result.notes}
+              {labResults.map((result) => (
+                <Card key={result.id} padding="lg" radius="md" withBorder>
+                  <Group justify="space-between" mb="md">
+                    <div>
+                      <Text fw={600} size="lg">
+                        {result.testName}
                       </Text>
-                    )}
+                      <Text size="sm" c="dimmed">
+                        {result.category} - {result.testCode}
+                      </Text>
+                    </div>
+                    <Badge
+                      color={
+                        result.status === 'completed'
+                          ? 'green'
+                          : result.status === 'pending'
+                            ? 'orange'
+                            : result.status === 'in_progress'
+                              ? 'blue'
+                              : 'gray'
+                      }
+                      variant="light"
+                    >
+                      {result.status.replace('_', ' ').toUpperCase()}
+                    </Badge>
+                  </Group>
 
+                  <Stack gap="sm" mb="md">
                     <Group justify="space-between">
-                      <Text size="xs" c="dimmed">
-                        Reference ID: {result.id.slice(-8).toUpperCase()}
+                      <Text size="sm" c="dimmed">
+                        Test Date
                       </Text>
-                      <Group gap="xs">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          onClick={() => handleViewTestResult(result)}
-                        >
-                          <IconEye size={16} />
-                        </ActionIcon>
-                        {result.status === 'completed' && (
-                          <>
-                            <ActionIcon variant="subtle" color="green">
-                              <IconDownload size={16} />
-                            </ActionIcon>
-                            <ActionIcon variant="subtle" color="orange">
-                              <IconShare size={16} />
-                            </ActionIcon>
-                          </>
-                        )}
-                      </Group>
+                      <Text size="sm" fw={500}>
+                        {formatDate(result.date)}
+                      </Text>
                     </Group>
-                  </Card>
-                )
-              )}
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Ordered by
+                      </Text>
+                      <Text size="sm">Dr. {result.doctor}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Lab/Facility
+                      </Text>
+                      <Text size="sm">{result.labName}</Text>
+                    </Group>
+                    {result.status === 'completed' && result.resultDate && (
+                      <Group justify="space-between">
+                        <Text size="sm" c="dimmed">
+                          Result Date
+                        </Text>
+                        <Text size="sm">{formatDate(result.resultDate)}</Text>
+                      </Group>
+                    )}
+                    {result.priority && (
+                      <Group justify="space-between">
+                        <Text size="sm" c="dimmed">
+                          Priority
+                        </Text>
+                        <Badge
+                          color={getPriorityColor(result.priority)}
+                          variant="light"
+                          size="sm"
+                        >
+                          {result.priority.toUpperCase()}
+                        </Badge>
+                      </Group>
+                    )}
+                  </Stack>
+
+                  {result.notes && (
+                    <Text size="sm" c="dimmed" lineClamp={2} mb="md">
+                      Notes: {result.notes}
+                    </Text>
+                  )}
+
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Reference ID: {result.id.slice(-8).toUpperCase()}
+                    </Text>
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="subtle"
+                        color="blue"
+                        onClick={() => handleViewTestResult(result)}
+                      >
+                        <IconEye size={16} />
+                      </ActionIcon>
+                      {result.status === 'completed' && (
+                        <>
+                          <ActionIcon variant="subtle" color="green">
+                            <IconDownload size={16} />
+                          </ActionIcon>
+                          <ActionIcon variant="subtle" color="orange">
+                            <IconShare size={16} />
+                          </ActionIcon>
+                        </>
+                      )}
+                    </Group>
+                  </Group>
+                </Card>
+              ))}
             </SimpleGrid>
           </Paper>
         </Tabs.Panel>
@@ -947,15 +1001,63 @@ const PatientPortal = () => {
             </Group>
 
             {/* Medical Records Timeline */}
-            <Timeline active={0 /* TODO: Fetch from API */} bulletSize={24} lineWidth={2}>
-              {[].map(
-                /* TODO: Fetch from API */ (record, _index) => (
-                  <Timeline.Item
-                    key={record.id}
-                    bullet={
-                      <ThemeIcon
-                        size={24}
-                        variant="filled"
+            <Timeline active={0} bulletSize={24} lineWidth={2}>
+              {medicalRecords.map((record, _index) => (
+                <Timeline.Item
+                  key={record.id}
+                  bullet={
+                    <ThemeIcon
+                      size={24}
+                      variant="filled"
+                      color={
+                        record.type === 'consultation'
+                          ? 'blue'
+                          : record.type === 'diagnosis'
+                            ? 'red'
+                            : record.type === 'treatment'
+                              ? 'green'
+                              : record.type === 'surgery'
+                                ? 'purple'
+                                : record.type === 'vaccination'
+                                  ? 'teal'
+                                  : 'gray'
+                      }
+                    >
+                      {record.type === 'consultation' ? (
+                        <IconStethoscope size={14} />
+                      ) : record.type === 'diagnosis' ? (
+                        <IconReportMedical size={14} />
+                      ) : record.type === 'treatment' ? (
+                        <IconPill size={14} />
+                      ) : record.type === 'surgery' ? (
+                        <IconCut size={14} />
+                      ) : record.type === 'vaccination' ? (
+                        <IconPill size={14} />
+                      ) : (
+                        <IconFileText size={14} />
+                      )}
+                    </ThemeIcon>
+                  }
+                  title={
+                    <Group justify="space-between">
+                      <Text fw={500}>{record.title}</Text>
+                      <Text size="sm" c="dimmed">
+                        {formatDate(record.date)}
+                      </Text>
+                    </Group>
+                  }
+                >
+                  <Card withBorder p="md" mb="md">
+                    <Group justify="space-between" mb="sm">
+                      <div>
+                        <Text size="sm" c="dimmed">
+                          Provider: Dr. {record.doctor}
+                        </Text>
+                        <Text size="sm" c="dimmed">
+                          {record.department}
+                        </Text>
+                      </div>
+                      <Badge
                         color={
                           record.type === 'consultation'
                             ? 'blue'
@@ -969,98 +1071,48 @@ const PatientPortal = () => {
                                     ? 'teal'
                                     : 'gray'
                         }
+                        variant="light"
                       >
-                        {record.type === 'consultation' ? (
-                          <IconStethoscope size={14} />
-                        ) : record.type === 'diagnosis' ? (
-                          <IconReportMedical size={14} />
-                        ) : record.type === 'treatment' ? (
-                          <IconPill size={14} />
-                        ) : record.type === 'surgery' ? (
-                          <IconCut size={14} />
-                        ) : record.type === 'vaccination' ? (
-                          <IconPill size={14} />
-                        ) : (
-                          <IconFileText size={14} />
-                        )}
-                      </ThemeIcon>
-                    }
-                    title={
-                      <Group justify="space-between">
-                        <Text fw={500}>{record.title}</Text>
-                        <Text size="sm" c="dimmed">
-                          {formatDate(record.date)}
-                        </Text>
-                      </Group>
-                    }
-                  >
-                    <Card withBorder p="md" mb="md">
-                      <Group justify="space-between" mb="sm">
-                        <div>
-                          <Text size="sm" c="dimmed">
-                            Provider: Dr. {record.providerName}
-                          </Text>
-                          <Text size="sm" c="dimmed">
-                            {record.department}
-                          </Text>
-                        </div>
-                        <Badge
-                          color={
-                            record.type === 'consultation'
-                              ? 'blue'
-                              : record.type === 'diagnosis'
-                                ? 'red'
-                                : record.type === 'treatment'
-                                  ? 'green'
-                                  : record.type === 'surgery'
-                                    ? 'purple'
-                                    : record.type === 'vaccination'
-                                      ? 'teal'
-                                      : 'gray'
-                          }
-                          variant="light"
-                        >
-                          {record.type.toUpperCase()}
-                        </Badge>
-                      </Group>
+                        {record.type.toUpperCase()}
+                      </Badge>
+                    </Group>
 
-                      <Text size="sm" lineClamp={3} mb="sm">
-                        {record.description}
+                    <Text size="sm" lineClamp={3} mb="sm">
+                      {record.description}
+                    </Text>
+
+                    {record.diagnosis && (
+                      <Text size="sm" c="red" mb="sm">
+                        Diagnosis: {record.diagnosis}
                       </Text>
+                    )}
 
-                      {record.diagnosis && (
-                        <Text size="sm" c="red" mb="sm">
-                          Diagnosis: {record.diagnosis}
-                        </Text>
-                      )}
+                    {record.treatment && (
+                      <Text size="sm" c="green" mb="sm">
+                        Treatment: {record.treatment}
+                      </Text>
+                    )}
 
-                      {record.treatment && (
-                        <Text size="sm" c="green" mb="sm">
-                          Treatment: {record.treatment}
-                        </Text>
-                      )}
-
-                      <Group justify="space-between" mt="sm">
-                        <Text size="xs" c="dimmed">
-                          Visit ID: {record.id.slice(-8).toUpperCase()}
-                        </Text>
-                        <Group gap="xs">
-                          <ActionIcon
-                            variant="subtle"
-                            color="blue"
-                            onClick={() => handleViewMedicalRecord(record)}
-                          >
-                            <IconEye size={16} />
-                          </ActionIcon>
-                          <ActionIcon variant="subtle" color="green">
-                            <IconDownload size={16} />
-                          </ActionIcon>
-                        </Group>
+                    <Group justify="space-between" mt="sm">
+                      <Text size="xs" c="dimmed">
+                        Visit ID: {record.id.slice(-8).toUpperCase()}
+                      </Text>
+                      <Group gap="xs">
+                        <ActionIcon
+                          variant="subtle"
+                          color="blue"
+                          onClick={() => handleViewMedicalRecord(record)}
+                        >
+                          <IconEye size={16} />
+                        </ActionIcon>
+                        <ActionIcon variant="subtle" color="green">
+                          <IconDownload size={16} />
+                        </ActionIcon>
                       </Group>
-                    </Card>
-                  </Timeline.Item>
-                )
-              )}
+                    </Group>
+                  </Card>
+                </Timeline.Item>
+              ))}
             </Timeline>
           </Paper>
         </Tabs.Panel>
@@ -1075,8 +1127,8 @@ const PatientPortal = () => {
                   Messages
                 </Title>
                 <Stack gap="sm">
-                  {[].map(
-                    /* TODO: Fetch from API */ (communication) => (
+                  {[] /* TODO: Fetch from API */
+                    .map((communication) => (
                       <Card key={communication.id} padding="md" withBorder>
                         <Group justify="space-between" mb="sm">
                           <Group>

@@ -22,6 +22,8 @@ import {
 import { OpdService } from './opd.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateOpdVisitDto,
   UpdateOpdVisitDto,
@@ -32,7 +34,7 @@ import {
 @ApiTags('OPD')
 @ApiBearerAuth()
 @Controller('opd')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class OpdController {
   constructor(private readonly opdService: OpdService) {}
 
@@ -40,6 +42,7 @@ export class OpdController {
    * Create a new OPD visit
    */
   @Post('visits')
+  @RequirePermissions('opd.create', 'OPD_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Create a new OPD visit',
@@ -68,6 +71,7 @@ export class OpdController {
    * Get all OPD visits with filters
    */
   @Get('visits')
+  @RequirePermissions('opd.view', 'OPD_READ', 'VIEW_OPD')
   @ApiOperation({ 
     summary: 'Get all OPD visits',
     description: 'Retrieves paginated list of OPD visits with optional filters'
@@ -87,6 +91,7 @@ export class OpdController {
    * Get OPD visit by ID
    */
   @Get('visits/:id')
+  @RequirePermissions('opd.view', 'OPD_READ', 'VIEW_OPD')
   @ApiOperation({ 
     summary: 'Get OPD visit by ID',
     description: 'Retrieves a specific OPD visit with all details'
@@ -115,6 +120,7 @@ export class OpdController {
    * Update OPD visit
    */
   @Patch('visits/:id')
+  @RequirePermissions('opd.update', 'OPD_UPDATE')
   @ApiOperation({ 
     summary: 'Update OPD visit',
     description: 'Updates an existing OPD visit'
@@ -148,6 +154,7 @@ export class OpdController {
    * Cancel OPD visit
    */
   @Delete('visits/:id')
+  @RequirePermissions('opd.delete', 'OPD_DELETE')
   @ApiOperation({ 
     summary: 'Cancel OPD visit',
     description: 'Cancels an existing OPD visit'
@@ -176,6 +183,7 @@ export class OpdController {
    * Get OPD queue
    */
   @Get('queue')
+  @RequirePermissions('opd.view', 'OPD_READ', 'VIEW_OPD')
   @ApiOperation({ 
     summary: 'Get OPD queue',
     description: 'Retrieves the current OPD queue with waiting patients'
@@ -195,6 +203,7 @@ export class OpdController {
    * Get OPD statistics
    */
   @Get('stats')
+  @RequirePermissions('opd.view', 'OPD_READ', 'VIEW_REPORTS')
   @ApiOperation({ 
     summary: 'Get OPD statistics',
     description: 'Retrieves OPD statistics for today including patient counts and status distribution'

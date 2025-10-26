@@ -103,7 +103,7 @@ import {
   // IconPill,
 } from '@tabler/icons-react';
 
-// Import types and mock data
+// Import types and services
 import {
   // EmergencyCase,
   // Triage,
@@ -119,7 +119,7 @@ import {
   // EmergencyFilters
 } from '../../../types/emergency';
 
-// Mock data imports removed - using API data only
+// API data only - no mock data
 
 const EmergencyManagement = () => {
   // State management
@@ -1138,7 +1138,7 @@ const EmergencyManagement = () => {
                 </div>
               </SimpleGrid>
 
-              {/* Vitals not available in simplified mock; display basic info instead */}
+              {/* Vitals display */}
               <Divider />
               <div>
                 <Text size="sm" fw={500} mb="sm">

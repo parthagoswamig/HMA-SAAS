@@ -19,6 +19,9 @@ import {
 } from '@nestjs/swagger';
 import { LaboratoryService } from './laboratory.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateLabTestDto,
   UpdateLabTestDto,
@@ -28,18 +31,18 @@ import {
   LabOrderQueryDto,
   LabTestQueryDto,
 } from './dto';
-import { TenantId } from '../shared/decorators/tenant-id.decorator';
 
 @ApiTags('Laboratory')
 @ApiBearerAuth()
 @Controller('laboratory')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class LaboratoryController {
   constructor(private readonly laboratoryService: LaboratoryService) {}
 
   // ==================== Lab Tests Endpoints ====================
 
   @Post('tests')
+  @RequirePermissions('lab.create', 'LAB_CREATE', 'LAB_TEST_CREATE')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new lab test' })
   @ApiResponse({ status: 201, description: 'Lab test created successfully' })
@@ -52,6 +55,7 @@ export class LaboratoryController {
   }
 
   @Get('tests')
+  @RequirePermissions('lab.view', 'LAB_READ', 'VIEW_LAB_TESTS')
   @ApiOperation({ summary: 'Get all lab tests with pagination' })
   @ApiResponse({ status: 200, description: 'Lab tests retrieved successfully' })
   async findAllLabTests(
@@ -62,6 +66,7 @@ export class LaboratoryController {
   }
 
   @Get('tests/:id')
+  @RequirePermissions('lab.view', 'LAB_READ', 'VIEW_LAB_TESTS')
   @ApiOperation({ summary: 'Get lab test by ID' })
   @ApiResponse({ status: 200, description: 'Lab test retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Lab test not found' })
@@ -73,6 +78,7 @@ export class LaboratoryController {
   }
 
   @Patch('tests/:id')
+  @RequirePermissions('lab.update', 'LAB_UPDATE', 'LAB_TEST_UPDATE')
   @ApiOperation({ summary: 'Update lab test by ID' })
   @ApiResponse({ status: 200, description: 'Lab test updated successfully' })
   @ApiResponse({ status: 404, description: 'Lab test not found' })
@@ -85,6 +91,7 @@ export class LaboratoryController {
   }
 
   @Delete('tests/:id')
+  @RequirePermissions('lab.delete', 'LAB_DELETE', 'LAB_TEST_DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft delete lab test by ID' })
   @ApiResponse({ status: 204, description: 'Lab test deleted successfully' })
@@ -99,6 +106,7 @@ export class LaboratoryController {
   // ==================== Lab Orders Endpoints ====================
 
   @Post('orders')
+  @RequirePermissions('lab.order.create', 'LAB_ORDER_CREATE', 'CREATE_LAB_ORDERS')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new lab order' })
   @ApiResponse({ status: 201, description: 'Lab order created successfully' })
@@ -111,6 +119,7 @@ export class LaboratoryController {
   }
 
   @Get('orders')
+  @RequirePermissions('lab.order.view', 'LAB_ORDER_READ', 'VIEW_LAB_ORDERS')
   @ApiOperation({ summary: 'Get all lab orders with pagination' })
   @ApiResponse({ status: 200, description: 'Lab orders retrieved successfully' })
   async findAllLabOrders(
@@ -121,6 +130,7 @@ export class LaboratoryController {
   }
 
   @Get('orders/stats')
+  @RequirePermissions('lab.view', 'LAB_READ', 'VIEW_REPORTS')
   @ApiOperation({ summary: 'Get laboratory statistics' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
   async getLabStats(@TenantId() tenantId: string) {
@@ -128,6 +138,7 @@ export class LaboratoryController {
   }
 
   @Get('orders/:id')
+  @RequirePermissions('lab.order.view', 'LAB_ORDER_READ', 'VIEW_LAB_ORDERS')
   @ApiOperation({ summary: 'Get lab order by ID' })
   @ApiResponse({ status: 200, description: 'Lab order retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Lab order not found' })
@@ -139,6 +150,7 @@ export class LaboratoryController {
   }
 
   @Patch('orders/:id')
+  @RequirePermissions('lab.order.update', 'LAB_ORDER_UPDATE', 'UPDATE_LAB_ORDERS')
   @ApiOperation({ summary: 'Update lab order by ID' })
   @ApiResponse({ status: 200, description: 'Lab order updated successfully' })
   @ApiResponse({ status: 404, description: 'Lab order not found' })
@@ -155,6 +167,7 @@ export class LaboratoryController {
   }
 
   @Patch('orders/:orderId/tests/:testId/result')
+  @RequirePermissions('lab.result.update', 'LAB_RESULT_UPDATE', 'UPDATE_LAB_RESULTS')
   @ApiOperation({ summary: 'Update lab test result' })
   @ApiResponse({ status: 200, description: 'Test result updated successfully' })
   @ApiResponse({ status: 404, description: 'Test or order not found' })
@@ -173,6 +186,7 @@ export class LaboratoryController {
   }
 
   @Delete('orders/:id')
+  @RequirePermissions('lab.order.delete', 'LAB_ORDER_DELETE', 'CANCEL_LAB_ORDERS')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancel lab order by ID' })
   @ApiResponse({ status: 204, description: 'Lab order cancelled successfully' })

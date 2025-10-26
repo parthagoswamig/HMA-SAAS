@@ -62,14 +62,18 @@ import {
   SimpleAreaChart,
   SimpleBarChart,
 } from '../../../components/MantineChart';
+import StaffForm from '../../../components/hr/StaffForm';
 
 // Import API services
-import staffService from '../../../services/staff.service';
+import staffService, {
+  StaffListResponse,
+} from '../../../services/staff.service';
 import hrService from '../../../services/hr.service';
 
 // Import types
-import { Staff } from '../../../types/staff';
 import { UserRole, Status } from '../../../types/common';
+
+type StaffListItem = StaffListResponse['data']['staff'][number];
 
 // Fallback empty data
 
@@ -77,7 +81,7 @@ const StaffManagement = () => {
   const router = useRouter();
   
   // API State
-  const [staff, setStaff] = useState<any[]>([]);
+  const [staff, setStaff] = useState<StaffListItem[]>([]);
   const [staffStats, setStaffStats] = useState<any>(null);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,14 +95,15 @@ const StaffManagement = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [selectedStaff, setSelectedStaff] = useState<any>(null);
+  const [selectedStaff, setSelectedStaff] = useState<StaffListItem | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'departments' | 'shifts' | 'attendance' | 'analytics'>('list');
 
   // Modal states
-  const [staffDetailOpened, { open: openStaffDetail, close: closeStaffDetail }] =
-    useDisclosure(false);
+  const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
   const [addStaffOpened, { open: openAddStaff, close: closeAddStaff }] = useDisclosure(false);
   const [editStaffOpened, { open: openEditStaff, close: closeEditStaff }] = useDisclosure(false);
+  const [staffFormOpened, { open: openStaffForm, close: closeStaffForm }] = useDisclosure(false);
+  const [editingStaff, setEditingStaff] = useState<StaffListItem | null>(null);
 
   // Form state for new staff
   const [newStaffForm, setNewStaffForm] = useState({
@@ -112,6 +117,17 @@ const StaffManagement = () => {
     experience: 0,
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Form state for edit staff
+  const [editStaffForm, setEditStaffForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: '',
+    departmentId: '',
+    experience: 0,
+  });
 
   // Handler to open Add Staff modal with clean form
   const handleOpenAddStaff = () => {
@@ -228,11 +244,18 @@ const StaffManagement = () => {
       }
 
       // Only add departmentId if it's a non-empty string
+      console.log('Department ID from form:', newStaffForm.departmentId);
+      console.log('Department ID type:', typeof newStaffForm.departmentId);
+      console.log('Department ID length:', newStaffForm.departmentId?.length);
+      
       if (newStaffForm.departmentId && newStaffForm.departmentId.trim() !== '') {
+        console.log('Adding departmentId to staffData:', newStaffForm.departmentId);
         staffData.departmentId = newStaffForm.departmentId;
+      } else {
+        console.log('Skipping departmentId (empty or null)');
       }
 
-      console.log('Creating staff with data:', staffData);
+      console.log('Final staff data being sent:', JSON.stringify(staffData, null, 2));
       await staffService.createStaff(staffData);
 
       // Show success notification
@@ -286,9 +309,9 @@ const StaffManagement = () => {
 
     return staff
       .filter((s) => {
-        const firstName = s.user?.firstName || s.firstName || '';
-        const lastName = s.user?.lastName || s.lastName || '';
-        const email = s.user?.email || s.email || '';
+        const firstName = s.user?.firstName || '';
+        const lastName = s.user?.lastName || '';
+        const email = s.user?.email || '';
         const employeeId = s.employeeId || '';
 
         const matchesSearch =
@@ -306,10 +329,10 @@ const StaffManagement = () => {
         return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
       })
       .sort((a, b) => {
-        const aFirstName = a.user?.firstName || a.firstName || '';
-        const aLastName = a.user?.lastName || a.lastName || '';
-        const bFirstName = b.user?.firstName || b.firstName || '';
-        const bLastName = b.user?.lastName || b.lastName || '';
+        const aFirstName = a.user?.firstName || '';
+        const aLastName = a.user?.lastName || '';
+        const bFirstName = b.user?.firstName || '';
+        const bLastName = b.user?.lastName || '';
 
         let aVal: string | number;
         let bVal: string | number;
@@ -324,8 +347,8 @@ const StaffManagement = () => {
             bVal = b.department?.name || '';
             break;
           case 'experience':
-            aVal = parseInt(a.experience) || 0;
-            bVal = parseInt(b.experience) || 0;
+            aVal = parseInt(String(a.experience || 0)) || 0;
+            bVal = parseInt(String(b.experience || 0)) || 0;
             break;
           case 'joiningDate':
             aVal = new Date(a.joiningDate || 0).getTime();
@@ -345,45 +368,90 @@ const StaffManagement = () => {
   }, [staff, searchQuery, selectedDepartment, selectedRole, selectedStatus, sortBy, sortOrder]);
 
   // Helper functions
-  const getRoleBadgeColor = (role: UserRole) => {
-    switch (role) {
-      case UserRole.DOCTOR:
+  const getRoleBadgeColor = (role: string) => {
+    switch (role?.toUpperCase()) {
+      case 'DOCTOR':
         return 'blue';
-      case UserRole.NURSE:
-        return 'green';
-      case 'TECHNICIAN' as any:
+      case 'NURSE':
+        return 'cyan';
+      case 'LAB_TECHNICIAN':
+        return 'teal';
+      case 'RADIOLOGIST':
         return 'purple';
-      case UserRole.PHARMACIST:
-        return 'purple';
-      case UserRole.ADMIN:
-        return 'red';
+      case 'PHARMACIST':
+        return 'violet';
+      case 'RECEPTIONIST':
+        return 'pink';
+      case 'ACCOUNTANT':
+        return 'orange';
       default:
         return 'gray';
     }
   };
 
-  const getStatusBadgeColor = (status: Status) => {
-    switch (status) {
-      case Status.ACTIVE:
+  const getStatusBadgeColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
         return 'green';
-      case Status.INACTIVE:
+      case 'inactive':
         return 'red';
-      case Status.PENDING:
+      case 'pending':
         return 'yellow';
       default:
         return 'gray';
     }
   };
 
-  const handleViewStaff = (staff: Staff) => {
-    setSelectedStaff(staff);
-    openStaffDetail();
+  const handleViewStaff = (staffMember: StaffListItem) => {
+    setSelectedStaff(staffMember);
+    openDetails();
   };
 
-  const handleEditStaff = (staff: Staff) => {
-    setSelectedStaff(staff);
-    closeStaffDetail(); // Close detail modal first
+  const handleEditStaff = (staffMember: StaffListItem) => {
+    setSelectedStaff(staffMember);
+    // Populate edit form with staff data
+    setEditStaffForm({
+      firstName: staffMember.user?.firstName || '',
+      lastName: staffMember.user?.lastName || '',
+      email: staffMember.user?.email || '',
+      phone: staffMember.user?.phone || '',
+      role: staffMember.user?.role || '',
+      departmentId: staffMember.department?.id || '',
+      experience: Number(staffMember.user?.experience || 0),
+    });
+    closeDetails(); // Close detail modal first
     openEditStaff(); // Open edit modal
+  };
+
+  const handleUpdateStaff = async () => {
+    try {
+      setSubmitting(true);
+
+      // TODO: Implement actual update API call
+      // await staffService.updateStaff(selectedStaff.id, editStaffForm);
+
+      notifications.show({
+        title: 'Success',
+        message: 'Staff member updated successfully',
+        color: 'green',
+        icon: <IconCheck size={16} />,
+      });
+
+      // Refresh staff list
+      fetchStaff();
+
+      // Close modal
+      closeEditStaff();
+    } catch (err: any) {
+      console.error('Error updating staff:', err);
+      notifications.show({
+        title: 'Error',
+        message: err.response?.data?.message || 'Failed to update staff member',
+        color: 'red',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDeleteStaff = async (staffMember: any) => {
@@ -597,9 +665,11 @@ const StaffManagement = () => {
                     data={[
                       { value: 'DOCTOR', label: 'Doctor' },
                       { value: 'NURSE', label: 'Nurse' },
-                      { value: 'TECHNICIAN' as any, label: 'Technician' },
+                      { value: 'LAB_TECHNICIAN', label: 'Lab Technician' },
+                      { value: 'RADIOLOGIST', label: 'Radiologist' },
                       { value: 'PHARMACIST', label: 'Pharmacist' },
-                      { value: 'ADMIN', label: 'Admin' },
+                      { value: 'RECEPTIONIST', label: 'Receptionist' },
+                      { value: 'ACCOUNTANT', label: 'Accountant' },
                     ]}
                     value={selectedRole}
                     onChange={setSelectedRole}
@@ -678,20 +748,20 @@ const StaffManagement = () => {
                             <Table.Td>
                               <Group>
                                 <Avatar color="blue" radius="xl">
-                                  {staff.firstName?.[0] || staff.user?.firstName?.[0] || '?'}
-                                  {staff.lastName?.[0] || staff.user?.lastName?.[0] || '?'}
+                                  {staff.user?.firstName?.[0] || '?'}
+                                  {staff.user?.lastName?.[0] || '?'}
                                 </Avatar>
                                 <div>
                                   <Text fw={500}>
-                                    {staff.firstName || staff.user?.firstName || 'N/A'} {staff.lastName || staff.user?.lastName || 'N/A'}
+                                    {staff.user?.firstName || 'N/A'} {staff.user?.lastName || 'N/A'}
                                   </Text>
                                   <Text size="sm" c="dimmed">
-                                    {staff.contactInfo?.email || staff.user?.email || 'N/A'}
+                                    {staff.user?.email || 'N/A'}
                                   </Text>
                                 </div>
                               </Group>
                             </Table.Td>
-                            <Table.Td>{staff.employeeId || staff.staffId || 'N/A'}</Table.Td>
+                            <Table.Td>{staff.employeeId || 'N/A'}</Table.Td>
                             <Table.Td>
                               <Group gap="xs">
                                 <IconPhone size={14} style={{ opacity: 0.6 }} />
@@ -701,15 +771,15 @@ const StaffManagement = () => {
                               </Group>
                             </Table.Td>
                             <Table.Td>
-                              <Badge color={getRoleBadgeColor(staff.user?.role || staff.role)} variant="light">
-                                {(staff.user?.role || staff.role)?.replace('_', ' ') || 'N/A'}
+                              <Badge color={getRoleBadgeColor(staff.user?.role || '')} variant="light">
+                                {staff.user?.role?.replace('_', ' ') || 'N/A'}
                               </Badge>
                             </Table.Td>
                             <Table.Td>{staff.department?.name || 'No Department'}</Table.Td>
-                            <Table.Td>{staff.user?.experience || staff.experience || 0} years</Table.Td>
+                            <Table.Td>{staff.experience || 0} years</Table.Td>
                             <Table.Td>
-                              <Badge color={getStatusBadgeColor(staff.status)} variant="light">
-                                {staff.status}
+                              <Badge color={getStatusBadgeColor(staff.isActive ? 'active' : 'inactive')} variant="light">
+                                {staff.isActive ? 'Active' : 'Inactive'}
                               </Badge>
                             </Table.Td>
                             <Table.Td>
@@ -721,7 +791,11 @@ const StaffManagement = () => {
                                 >
                                   <IconEye size={16} />
                                 </ActionIcon>
-                                <ActionIcon variant="subtle" color="green">
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="green"
+                                  onClick={() => handleEditStaff(staff)}
+                                >
                                   <IconEdit size={16} />
                                 </ActionIcon>
                                 <Menu>
@@ -840,7 +914,18 @@ const StaffManagement = () => {
               <Paper p="md" radius="md" withBorder mt="md">
                 <Group justify="space-between" mb="lg">
                   <Title order={3}>Shifts & Schedules</Title>
-                  <Button leftSection={<IconCalendar size={16} />}>Schedule Shift</Button>
+                  <Button 
+                    leftSection={<IconCalendar size={16} />}
+                    onClick={() => {
+                      notifications.show({
+                        title: 'Coming Soon',
+                        message: 'Shift scheduling feature will be available soon',
+                        color: 'blue',
+                      });
+                    }}
+                  >
+                    Schedule Shift
+                  </Button>
                 </Group>
 
                 <SimpleGrid cols={{ base: 1, lg: 2 }} mb="lg">
@@ -849,44 +934,9 @@ const StaffManagement = () => {
                       Today&apos;s Shifts
                     </Title>
                     <Stack gap="md">
-                      {[].map(
-                        /* TODO: Fetch from API */ (shift) => {
-                          const staffMember = staff.find(
-                            (s) => s.id === shift.staffId || s.staffId === shift.staffId
-                          );
-                          return (
-                            <Group
-                              key={shift.id}
-                              justify="space-between"
-                              p="sm"
-                              style={{ border: '1px solid #e9ecef', borderRadius: '8px' }}
-                            >
-                              <div>
-                                <Text fw={500}>
-                                  {staffMember
-                                    ? `${staffMember.user?.firstName || staffMember.firstName} ${staffMember.user?.lastName || staffMember.lastName}`
-                                    : 'Unknown Staff'}
-                                </Text>
-                                <Text size="sm" c="dimmed">
-                                  {shift.startTime} - {shift.endTime} | {shift.department}
-                                </Text>
-                              </div>
-                              <Badge
-                                color={
-                                  shift.status === 'scheduled'
-                                    ? 'blue'
-                                    : shift.status === 'in_progress'
-                                      ? 'green'
-                                      : 'gray'
-                                }
-                                variant="light"
-                              >
-                                {shift.status.replace('_', ' ')}
-                              </Badge>
-                            </Group>
-                          );
-                        }
-                      )}
+                      <Text c="dimmed" ta="center" py="xl">
+                        No shifts scheduled yet. Click &quot;Schedule Shift&quot; to create one.
+                      </Text>
                     </Stack>
                   </Card>
 
@@ -1009,15 +1059,15 @@ const StaffManagement = () => {
                       </Table.Thead>
                       <Table.Tbody>
                         {[].map(
-                          /* TODO: Fetch from API */ (record) => {
+                          /* TODO: Fetch from API */ (record: any) => {
                             const staffMember = staff.find(
-                              (s) => s.id === record.staffId || s.staffId === record.staffId
+                              (s) => s.id === record.staffId
                             );
                             return (
                               <Table.Tr key={record.id}>
                                 <Table.Td>
                                   {staffMember
-                                    ? `${staffMember.user?.firstName || staffMember.firstName} ${staffMember.user?.lastName || staffMember.lastName}`
+                                    ? `${staffMember.user?.firstName || ''} ${staffMember.user?.lastName || ''}`
                                     : 'Unknown'}
                                 </Table.Td>
                                 <Table.Td>{formatDate(record.date)}</Table.Td>
@@ -1186,24 +1236,24 @@ const StaffManagement = () => {
       )}
 
       {/* Staff Detail Modal */}
-      <Modal opened={staffDetailOpened} onClose={closeStaffDetail} title="Staff Details" size="lg">
+      <Modal opened={detailsOpened} onClose={closeDetails} title="Staff Details" size="lg">
         {selectedStaff && (
           <Stack gap="md">
             {/* Basic Info */}
             <Group>
               <Avatar size="xl" color="blue" radius="xl">
-                {selectedStaff.firstName?.[0] || selectedStaff.user?.firstName?.[0] || '?'}
-                {selectedStaff.lastName?.[0] || selectedStaff.user?.lastName?.[0] || '?'}
+                {selectedStaff.user?.firstName?.[0] || '?'}
+                {selectedStaff.user?.lastName?.[0] || '?'}
               </Avatar>
               <div>
                 <Title order={3}>
-                  {selectedStaff.firstName || selectedStaff.user?.firstName || 'N/A'} {selectedStaff.lastName || selectedStaff.user?.lastName || 'N/A'}
+                  {selectedStaff.user?.firstName || 'N/A'} {selectedStaff.user?.lastName || 'N/A'}
                 </Title>
                 <Text c="dimmed">
-                  {selectedStaff.staffId} • {selectedStaff.department?.name || 'No Department'}
+                  {selectedStaff.employeeId} • {selectedStaff.department?.name || 'No Department'}
                 </Text>
-                <Badge color={getRoleBadgeColor(selectedStaff.role)} variant="light" mt="xs">
-                  {selectedStaff.role.replace('_', ' ')}
+                <Badge color={getRoleBadgeColor(selectedStaff.user?.role)} variant="light" mt="xs">
+                  {selectedStaff.user?.role?.replace('_', ' ') || 'N/A'}
                 </Badge>
               </div>
             </Group>
@@ -1218,11 +1268,11 @@ const StaffManagement = () => {
               <SimpleGrid cols={2}>
                 <Group>
                   <IconPhone size={16} />
-                  <Text size="sm">{selectedStaff.contactInfo.phone}</Text>
+                  <Text size="sm">{selectedStaff.user?.phone || 'N/A'}</Text>
                 </Group>
                 <Group>
                   <IconMail size={16} />
-                  <Text size="sm">{selectedStaff.contactInfo.email}</Text>
+                  <Text size="sm">{selectedStaff.user?.email || 'N/A'}</Text>
                 </Group>
               </SimpleGrid>
             </div>
@@ -1238,7 +1288,7 @@ const StaffManagement = () => {
                     Experience
                   </Text>
                   <Text size="sm" c="dimmed">
-                    {selectedStaff.experience} years
+                    {selectedStaff.user?.experience || selectedStaff.experience || 0} years
                   </Text>
                 </div>
                 <div>
@@ -1246,15 +1296,15 @@ const StaffManagement = () => {
                     Joining Date
                   </Text>
                   <Text size="sm" c="dimmed">
-                    {formatDate(selectedStaff.joiningDate)}
+                    {formatDate(selectedStaff.joiningDate || new Date())}
                   </Text>
                 </div>
                 <div>
                   <Text size="sm" fw={500}>
-                    Employment Type
+                    Employee ID
                   </Text>
                   <Text size="sm" c="dimmed">
-                    {selectedStaff.employmentType?.replace('_', ' ')}
+                    {selectedStaff.employeeId || 'N/A'}
                   </Text>
                 </div>
                 <div>
@@ -1262,61 +1312,18 @@ const StaffManagement = () => {
                     Status
                   </Text>
                   <Badge
-                    color={getStatusBadgeColor(selectedStaff.status)}
+                    color={getStatusBadgeColor(selectedStaff.isActive ? 'active' : 'inactive')}
                     variant="light"
                     size="sm"
                   >
-                    {selectedStaff.status}
+                    {selectedStaff.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
               </SimpleGrid>
             </div>
 
-            {/* Performance Metrics */}
-            {selectedStaff.performanceMetrics && (
-              <div>
-                <Title order={4} mb="sm">
-                  Performance Metrics
-                </Title>
-                <SimpleGrid cols={2}>
-                  <div>
-                    <Text size="sm" fw={500}>
-                      Patient Rating
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      {selectedStaff.performanceMetrics.averagePatientRating}/5.0
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="sm" fw={500}>
-                      Patients Handled
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      {selectedStaff.performanceMetrics.totalPatientsHandled}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="sm" fw={500}>
-                      Attendance
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      {selectedStaff.performanceMetrics.attendancePercentage}%
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="sm" fw={500}>
-                      Punctuality
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      {selectedStaff.performanceMetrics.punctualityScore}%
-                    </Text>
-                  </div>
-                </SimpleGrid>
-              </div>
-            )}
-
             <Group justify="flex-end">
-              <Button variant="light" onClick={closeStaffDetail}>
+              <Button variant="light" onClick={closeDetails}>
                 Close
               </Button>
               <Button onClick={() => handleEditStaff(selectedStaff)}>Edit Staff</Button>
@@ -1392,7 +1399,7 @@ const StaffManagement = () => {
             />
             <Select
               label="Department"
-              placeholder="Select department"
+              placeholder="Select department (Optional)"
               data={departments.map((dept) => ({
                 value: dept.id,
                 label: dept.name,
@@ -1402,7 +1409,10 @@ const StaffManagement = () => {
               disabled={loadingDepartments}
               nothingFoundMessage="No departments found"
               value={newStaffForm.departmentId || null}
-              onChange={(value) => setNewStaffForm({ ...newStaffForm, departmentId: value || '' })}
+              onChange={(value) => {
+                console.log('Department selected:', value);
+                setNewStaffForm({ ...newStaffForm, departmentId: value || '' });
+              }}
             />
           </SimpleGrid>
 
@@ -1431,94 +1441,94 @@ const StaffManagement = () => {
 
       {/* Edit Staff Modal */}
       <Modal opened={editStaffOpened} onClose={closeEditStaff} title="Edit Staff" size="lg">
-        {selectedStaff && (
-          <Stack gap="md">
-            <SimpleGrid cols={2}>
-              <TextInput
-                label="First Name"
-                placeholder="Enter first name"
-                defaultValue={selectedStaff.firstName}
-                required
-              />
-              <TextInput
-                label="Last Name"
-                placeholder="Enter last name"
-                defaultValue={selectedStaff.lastName}
-                required
-              />
-            </SimpleGrid>
-
-            <SimpleGrid cols={2}>
-              <TextInput
-                label="Email"
-                placeholder="Enter email"
-                defaultValue={selectedStaff.contactInfo?.email}
-                required
-              />
-              <TextInput
-                label="Phone"
-                placeholder="Enter phone number"
-                defaultValue={selectedStaff.contactInfo?.phone}
-                required
-              />
-            </SimpleGrid>
-
-            <SimpleGrid cols={2}>
-              <Select
-                label="Role"
-                placeholder="Select role"
-                data={[
-                  { value: 'DOCTOR', label: 'Doctor' },
-                  { value: 'NURSE', label: 'Nurse' },
-                  { value: 'TECHNICIAN', label: 'Technician' },
-                  { value: 'PHARMACIST', label: 'Pharmacist' },
-                ]}
-                defaultValue={selectedStaff.role}
-                required
-              />
-              <Select
-                label="Department"
-                placeholder="Select department"
-                data={departments.map((dept) => ({
-                  value: dept.id,
-                  label: dept.name,
-                }))}
-                defaultValue={selectedStaff.department?.id}
-                searchable
-                disabled={loadingDepartments}
-                nothingFoundMessage="No departments found"
-                required
-              />
-            </SimpleGrid>
-
-            <NumberInput
-              label="Experience (years)"
-              placeholder="Enter years of experience"
-              defaultValue={selectedStaff.experience}
-              min={0}
-              max={50}
+        <Stack gap="md">
+          <SimpleGrid cols={2}>
+            <TextInput
+              label="First Name"
+              placeholder="Enter first name"
+              value={editStaffForm.firstName}
+              onChange={(e) => setEditStaffForm({ ...editStaffForm, firstName: e.target.value })}
+              required
             />
+            <TextInput
+              label="Last Name"
+              placeholder="Enter last name"
+              value={editStaffForm.lastName}
+              onChange={(e) => setEditStaffForm({ ...editStaffForm, lastName: e.target.value })}
+              required
+            />
+          </SimpleGrid>
 
-            <Group justify="flex-end">
-              <Button variant="light" onClick={closeEditStaff}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  notifications.show({
-                    title: 'Success',
-                    message: 'Staff member updated successfully',
-                    color: 'green',
-                  });
-                  closeEditStaff();
-                  fetchStaff(); // Refresh the list
-                }}
-              >
-                Update Staff
-              </Button>
-            </Group>
-          </Stack>
-        )}
+          <SimpleGrid cols={2}>
+            <TextInput
+              label="Email"
+              placeholder="Enter email"
+              type="email"
+              value={editStaffForm.email}
+              onChange={(e) => setEditStaffForm({ ...editStaffForm, email: e.target.value })}
+              required
+            />
+            <TextInput
+              label="Phone"
+              placeholder="Enter phone number"
+              value={editStaffForm.phone}
+              onChange={(e) => setEditStaffForm({ ...editStaffForm, phone: e.target.value })}
+            />
+          </SimpleGrid>
+
+          <SimpleGrid cols={2}>
+            <Select
+              label="Role"
+              placeholder="Select role"
+              data={[
+                { value: 'DOCTOR', label: 'Doctor' },
+                { value: 'NURSE', label: 'Nurse' },
+                { value: 'LAB_TECHNICIAN', label: 'Lab Technician' },
+                { value: 'RADIOLOGIST', label: 'Radiologist' },
+                { value: 'PHARMACIST', label: 'Pharmacist' },
+                { value: 'RECEPTIONIST', label: 'Receptionist' },
+                { value: 'ACCOUNTANT', label: 'Accountant' },
+              ]}
+              value={editStaffForm.role}
+              onChange={(value) => setEditStaffForm({ ...editStaffForm, role: value || '' })}
+              searchable
+              maxDropdownHeight={200}
+              required
+            />
+            <Select
+              label="Department"
+              placeholder="Select department (Optional)"
+              data={departments.map((dept) => ({
+                value: dept.id,
+                label: dept.name,
+              }))}
+              value={editStaffForm.departmentId || null}
+              onChange={(value) => setEditStaffForm({ ...editStaffForm, departmentId: value || '' })}
+              searchable
+              clearable
+              disabled={loadingDepartments}
+              nothingFoundMessage="No departments found"
+            />
+          </SimpleGrid>
+
+          <NumberInput
+            label="Experience (years)"
+            placeholder="Enter years of experience"
+            value={editStaffForm.experience}
+            onChange={(value) => setEditStaffForm({ ...editStaffForm, experience: value as number })}
+            min={0}
+            max={50}
+          />
+
+          <Group justify="flex-end">
+            <Button variant="light" onClick={closeEditStaff} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateStaff} loading={submitting}>
+              Update Staff
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
       </Stack>
     </Container>

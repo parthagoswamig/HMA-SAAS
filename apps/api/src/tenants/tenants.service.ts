@@ -1,15 +1,12 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CustomPrismaService } from '../prisma/custom-prisma.service';
-import { TenantType } from '@prisma/client';
-
-export interface CreateTenantDto {
-  name: string;
-  slug: string;
-  type: TenantType;
-  address?: string;
-  phone?: string;
-  email?: string;
-}
+import { Prisma, TenantType } from '@prisma/client';
+import { CreateTenantDto, UpdateTenantDto, TenantQueryDto } from './dto/tenant.dto';
 
 @Injectable()
 export class TenantsService {
@@ -49,16 +46,45 @@ export class TenantsService {
     };
   }
 
-  async findAll(page = 1, limit = 10) {
+  async findAll(query: TenantQueryDto) {
+    const page = parseInt(query.page || '1');
+    const limit = parseInt(query.limit || '10');
     const skip = (page - 1) * limit;
+
+    const where: Prisma.TenantWhereInput = {};
+
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { email: { contains: query.search, mode: 'insensitive' } },
+        { slug: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.type) {
+      where.type = query.type;
+    }
+
+    if (query.isActive !== undefined) {
+      where.isActive = query.isActive;
+    }
 
     const [tenants, total] = await Promise.all([
       this.prisma.tenant.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: {
+              users: true,
+              patients: true,
+            },
+          },
+        },
       }),
-      this.prisma.tenant.count(),
+      this.prisma.tenant.count({ where }),
     ]);
 
     return {
@@ -78,6 +104,16 @@ export class TenantsService {
   async findOne(id: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            patients: true,
+            appointments: true,
+            invoices: true,
+          },
+        },
+      },
     });
 
     if (!tenant) {
@@ -93,6 +129,14 @@ export class TenantsService {
   async findBySlug(slug: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { slug },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            patients: true,
+          },
+        },
+      },
     });
 
     if (!tenant) {
@@ -102,6 +146,89 @@ export class TenantsService {
     return {
       success: true,
       data: tenant,
+    };
+  }
+
+  async update(id: string, updateDto: UpdateTenantDto) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    const updated = await this.prisma.tenant.update({
+      where: { id },
+      data: updateDto,
+    });
+
+    return {
+      success: true,
+      message: 'Tenant updated successfully',
+      data: updated,
+    };
+  }
+
+  async delete(id: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            patients: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Check if tenant has associated data
+    if (tenant._count.users > 0 || tenant._count.patients > 0) {
+      throw new BadRequestException(
+        'Cannot delete tenant with associated users or patients. Please deactivate instead.',
+      );
+    }
+
+    // Soft delete by setting deletedAt
+    const deleted = await this.prisma.tenant.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Tenant deleted successfully',
+      data: deleted,
+    };
+  }
+
+  async getStats(tenantId: string) {
+    const [users, patients, appointments, revenue] = await Promise.all([
+      this.prisma.user.count({ where: { tenantId } }),
+      this.prisma.patient.count({ where: { tenantId } }),
+      this.prisma.appointment.count({ where: { tenantId } }),
+      this.prisma.payment.aggregate({
+        where: { tenantId, status: 'COMPLETED' },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        users,
+        patients,
+        appointments,
+        revenue: revenue._sum.amount || 0,
+      },
     };
   }
 }

@@ -47,25 +47,9 @@ import { patientsService } from '../../services';
 import { formatDate, formatPhoneNumber } from '../../lib/utils';
 import { notifications as notificationsService } from '@mantine/notifications';
 
-const mockUser: User = {
-  id: '1',
-  username: 'sjohnson',
-  email: 'sarah.johnson@hospital.com',
-  firstName: 'Sarah',
-  lastName: 'Johnson',
-  role: UserRole.DOCTOR,
-  permissions: [],
-  isActive: true,
-  tenantInfo: {
-    tenantId: 'T001',
-    tenantName: 'Main Hospital',
-  },
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 function PatientsPage() {
-  const { user, setUser } = useAppStore();
+  const { user } = useAppStore();
   const [activeTab, setActiveTab] = useState('list');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [patientStats, setPatientStats] = useState<PatientStats | null>(null);
@@ -79,11 +63,8 @@ function PatientsPage() {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setUser(mockUser);
-    }
     fetchStats();
-  }, [user, setUser]);
+  }, []);
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -415,7 +396,7 @@ function PatientsPage() {
           : undefined
       }
       notifications={0}
-      onLogout={() => setUser(null)}
+      onLogout={() => {}}
     >
       <Container fluid className="px-3 sm:px-4 md:px-6">
         <Stack gap="lg">

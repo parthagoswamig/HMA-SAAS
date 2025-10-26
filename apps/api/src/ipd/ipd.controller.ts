@@ -20,6 +20,8 @@ import {
 import { IpdService } from './ipd.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantId } from '../shared/decorators/tenant-id.decorator';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { RequirePermissions } from '../rbac/decorators/require-permissions.decorator';
 import {
   CreateWardDto,
   UpdateWardDto,
@@ -32,7 +34,7 @@ import {
 @ApiTags('IPD')
 @ApiBearerAuth()
 @Controller('ipd')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class IpdController {
   constructor(private readonly service: IpdService) {}
 
@@ -42,6 +44,7 @@ export class IpdController {
    * Create a new ward
    */
   @Post('wards')
+  @RequirePermissions('ipd.create', 'IPD_CREATE', 'WARD_MANAGEMENT')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Create a new ward',
@@ -66,6 +69,7 @@ export class IpdController {
    * Get all wards with filters
    */
   @Get('wards')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_WARDS')
   @ApiOperation({ 
     summary: 'Get all wards',
     description: 'Retrieves paginated list of wards with optional filters'
@@ -85,6 +89,7 @@ export class IpdController {
    * Get ward by ID
    */
   @Get('wards/:id')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_WARDS')
   @ApiOperation({ 
     summary: 'Get ward by ID',
     description: 'Retrieves a specific ward with all its details including beds'
@@ -113,6 +118,7 @@ export class IpdController {
    * Update ward
    */
   @Patch('wards/:id')
+  @RequirePermissions('ipd.update', 'IPD_UPDATE', 'WARD_MANAGEMENT')
   @ApiOperation({ 
     summary: 'Update ward',
     description: 'Updates an existing ward'
@@ -144,6 +150,7 @@ export class IpdController {
    * Create a new bed
    */
   @Post('beds')
+  @RequirePermissions('ipd.create', 'IPD_CREATE', 'BED_MANAGEMENT')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
     summary: 'Create a new bed',
@@ -172,6 +179,7 @@ export class IpdController {
    * Get all beds with filters
    */
   @Get('beds')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_BEDS')
   @ApiOperation({ 
     summary: 'Get all beds',
     description: 'Retrieves paginated list of beds with optional filters'
@@ -191,6 +199,7 @@ export class IpdController {
    * Get available beds
    */
   @Get('beds/available')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_BEDS')
   @ApiOperation({ 
     summary: 'Get available beds',
     description: 'Retrieves all available beds for new admissions'
@@ -207,6 +216,7 @@ export class IpdController {
    * Update bed status
    */
   @Patch('beds/:id/status')
+  @RequirePermissions('ipd.update', 'IPD_UPDATE', 'BED_MANAGEMENT')
   @ApiOperation({ 
     summary: 'Update bed status',
     description: 'Updates the status of a specific bed (available, occupied, maintenance, etc.)'
@@ -240,6 +250,7 @@ export class IpdController {
    * Get IPD statistics
    */
   @Get('stats')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_REPORTS')
   @ApiOperation({ 
     summary: 'Get IPD statistics',
     description: 'Retrieves IPD statistics including ward and bed occupancy rates'

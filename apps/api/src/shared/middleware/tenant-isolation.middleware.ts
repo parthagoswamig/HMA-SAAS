@@ -1,7 +1,9 @@
 import { Injectable, NestMiddleware, ForbiddenException, Logger } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 
-export interface RequestWithTenant extends Request {
+export interface RequestWithTenant {
+  path: string;
+  headers: Record<string, string | string[] | undefined>;
   user?: any;
   tenantId?: string;
 }

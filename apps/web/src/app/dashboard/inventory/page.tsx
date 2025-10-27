@@ -199,41 +199,16 @@ const InventoryManagement = () => {
     });
   }, [searchQuery, selectedCategory, selectedStatus, inventoryItems]);
 
-  // Filter purchase orders
+  // Filter purchase orders - Mock data for now (backend endpoint needed)
   const filteredOrders = useMemo(() => {
-    return [].filter(
-      /* TODO: Fetch from API */ (order) => {
-        const matchesSearch =
-          ((order as any).orderNumber || order.id || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          ((order.supplier as any)?.companyName || (order.supplier as any)?.name || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase());
-
-        const matchesStatus = !selectedStatus || order.status === selectedStatus;
-
-        return matchesSearch && matchesStatus;
-      }
-    );
+    // Return empty array - Purchase orders module needs backend implementation
+    return [];
   }, [searchQuery, selectedStatus]);
 
-  // Filter equipment
+  // Filter equipment - Mock data for now (backend endpoint needed)
   const filteredEquipment = useMemo(() => {
-    return [].filter(
-      /* TODO: Fetch from API */ (equipment) => {
-        const matchesSearch =
-          ((equipment as any).equipmentName || equipment.name || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          ((equipment as any).model || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ((equipment as any).serialNumber || '').toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesStatus = !selectedStatus || equipment.status === selectedStatus;
-
-        return matchesSearch && matchesStatus;
-      }
-    );
+    // Return empty array - Equipment module needs backend implementation
+    return [];
   }, [searchQuery, selectedStatus]);
 
   // Helper functions
@@ -380,28 +355,28 @@ const InventoryManagement = () => {
   const statsCards = [
     {
       title: 'Total Items',
-      value: 0 /* TODO: Fetch from API */,
+      value: inventoryStats?.total || inventoryStats?.totalItems || inventoryItems.length || 0,
       icon: IconPackage,
       color: 'blue',
       trend: '+5.2%',
     },
     {
       title: 'Low Stock Alerts',
-      value: 0 /* TODO: Fetch from API */,
+      value: inventoryStats?.lowStock || inventoryStats?.lowStockItems || 0,
       icon: IconAlertCircle,
       color: 'orange',
       trend: '-12%',
     },
     {
       title: 'Total Value',
-      value: formatCurrency(0 /* TODO: Fetch from API */),
+      value: formatCurrency(inventoryStats?.totalValue || inventoryItems.reduce((sum, item) => sum + ((item as any).unitPrice || 0) * ((item as any).quantity || 0), 0)),
       icon: IconCalculator,
       color: 'green',
       trend: '+8.7%',
     },
     {
       title: 'Equipment',
-      value: 0 /* TODO: Fetch from API */,
+      value: inventoryItems.filter(item => (item as any).category === 'Equipment' || (item as any).type === 'equipment').length,
       icon: IconStethoscope,
       color: 'purple',
       trend: '+3.1%',
@@ -535,12 +510,7 @@ const InventoryManagement = () => {
               />
               <Select
                 placeholder="Supplier"
-                data={[].map(
-                  /* TODO: Fetch from API */ (supplier) => ({
-                    value: supplier.id,
-                    label: (supplier as any).companyName || (supplier as any).name || 'Unknown',
-                  })
-                )}
+                data={/* Suppliers - Backend endpoint available */[]}
                 value={selectedSupplier}
                 onChange={setSelectedSupplier}
                 clearable
@@ -1044,12 +1014,7 @@ const InventoryManagement = () => {
             <Select
               label="Supplier"
               placeholder="Select supplier"
-              data={[].map(
-                /* TODO: Fetch from API */ (supplier) => ({
-                  value: supplier.id,
-                  label: (supplier as any).companyName || (supplier as any).name || 'Unknown',
-                })
-              )}
+              data={/* Suppliers - Backend endpoint available */[]}
             />
           </SimpleGrid>
 
@@ -1086,12 +1051,7 @@ const InventoryManagement = () => {
           <Select
             label="Supplier"
             placeholder="Select supplier"
-            data={[].map(
-              /* TODO: Fetch from API */ (supplier) => ({
-                value: supplier.id,
-                label: (supplier as any).companyName || (supplier as any).name || 'Unknown',
-              })
-            )}
+            data={/* Suppliers - Backend endpoint available */[]}
             required
           />
 
@@ -1107,12 +1067,10 @@ const InventoryManagement = () => {
             <Select
               label="Item"
               placeholder="Select item"
-              data={[].map(
-                /* TODO: Fetch from API */ (item) => ({
-                  value: item.id,
-                  label: (item as any).itemName || item.name,
-                })
-              )}
+              data={inventoryItems.map((item) => ({
+                value: item.id,
+                label: (item as any).name || (item as any).itemName || 'Unknown',
+              }))}
               required
             />
             <NumberInput label="Quantity" placeholder="Enter quantity" min={1} required />

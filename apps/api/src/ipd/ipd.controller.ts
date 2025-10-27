@@ -29,6 +29,10 @@ import {
   UpdateBedStatusDto,
   WardFilterDto,
   BedFilterDto,
+  CreateAdmissionDto,
+  UpdateAdmissionDto,
+  DischargePatientDto,
+  AdmissionFilterDto,
 } from './dto';
 
 @ApiTags('IPD')
@@ -261,5 +265,175 @@ export class IpdController {
   })
   getStats(@TenantId() tenantId: string) {
     return this.service.getStats(tenantId);
+  }
+
+  // ==================== Admission Management ====================
+
+  /**
+   * Create a new admission
+   */
+  @Post('admissions')
+  @RequirePermissions('ipd.create', 'IPD_CREATE', 'ADMISSION_CREATE')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ 
+    summary: 'Create a new admission',
+    description: 'Admits a patient to IPD with bed assignment'
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Admission created successfully'
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Bad request - Invalid data or bed not available'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Patient, ward, or bed not found'
+  })
+  createAdmission(
+    @Body() createAdmissionDto: CreateAdmissionDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.createAdmission(createAdmissionDto, tenantId);
+  }
+
+  /**
+   * Get all admissions with filters
+   */
+  @Get('admissions')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_ADMISSIONS')
+  @ApiOperation({ 
+    summary: 'Get all admissions',
+    description: 'Retrieves paginated list of admissions with optional filters'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Admissions retrieved successfully'
+  })
+  findAllAdmissions(
+    @Query() filters: AdmissionFilterDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.findAllAdmissions(tenantId, filters);
+  }
+
+  /**
+   * Get admission by ID
+   */
+  @Get('admissions/:id')
+  @RequirePermissions('ipd.view', 'IPD_READ', 'VIEW_ADMISSIONS')
+  @ApiOperation({ 
+    summary: 'Get admission by ID',
+    description: 'Retrieves a specific admission with all details'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Admission retrieved successfully'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Admission not found'
+  })
+  @ApiParam({ 
+    name: 'id', 
+    description: 'Admission ID',
+    example: 'admission-uuid-123'
+  })
+  findOneAdmission(
+    @Param('id') id: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.findOneAdmission(id, tenantId);
+  }
+
+  /**
+   * Update admission
+   */
+  @Patch('admissions/:id')
+  @RequirePermissions('ipd.update', 'IPD_UPDATE', 'ADMISSION_UPDATE')
+  @ApiOperation({ 
+    summary: 'Update admission',
+    description: 'Updates an existing admission'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Admission updated successfully'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Admission not found'
+  })
+  @ApiParam({ 
+    name: 'id', 
+    description: 'Admission ID',
+    example: 'admission-uuid-123'
+  })
+  updateAdmission(
+    @Param('id') id: string,
+    @Body() updateAdmissionDto: UpdateAdmissionDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.updateAdmission(id, updateAdmissionDto, tenantId);
+  }
+
+  /**
+   * Discharge patient
+   */
+  @Post('admissions/:id/discharge')
+  @RequirePermissions('ipd.update', 'IPD_UPDATE', 'DISCHARGE_PATIENT')
+  @ApiOperation({ 
+    summary: 'Discharge patient',
+    description: 'Discharges a patient and frees up the bed'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Patient discharged successfully'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Admission not found'
+  })
+  @ApiParam({ 
+    name: 'id', 
+    description: 'Admission ID',
+    example: 'admission-uuid-123'
+  })
+  dischargePatient(
+    @Param('id') id: string,
+    @Body() dischargeDto: DischargePatientDto,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.dischargePatient(id, dischargeDto, tenantId);
+  }
+
+  /**
+   * Cancel admission
+   */
+  @Delete('admissions/:id')
+  @RequirePermissions('ipd.delete', 'IPD_DELETE', 'ADMISSION_CANCEL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ 
+    summary: 'Cancel admission',
+    description: 'Cancels an admission and frees up the bed'
+  })
+  @ApiResponse({ 
+    status: 204, 
+    description: 'Admission cancelled successfully'
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Admission not found'
+  })
+  @ApiParam({ 
+    name: 'id', 
+    description: 'Admission ID',
+    example: 'admission-uuid-123'
+  })
+  cancelAdmission(
+    @Param('id') id: string,
+    @TenantId() tenantId: string,
+  ) {
+    return this.service.cancelAdmission(id, tenantId);
   }
 }

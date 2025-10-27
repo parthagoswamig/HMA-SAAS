@@ -1,9 +1,28 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Container, Title, Text, Button, Group, Card, SimpleGrid } from '@mantine/core';
 
 export default function Home() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('accessToken');
+    setIsAuthenticated(!!token);
+  }, []);
+
+  const handleDashboardClick = () => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  };
+
   return (
     <div
       style={{
@@ -141,8 +160,8 @@ export default function Home() {
             Get Started
           </Button>
 
-          <Button component={Link} href="/dashboard" size="lg" color="red" fw={600}>
-            View Dashboard
+          <Button onClick={handleDashboardClick} size="lg" color="red" fw={600}>
+            {isAuthenticated ? 'View Dashboard' : 'Login to Dashboard'}
           </Button>
         </Group>
       </Container>

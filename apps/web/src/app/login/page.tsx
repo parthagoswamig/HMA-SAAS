@@ -368,7 +368,7 @@ export default function Login() {
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <Link href="/" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: '0.9rem' }}>
-            ΓåÉ Back to Home
+            ← Back to Home
           </Link>
         </div>
       </div>

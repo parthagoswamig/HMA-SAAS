@@ -153,11 +153,10 @@ const BillingManagement = () => {
     } catch (err) {
       const errorMessage = handleApiError(err);
       setError(errorMessage);
-      console.error('Error loading billing data:', err);
-      // Fallback to mock data
-      setInvoices([] /* TODO: Fetch from API */);
-      setPayments([] /* TODO: Fetch from API */);
-      setInsuranceClaims([] /* TODO: Fetch from API */);
+      // Fallback to empty data
+      setInvoices([]);
+      setPayments([]);
+      setInsuranceClaims([]);
     } finally {
       setLoading(false);
     }
@@ -224,11 +223,10 @@ const BillingManagement = () => {
 
   const loadInsuranceClaims = async () => {
     try {
-      // For now, use mock data as insurance claims API might not be fully implemented
-      setInsuranceClaims([] /* TODO: Fetch from API */);
+      // Insurance claims - Backend endpoint pending
+      setInsuranceClaims([]);
     } catch (err) {
-      console.error('Error loading insurance claims:', err);
-      setInsuranceClaims([] /* TODO: Fetch from API */);
+      setInsuranceClaims([]);
     }
   };
 
@@ -416,11 +414,7 @@ const BillingManagement = () => {
         value: amount as number,
         color: getPaymentMethodColor(method as PaymentMethod),
       }))
-    : Object.entries(0 /* TODO: Fetch from API */).map(([method, amount]) => ({
-        name: method.replace('_', ' ').toUpperCase(),
-        value: amount as number,
-        color: getPaymentMethodColor(method as PaymentMethod),
-      }));
+    : [];
 
   const claimStatusCounts: Record<string, number> = {};
   insuranceClaims.forEach((c) => {
@@ -582,12 +576,7 @@ const BillingManagement = () => {
               />
               <Select
                 placeholder="Patient"
-                data={[].map(
-                  /* TODO: Fetch from API */ (patient) => ({
-                    value: patient.id,
-                    label: `${patient.firstName} ${patient.lastName}`,
-                  })
-                )}
+                data={/* Patient dropdown - Backend integration pending */[]}
                 value={selectedPatient}
                 onChange={(v) => setSelectedPatient(v || '')}
                 clearable
@@ -1066,7 +1055,7 @@ const BillingManagement = () => {
                       Average Invoice Amount
                     </Text>
                     <Text size="sm" fw={600}>
-                      {formatCurrency(0 /* TODO: Fetch from API */)}
+                      {formatCurrency(invoices.length > 0 ? invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0) / invoices.length : 0)}
                     </Text>
                   </Group>
                   <Group
@@ -1078,7 +1067,11 @@ const BillingManagement = () => {
                       Days Sales Outstanding
                     </Text>
                     <Text size="sm" fw={600}>
-                      {0 /* TODO: Fetch from API */} days
+                      {Math.round(invoices.filter(inv => inv.status === 'PENDING' || inv.status === 'OVERDUE').reduce((sum, inv) => {
+                        const dueDate = inv.dueDate ? new Date(inv.dueDate) : new Date();
+                        const days = Math.floor((new Date().getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+                        return sum + Math.max(0, days);
+                      }, 0) / (invoices.filter(inv => inv.status === 'PENDING' || inv.status === 'OVERDUE').length || 1))} days
                     </Text>
                   </Group>
                   <Group
@@ -1090,7 +1083,7 @@ const BillingManagement = () => {
                       Insurance Coverage Rate
                     </Text>
                     <Text size="sm" fw={600}>
-                      {0 /* TODO: Fetch from API */}%
+                      {insuranceClaims.length > 0 ? Math.round((insuranceClaims.filter(c => c.status === 'approved').length / insuranceClaims.length) * 100) : 0}%
                     </Text>
                   </Group>
                   <Group
@@ -1102,7 +1095,7 @@ const BillingManagement = () => {
                       Bad Debt Rate
                     </Text>
                     <Text size="sm" fw={600} c="red">
-                      {formatCurrency(0 /* TODO: Fetch from API */)}
+                      {formatCurrency(invoices.filter(inv => inv.status === 'CANCELLED' || inv.status === 'OVERDUE').reduce((sum, inv) => sum + ((inv.totalAmount || 0) - (inv.paidAmount || 0)), 0))}
                     </Text>
                   </Group>
                 </Stack>
@@ -1444,12 +1437,7 @@ const BillingManagement = () => {
             <Select
               label="Patient"
               placeholder="Select patient"
-              data={[].map(
-                /* TODO: Fetch from API */ (patient) => ({
-                  value: patient.id,
-                  label: `${patient.firstName} ${patient.lastName}`,
-                })
-              )}
+              data={/* Patient dropdown - Backend integration pending */[]}
               required
             />
             <DatePickerInput label="Due Date" placeholder="Select due date" required />
@@ -1516,12 +1504,10 @@ const BillingManagement = () => {
           <Select
             label="Invoice"
             placeholder="Select invoice"
-            data={[].map(
-              /* TODO: Fetch from API */ (invoice) => ({
-                value: invoice.id,
-                label: `${invoice.invoiceNumber} - ${formatCurrency(invoice.totalAmount - invoice.paidAmount)}`,
-              })
-            )}
+            data={invoices.filter(inv => inv.status !== 'PAID' && inv.status !== 'CANCELLED').map((invoice) => ({
+              value: invoice.id,
+              label: `${invoice.invoiceNumber} - ${formatCurrency((invoice.totalAmount || 0) - (invoice.paidAmount || 0))}`,
+            }))}
             required
           />
 

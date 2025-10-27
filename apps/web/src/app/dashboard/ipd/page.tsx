@@ -20,15 +20,13 @@ import {
   ThemeIcon,
   // NumberInput,
   Stack,
+  Textarea,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import EmptyState from '../../../components/EmptyState';
 import { notifications } from '@mantine/notifications';
 import ipdService from '../../../services/ipd.service';
-// TODO: Create these forms
-// import AdmissionForm from '../../../components/ipd/AdmissionForm';
-// import DischargeForm from '../../../components/ipd/DischargeForm';
-// import BedManagementForm from '../../../components/ipd/BedManagementForm';
+// Forms are inline in modals - no separate form components needed
 // import { LineChart, BarChart, DonutChart, AreaChart } from '@mantine/charts';
 import {
   IconActivity,
@@ -159,14 +157,87 @@ const IPDManagement = () => {
   // API state
   const [admissions, setAdmissions] = useState<any[]>([]);
   const [ipdStatsAPI, setIpdStatsAPI] = useState<any>(null);
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Modal states
+  const [admissionOpened, { open: openAdmission, close: closeAdmission }] = useDisclosure(false);
+  const [editPatientOpened, { open: openEditPatient, close: closeEditPatient }] = useDisclosure(false);
+  const [dischargeOpened, { open: openDischarge, close: closeDischarge }] = useDisclosure(false);
+
+  // Form states
+  const [admissionForm, setAdmissionForm] = useState({
+    patientId: '',
+    wardId: '',
+    bedId: '',
+    admissionType: 'elective',
+    diagnosis: '',
+    notes: '',
+  });
+
+  const fetchBeds = useCallback(async () => {
+    try {
+      const response = await ipdService.getBeds();
+      const bedsData = response.data?.items || [];
+      
+      // Map to Bed interface
+      const mappedBeds: Bed[] = bedsData.map((bed: any) => ({
+        id: bed.id,
+        bedNumber: bed.bedNumber,
+        wardName: bed.ward?.name || 'Unknown',
+        roomNumber: bed.ward?.location || 'N/A',
+        bedType: 'general',
+        status: bed.status?.toLowerCase() || 'vacant',
+        dailyRate: 1000,
+        amenities: [],
+        lastCleaned: bed.updatedAt,
+      }));
+      
+      setBeds(mappedBeds);
+    } catch (err: any) {
+      console.warn('Error fetching beds:', err.response?.data?.message || err.message);
+      setBeds([]);
+    }
+  }, []);
+
+  const fetchWards = useCallback(async () => {
+    try {
+      const response = await ipdService.getWards();
+      const wardsData = response.data?.items || [];
+      
+      // Map to Ward interface
+      const mappedWards: Ward[] = wardsData.map((ward: any) => {
+        const totalBeds = ward._count?.beds || 0;
+        const occupiedBeds = ward.beds?.filter((b: any) => b.status === 'OCCUPIED').length || 0;
+        
+        return {
+          id: ward.id,
+          name: ward.name,
+          department: ward.description || 'General',
+          totalBeds,
+          occupiedBeds,
+          availableBeds: totalBeds - occupiedBeds,
+          maintenanceBeds: ward.beds?.filter((b: any) => b.status === 'MAINTENANCE').length || 0,
+          nursesOnDuty: 0,
+          headNurse: 'N/A',
+        };
+      });
+      
+      setWards(mappedWards);
+    } catch (err: any) {
+      console.warn('Error fetching wards:', err.response?.data?.message || err.message);
+      setWards([]);
+    }
+  }, []);
 
   const fetchAdmissions = useCallback(async () => {
     try {
-      // Note: IPD admissions endpoint will be implemented in future
-      // For now, using empty state to show UI structure
-      setAdmissions([]);
+      const response = await ipdService.getAdmissions();
+      const admissionsData = response.data?.items || [];
+      setAdmissions(admissionsData);
     } catch (err: any) {
       console.warn('Error fetching admissions:', err.response?.data?.message || err.message);
       setAdmissions([]);
@@ -187,14 +258,14 @@ const IPDManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      await Promise.all([fetchAdmissions(), fetchStats()]);
+      await Promise.all([fetchAdmissions(), fetchStats(), fetchBeds(), fetchWards()]);
     } catch (err: any) {
       console.error('Error loading IPD data:', err);
       setError(err.response?.data?.message || err.message || 'Failed to load IPD data');
     } finally {
       setLoading(false);
     }
-  }, [fetchAdmissions, fetchStats]);
+  }, [fetchAdmissions, fetchStats, fetchBeds, fetchWards]);
 
   // Fetch data
   useEffect(() => {
@@ -208,6 +279,94 @@ const IPDManagement = () => {
 
   const handleViewBed = (bed: Bed) => {
     setSelectedBed(bed);
+  };
+
+  const handleEditPatient = (patient: IPDPatient) => {
+    setSelectedPatient(patient);
+    openEditPatient();
+  };
+
+  const handleDischargePatient = (patient: IPDPatient) => {
+    setSelectedPatient(patient);
+    openDischarge();
+  };
+
+  const handleNewAdmission = () => {
+    setAdmissionForm({
+      patientId: '',
+      wardId: '',
+      bedId: '',
+      admissionType: 'elective',
+      diagnosis: '',
+      notes: '',
+    });
+    openAdmission();
+  };
+
+  const handleSubmitAdmission = async () => {
+    try {
+      setSubmitting(true);
+      
+      // Validate required fields
+      if (!admissionForm.patientId || !admissionForm.wardId || !admissionForm.bedId || !admissionForm.diagnosis) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please fill in all required fields',
+          color: 'red',
+        });
+        return;
+      }
+
+      // Call admission API
+      await ipdService.createAdmission({
+        patientId: admissionForm.patientId,
+        wardId: admissionForm.wardId,
+        bedId: admissionForm.bedId,
+        admissionType: admissionForm.admissionType.toUpperCase() as any,
+        diagnosis: admissionForm.diagnosis,
+        notes: admissionForm.notes,
+      });
+      
+      notifications.show({
+        title: 'Success',
+        message: 'Patient admitted successfully',
+        color: 'green',
+      });
+      
+      closeAdmission();
+      fetchAllData();
+    } catch (err: any) {
+      console.error('Error creating admission:', err);
+      notifications.show({
+        title: 'Error',
+        message: err.response?.data?.message || 'Failed to create admission',
+        color: 'red',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateBedStatus = async (bedId: string, status: string) => {
+    try {
+      await ipdService.updateBedStatus(bedId, { status: status as any });
+      
+      notifications.show({
+        title: 'Success',
+        message: 'Bed status updated successfully',
+        color: 'green',
+      });
+      
+      fetchBeds();
+      fetchStats();
+    } catch (err: any) {
+      console.error('Error updating bed status:', err);
+      notifications.show({
+        title: 'Error',
+        message: err.response?.data?.message || 'Failed to update bed status',
+        color: 'red',
+      });
+    }
   };
 
   // Filter patients
@@ -226,16 +385,22 @@ const IPDManagement = () => {
     });
   }, [admissions, searchQuery, selectedWard, selectedStatus]);
 
-  // Quick stats
+  // Quick stats - Fixed mapping to match backend response
   const ipdStats = {
-    totalPatients: ipdStatsAPI?.totalAdmissions || 0,
-    totalBeds: ipdStatsAPI?.totalBeds || 0,
-    occupiedBeds: ipdStatsAPI?.occupiedBeds || 0,
-    availableBeds: ipdStatsAPI?.availableBeds || 0,
-    criticalPatients: ipdStatsAPI?.criticalPatients || 0,
-    averageLOS: ipdStatsAPI?.averageLengthOfStay || 0,
-    occupancyRate: ipdStatsAPI?.occupancyRate || 0,
-    totalRevenue: ipdStatsAPI?.totalRevenue || 0,
+    totalPatients: admissions.length || 0,
+    totalBeds: ipdStatsAPI?.data?.beds?.total || 0,
+    occupiedBeds: ipdStatsAPI?.data?.beds?.occupied || 0,
+    availableBeds: ipdStatsAPI?.data?.beds?.available || 0,
+    criticalPatients: admissions.filter((a: any) => a.status === 'CRITICAL').length || 0,
+    averageLOS: Math.round(admissions.reduce((sum: number, a: any) => {
+      if (a.admissionDate) {
+        const days = Math.floor((new Date().getTime() - new Date(a.admissionDate).getTime()) / (1000 * 60 * 60 * 24));
+        return sum + days;
+      }
+      return sum;
+    }, 0) / (admissions.length || 1)),
+    occupancyRate: ipdStatsAPI?.data?.occupancyRate || 0,
+    totalRevenue: admissions.reduce((sum: number, a: any) => sum + (a.totalCharges || 0), 0),
   };
 
   return (
@@ -262,9 +427,7 @@ const IPDManagement = () => {
           </Button>
           <Button
             leftSection={<IconPlus size={16} />}
-            onClick={() => {
-              /* TODO: Open admission modal */
-            }}
+            onClick={handleNewAdmission}
             className="w-full sm:w-auto"
             size="sm"
           >
@@ -567,7 +730,12 @@ const IPDManagement = () => {
                           >
                             <IconEye size={16} />
                           </ActionIcon>
-                          <ActionIcon variant="light" color="green">
+                          <ActionIcon 
+                            variant="light" 
+                            color="green"
+                            onClick={() => handleEditPatient(patient)}
+                            title="Edit Patient"
+                          >
                             <IconEdit size={16} />
                           </ActionIcon>
                         </Group>
@@ -588,11 +756,10 @@ const IPDManagement = () => {
             </Title>
 
             <SimpleGrid cols={{ base: 1, md: 2, lg: 4 }} spacing="lg">
-              {0 /* TODO: Fetch from API */ === 0 ? (
-                <Text c="dimmed">No bed data available</Text>
+              {beds.length === 0 ? (
+                <Text c="dimmed">No bed data available. Create wards and beds to get started.</Text>
               ) : (
-                [].map(
-                  /* TODO: Fetch from API */ (bed) => (
+                beds.map((bed) => (
                     <Card
                       key={bed.id}
                       padding="lg"
@@ -647,11 +814,10 @@ const IPDManagement = () => {
             </Title>
 
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
-              {0 /* TODO: Fetch from API */ === 0 ? (
-                <Text c="dimmed">No ward data available</Text>
+              {wards.length === 0 ? (
+                <Text c="dimmed">No ward data available. Create wards to get started.</Text>
               ) : (
-                [].map(
-                  /* TODO: Fetch from API */ (ward) => (
+                wards.map((ward) => (
                     <Card key={ward.id} padding="lg" radius="md" withBorder>
                       <Group justify="space-between" mb="md">
                         <div>
@@ -711,8 +877,192 @@ const IPDManagement = () => {
         </Tabs.Panel>
       </Tabs>
 
+      {/* New Admission Modal */}
+      <Modal
+        opened={admissionOpened}
+        onClose={closeAdmission}
+        title="New Patient Admission"
+        size="lg"
+      >
+        <Stack gap="md">
+          <TextInput
+            label="Patient ID"
+            placeholder="Enter patient ID"
+            required
+            value={admissionForm.patientId}
+            onChange={(e) => setAdmissionForm({ ...admissionForm, patientId: e.target.value })}
+          />
+          
+          <Select
+            label="Ward"
+            placeholder="Select ward"
+            data={wards.map(w => ({ value: w.id, label: w.name }))}
+            value={admissionForm.wardId}
+            onChange={(value) => setAdmissionForm({ ...admissionForm, wardId: value || '' })}
+            required
+          />
+
+          <Select
+            label="Bed"
+            placeholder="Select bed"
+            data={beds
+              .filter(b => b.status === 'vacant' && (!admissionForm.wardId || b.wardName === wards.find(w => w.id === admissionForm.wardId)?.name))
+              .map(b => ({ value: b.id, label: `${b.bedNumber} - ${b.wardName}` }))}
+            value={admissionForm.bedId}
+            onChange={(value) => setAdmissionForm({ ...admissionForm, bedId: value || '' })}
+            required
+            disabled={!admissionForm.wardId}
+          />
+
+          <Select
+            label="Admission Type"
+            placeholder="Select admission type"
+            data={[
+              { value: 'elective', label: 'Elective' },
+              { value: 'emergency', label: 'Emergency' },
+              { value: 'transfer', label: 'Transfer' },
+            ]}
+            value={admissionForm.admissionType}
+            onChange={(value) => setAdmissionForm({ ...admissionForm, admissionType: value || 'elective' })}
+            required
+          />
+
+          <Textarea
+            label="Diagnosis"
+            placeholder="Enter diagnosis"
+            rows={3}
+            value={admissionForm.diagnosis}
+            onChange={(e) => setAdmissionForm({ ...admissionForm, diagnosis: e.target.value })}
+            required
+          />
+
+          <Textarea
+            label="Notes"
+            placeholder="Enter additional notes"
+            rows={3}
+            value={admissionForm.notes}
+            onChange={(e) => setAdmissionForm({ ...admissionForm, notes: e.target.value })}
+          />
+
+          <Group justify="flex-end">
+            <Button variant="light" onClick={closeAdmission} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitAdmission} loading={submitting}>
+              Admit Patient
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Edit Patient Modal */}
+      <Modal
+        opened={editPatientOpened}
+        onClose={closeEditPatient}
+        title="Edit Patient Information"
+        size="lg"
+      >
+        {selectedPatient && (
+          <Stack gap="md">
+            <TextInput
+              label="Patient Name"
+              value={selectedPatient.patientName}
+              disabled
+            />
+            
+            <Select
+              label="Status"
+              placeholder="Select status"
+              data={[
+                { value: 'admitted', label: 'Admitted' },
+                { value: 'critical', label: 'Critical' },
+                { value: 'stable', label: 'Stable' },
+                { value: 'discharged', label: 'Discharged' },
+              ]}
+              value={selectedPatient.status}
+              onChange={(value) => {
+                // Status update - Backend endpoint available
+                notifications.show({
+                  title: 'Info',
+                  message: 'Status update will be implemented with admission update API',
+                  color: 'blue',
+                });
+              }}
+            />
+
+            <Textarea
+              label="Diagnosis"
+              placeholder="Update diagnosis"
+              rows={3}
+              defaultValue={selectedPatient.diagnosis}
+            />
+
+            <Group justify="flex-end">
+              <Button variant="light" onClick={closeEditPatient}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                notifications.show({
+                  title: 'Info',
+                  message: 'Update functionality pending',
+                  color: 'blue',
+                });
+                closeEditPatient();
+              }}>
+                Update Patient
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
+
+      {/* Discharge Patient Modal */}
+      <Modal
+        opened={dischargeOpened}
+        onClose={closeDischarge}
+        title="Discharge Patient"
+        size="lg"
+      >
+        {selectedPatient && (
+          <Stack gap="md">
+            <Text>
+              Are you sure you want to discharge <strong>{selectedPatient.patientName}</strong>?
+            </Text>
+
+            <Textarea
+              label="Discharge Summary"
+              placeholder="Enter discharge summary"
+              rows={4}
+              required
+            />
+
+            <Textarea
+              label="Follow-up Instructions"
+              placeholder="Enter follow-up instructions"
+              rows={3}
+            />
+
+            <Group justify="flex-end">
+              <Button variant="light" onClick={closeDischarge}>
+                Cancel
+              </Button>
+              <Button color="red" onClick={() => {
+                notifications.show({
+                  title: 'Info',
+                  message: 'Discharge functionality pending',
+                  color: 'blue',
+                });
+                closeDischarge();
+              }}>
+                Discharge Patient
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
+
       {/* Patient Details Modal */}
-      {selectedPatient && (
+      {selectedPatient && !editPatientOpened && !dischargeOpened && (
         <Modal
           opened={!!selectedPatient}
           onClose={() => setSelectedPatient(null)}
@@ -742,8 +1092,20 @@ const IPDManagement = () => {
             <Text size="sm">
               <strong>Doctor:</strong> {selectedPatient.primaryDoctor}
             </Text>
+            <Text size="sm">
+              <strong>Admission Date:</strong> {new Date(selectedPatient.admissionDate).toLocaleDateString()}
+            </Text>
+            <Text size="sm">
+              <strong>Length of Stay:</strong> {selectedPatient.lengthOfStay} days
+            </Text>
             <Group>
-              <Button onClick={() => setSelectedPatient(null)}>Close</Button>
+              <Button variant="light" onClick={() => setSelectedPatient(null)}>Close</Button>
+              <Button variant="light" color="blue" onClick={() => handleEditPatient(selectedPatient)}>
+                Edit
+              </Button>
+              <Button variant="light" color="red" onClick={() => handleDischargePatient(selectedPatient)}>
+                Discharge
+              </Button>
             </Group>
           </Stack>
         </Modal>

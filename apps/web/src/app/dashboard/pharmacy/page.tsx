@@ -49,7 +49,7 @@ import {
   IconPill,
   IconChartBar,
   IconAlertCircle,
-  // IconCheck,
+  IconCheck,
   IconDotsVertical,
   IconBottle,
   IconFileText,
@@ -84,6 +84,14 @@ const PharmacyManagement = () => {
     useDisclosure(false);
   const [interactionCheckOpened, { open: openInteractionCheck, close: closeInteractionCheck }] =
     useDisclosure(false);
+  const [prescriptionDetailOpened, { open: openPrescriptionDetail, close: closePrescriptionDetail }] =
+    useDisclosure(false);
+  const [dispenseMedicationOpened, { open: openDispenseMedication, close: closeDispenseMedication }] =
+    useDisclosure(false);
+
+  // Selected items for modals
+  const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
+  const [selectedDispensation, setSelectedDispensation] = useState<any>(null);
 
   // API data
   const [pharmacyStats, setPharmacyStats] = useState<any>(null);
@@ -223,10 +231,9 @@ const PharmacyManagement = () => {
     });
   }, [pharmacyOrders, searchQuery, selectedStatus]);
 
-  // Filter dispensations
+  // Filter dispensations - Backend endpoint pending
   const filteredDispensations = useMemo(() => {
-    return [].filter(
-      /* TODO: Fetch from API */ (dispensation: any) => {
+    return [].filter((dispensation: any) => {
         const matchesSearch =
           dispensation.dispensationId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           dispensation.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -317,13 +324,45 @@ const PharmacyManagement = () => {
   };
 
   const handleViewPrescription = (prescription: any) => {
-    // TODO: Implement prescription detail modal
-    console.log('View prescription:', prescription);
+    setSelectedPrescription(prescription);
+    openPrescriptionDetail();
   };
 
   const handleDispenseMedication = (dispensation: any) => {
-    // TODO: Implement dispensation modal
-    console.log('Dispense medication:', dispensation);
+    setSelectedDispensation(dispensation);
+    openDispenseMedication();
+  };
+
+  const handleConfirmDispense = async () => {
+    try {
+      if (!selectedDispensation) return;
+
+      // Update order item status to dispensed
+      await pharmacyService.updateOrderItem(
+        selectedDispensation.orderId,
+        selectedDispensation.id,
+        {
+          dispensedQuantity: selectedDispensation.quantity,
+          status: 'DISPENSED',
+        }
+      );
+
+      notifications.show({
+        title: 'Success',
+        message: 'Medication dispensed successfully',
+        color: 'green',
+      });
+
+      closeDispenseMedication();
+      fetchOrders();
+    } catch (err: any) {
+      console.error('Error dispensing medication:', err);
+      notifications.show({
+        title: 'Error',
+        message: err.response?.data?.message || 'Failed to dispense medication',
+        color: 'red',
+      });
+    }
   };
 
   const clearFilters = () => {
@@ -1119,8 +1158,8 @@ const PharmacyManagement = () => {
 
             {/* Inventory Overview */}
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
-              {[].map(
-                /* TODO: Fetch from API */ (item: any) => {
+              {/* Inventory items - Backend endpoint pending */}
+              {[].map((item: any) => {
                   const stockInfo = getStockLevel(item.currentStock, item.minimumStock);
 
                   return (
@@ -1205,18 +1244,16 @@ const PharmacyManagement = () => {
               mb="lg"
             >
               <Text size="sm">
-                {
-                  [].filter(/* TODO: Fetch from API */ (i) => i.severity === 'contraindicated')
-                    .length
-                }{' '}
+                {/* Interactions - Backend endpoint pending */}
+                {[].filter((i) => i.severity === 'contraindicated').length}{' '}
                 contraindicated interactions found in current prescriptions.
               </Text>
             </Alert>
 
             {/* Interactions List */}
             <Stack gap="md">
-              {[].map(
-                /* TODO: Fetch from API */ (interaction: any) => (
+              {/* Interactions list - Backend endpoint pending */}
+              {[].map((interaction: any) => (
                   <Card key={interaction.id} padding="lg" radius="md" withBorder>
                     <Group justify="space-between" mb="md">
                       <div>
@@ -1624,24 +1661,20 @@ const PharmacyManagement = () => {
           <Select
             label="First Medication"
             placeholder="Select medication"
-            data={[].map(
-              /* TODO: Fetch from API */ (med: any) => ({
-                value: med.id,
-                label: `${med.brandName || med.name || med.genericName} (${med.genericName || med.name})`,
-              })
-            )}
+            data={medications.map((med: any) => ({
+              value: med.id,
+              label: `${med.name || med.genericName} (${med.strength || ''})`.trim(),
+            }))}
             searchable
           />
 
           <Select
             label="Second Medication"
             placeholder="Select medication"
-            data={[].map(
-              /* TODO: Fetch from API */ (med: any) => ({
-                value: med.id,
-                label: `${med.brandName || med.name || med.genericName} (${med.genericName || med.name})`,
-              })
-            )}
+            data={medications.map((med: any) => ({
+              value: med.id,
+              label: `${med.name || med.genericName} (${med.strength || ''})`.trim(),
+            }))}
             searchable
           />
 
@@ -1653,6 +1686,128 @@ const PharmacyManagement = () => {
             </Button>
           </Group>
         </Stack>
+      </Modal>
+
+      {/* Prescription Detail Modal */}
+      <Modal
+        opened={prescriptionDetailOpened}
+        onClose={closePrescriptionDetail}
+        title="Prescription Details"
+        size="lg"
+      >
+        {selectedPrescription && (
+          <Stack gap="md">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Prescription ID</Text>
+                <Text fw={500}>{selectedPrescription.id || selectedPrescription.prescriptionId}</Text>
+              </div>
+              <Badge color={getStatusColor(selectedPrescription.status)}>
+                {selectedPrescription.status}
+              </Badge>
+            </Group>
+
+            <Divider />
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Patient Information</Text>
+              <Text fw={500}>{selectedPrescription.patientName}</Text>
+              <Text size="sm" c="dimmed">{selectedPrescription.patientId}</Text>
+            </div>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Doctor Information</Text>
+              <Text fw={500}>{selectedPrescription.doctorName}</Text>
+              <Text size="sm" c="dimmed">{selectedPrescription.specialization}</Text>
+            </div>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Medications</Text>
+              <Stack gap="xs">
+                {(selectedPrescription.medications || []).map((med: any, index: number) => (
+                  <Card key={index} padding="sm" withBorder>
+                    <Text fw={500}>{med.name}</Text>
+                    <Text size="sm" c="dimmed">
+                      {med.dosage} - {med.frequency} - {med.duration}
+                    </Text>
+                    {med.instructions && (
+                      <Text size="xs" c="dimmed" mt="xs">
+                        Instructions: {med.instructions}
+                      </Text>
+                    )}
+                  </Card>
+                ))}
+              </Stack>
+            </div>
+
+            <Group justify="flex-end">
+              <Button variant="light" onClick={closePrescriptionDetail}>
+                Close
+              </Button>
+              <Button leftSection={<IconPrinter size={16} />}>
+                Print Prescription
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
+
+      {/* Dispense Medication Modal */}
+      <Modal
+        opened={dispenseMedicationOpened}
+        onClose={closeDispenseMedication}
+        title="Dispense Medication"
+        size="md"
+      >
+        {selectedDispensation && (
+          <Stack gap="md">
+            <Alert variant="light" color="blue" icon={<IconInfoCircle size={16} />}>
+              Confirm medication dispensing details
+            </Alert>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Medication</Text>
+              <Text fw={500}>{selectedDispensation.medicationName || selectedDispensation.name}</Text>
+              <Text size="sm" c="dimmed">{selectedDispensation.genericName}</Text>
+            </div>
+
+            <Group grow>
+              <div>
+                <Text size="sm" c="dimmed" mb="xs">Prescribed Quantity</Text>
+                <Text fw={500}>{selectedDispensation.quantity}</Text>
+              </div>
+              <div>
+                <Text size="sm" c="dimmed" mb="xs">Dosage</Text>
+                <Text fw={500}>{selectedDispensation.dosage || 'N/A'}</Text>
+              </div>
+            </Group>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Instructions</Text>
+              <Text size="sm">{selectedDispensation.instructions || 'No special instructions'}</Text>
+            </div>
+
+            <Divider />
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">Patient Information</Text>
+              <Text fw={500}>{selectedDispensation.patientName}</Text>
+            </div>
+
+            <Group justify="flex-end">
+              <Button variant="light" onClick={closeDispenseMedication}>
+                Cancel
+              </Button>
+              <Button 
+                color="green" 
+                leftSection={<IconCheck size={16} />}
+                onClick={handleConfirmDispense}
+              >
+                Confirm Dispense
+              </Button>
+            </Group>
+          </Stack>
+        )}
       </Modal>
 
       {/* Add/Edit Medication Form */}

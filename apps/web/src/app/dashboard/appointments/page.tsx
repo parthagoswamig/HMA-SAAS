@@ -135,7 +135,6 @@ const AppointmentManagement = () => {
         search: searchQuery || undefined,
       };
       const response = await appointmentsService.getAppointments(filters);
-      console.log('Appointments API response:', response);
       setAppointments(response.data || []);
       setError(null);
     } catch (err: any) {
@@ -150,7 +149,6 @@ const AppointmentManagement = () => {
   const fetchStats = async () => {
     try {
       const response = await appointmentsService.getAppointmentStats();
-      console.log('Appointment stats API response:', response);
       setAppointmentStats(response.data);
     } catch (err: any) {
       console.warn(
@@ -172,13 +170,11 @@ const AppointmentManagement = () => {
   const fetchDropdownData = async () => {
     setLoadingDropdowns(true);
     try {
-      console.log('Fetching dropdown data...');
       
       // Fetch patients
       let patientsData: any[] = [];
       try {
         const patientsRes = await patientsService.getPatients({ limit: 100 });
-        console.log('Patients response:', patientsRes);
         patientsData = Array.isArray(patientsRes.data) 
           ? patientsRes.data 
           : (patientsRes.data?.patients || []);
@@ -191,7 +187,6 @@ const AppointmentManagement = () => {
       let doctorsData: any[] = [];
       try {
         const doctorsRes = await staffService.getStaff({ role: 'DOCTOR', limit: 100 });
-        console.log('Doctors response:', doctorsRes);
         const doctorsDataSource = (doctorsRes as any)?.data;
         doctorsData = Array.isArray(doctorsDataSource)
           ? doctorsDataSource
@@ -205,7 +200,6 @@ const AppointmentManagement = () => {
       let departmentsData: any[] = [];
       try {
         const departmentsRes = await hrService.getDepartments({ limit: 100 });
-        console.log('Departments response:', departmentsRes);
         departmentsData = Array.isArray(departmentsRes.data)
           ? departmentsRes.data
           : (departmentsRes.data?.items || []);
@@ -217,12 +211,6 @@ const AppointmentManagement = () => {
       setPatients(patientsData);
       setDoctors(doctorsData);
       setDepartments(departmentsData);
-      
-      console.log('Dropdown data loaded:', {
-        patients: patientsData.length,
-        doctors: doctorsData.length,
-        departments: departmentsData.length,
-      });
 
       if (patientsData.length === 0 || doctorsData.length === 0) {
         notifications.show({
@@ -418,8 +406,8 @@ const AppointmentManagement = () => {
     openBookAppointment();
   };
 
-  const handleDateTimeChange = (value: string) => {
-    setFormData({ ...formData, appointmentDateTime: value });
+  const handleDateTimeChange = (value: Date | null) => {
+    setFormData({ ...formData, appointmentDateTime: value ? value.toISOString() : '' });
   };
 
   // Helper functions
@@ -617,13 +605,14 @@ const AppointmentManagement = () => {
               />
               <Select
                 placeholder="Doctor"
-                data={[]} // TODO: Fetch from staff API
+                data={doctors.map((doc) => ({
+                  value: doc.id,
+                  label: `${doc.user?.firstName || doc.firstName || ''} ${doc.user?.lastName || doc.lastName || ''}`.trim()
+                }))}
                 value={selectedDoctor}
                 onChange={(value) => setSelectedDoctor(value || '')}
                 searchable
                 clearable
-                className="w-full sm:w-auto"
-                size="sm"
               />
               <Select
                 placeholder="Status"
@@ -848,12 +837,10 @@ const AppointmentManagement = () => {
               <Group>
                 <Select
                   placeholder="Select Doctor"
-                  data={[].map(
-                    /* TODO: Fetch from API */ (doctor) => ({
-                      value: doctor.staffId,
-                      label: `${doctor.firstName} ${doctor.lastName}`,
-                    })
-                  )}
+                  data={doctors.map((doctor) => ({
+                    value: doctor.id,
+                    label: `${doctor.user?.firstName || doctor.firstName || ''} ${doctor.user?.lastName || doctor.lastName || ''}`.trim(),
+                  }))}
                   value={selectedDoctor}
                   onChange={(value) => setSelectedDoctor(value || '')}
                 />
@@ -1427,7 +1414,7 @@ const AppointmentManagement = () => {
             label="Appointment Date & Time"
             placeholder="Select date and time"
             required
-            value={formData.appointmentDateTime}
+            value={formData.appointmentDateTime ? new Date(formData.appointmentDateTime) : null}
             onChange={handleDateTimeChange}
             minDate={new Date()}
             clearable

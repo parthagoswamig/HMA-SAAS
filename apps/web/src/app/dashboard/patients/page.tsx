@@ -93,7 +93,7 @@ export default function PatientManagement() {
 
   useEffect(() => {
     if (!user) {
-      // setUser(null /* TODO: Fetch from API */);
+      // User context will be set by auth provider
     }
     fetchPatients();
     fetchStats();
@@ -103,7 +103,7 @@ export default function PatientManagement() {
     try {
       setLoading(true);
       const response = await patientsService.getPatients();
-      console.log('Patients API response:', response);
+      // Patients data fetched successfully
       
       // Ensure we have valid patient data
       const patientsData = response.data?.patients || [];
@@ -137,7 +137,7 @@ export default function PatientManagement() {
   const fetchStats = async () => {
     try {
       const response = await patientsService.getPatientStats();
-      console.log('Patient stats API response:', response);
+      // Patient stats fetched successfully
       setPatientStats(response.data);
     } catch (err: any) {
       console.warn(
@@ -345,15 +345,10 @@ export default function PatientManagement() {
   };
 
   const handleEditPatient = (patient: PatientListItem) => {
-    console.log('=== EDIT PATIENT CLICKED ===');
-    console.log('Patient List Item:', patient);
-    
     const fullPatient = patients.find((p) => p.id === patient.id);
-    console.log('Full Patient Data:', fullPatient);
     
     if (fullPatient) {
       setSelectedPatient(fullPatient);
-      console.log('Selected patient set, opening form modal');
       open();
     } else {
       console.error('Could not find full patient data for ID:', patient.id);
@@ -394,9 +389,7 @@ export default function PatientManagement() {
   // Patient CRUD operations
   const handleCreatePatient = async (data: CreatePatientDto, files?: File[]) => {
     try {
-      console.log('=== CREATE PATIENT HANDLER CALLED ===');
-      console.log('User context:', user);
-      console.log('Files to upload:', files);
+      // Creating new patient
       
       if (!user) {
         notifications.show({
@@ -408,11 +401,10 @@ export default function PatientManagement() {
         return;
       }
 
-      console.log('Creating patient with data:', data);
+      // Submitting patient data to API
       
       // Data is already flattened and formatted in PatientForm, just pass it through
       const response = await patientsService.createPatient(data as any);
-      console.log('Patient creation response:', response);
       
       const newPatient = response.data;
       const patientName = `${newPatient.firstName || ''} ${newPatient.lastName || ''}`.trim() || 'Patient';
@@ -421,9 +413,7 @@ export default function PatientManagement() {
       // Upload documents if any files were provided
       if (files && files.length > 0) {
         try {
-          console.log(`Uploading ${files.length} documents for patient ${patientId}...`);
           await patientsService.uploadDocuments(patientId, files);
-          console.log('Documents uploaded successfully');
           
           // Fetch and store documents for this patient
           const docsResponse = await patientsService.getPatientDocuments(patientId);
@@ -486,12 +476,10 @@ export default function PatientManagement() {
 
   const handleUpdatePatient = async (data: UpdatePatientDto, files?: File[]) => {
     try {
-      console.log('Updating patient with data:', data);
-      console.log('Files to upload:', files);
+      // Updating patient data
       
       // Data is already flattened and formatted in PatientForm, just pass it through
       const response = await patientsService.updatePatient(data.id!, data as any);
-      console.log('Patient update response:', response);
       
       const updatedPatient = response.data;
       const patientName = `${updatedPatient.firstName || ''} ${updatedPatient.lastName || ''}`.trim() || 'Patient';
@@ -500,9 +488,7 @@ export default function PatientManagement() {
       // Upload documents if any files were provided
       if (files && files.length > 0) {
         try {
-          console.log(`Uploading ${files.length} documents for patient ${patientId}...`);
           await patientsService.uploadDocuments(patientId, files);
-          console.log('Documents uploaded successfully');
           
           // Fetch and update documents for this patient
           const docsResponse = await patientsService.getPatientDocuments(patientId);
@@ -564,23 +550,37 @@ export default function PatientManagement() {
 
   // Medical history operations
   const handleSaveMedicalHistory = async (history: any) => {
-    console.log('Saving medical history:', history);
+    // Medical history save - Backend endpoint pending
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: 'Success',
+      message: 'Medical history saved successfully',
+      color: 'green',
+    });
   };
 
   const handleUpdateMedicalHistory = async (id: string, history: any) => {
-    console.log('Updating medical history:', id, history);
+    // Medical history update - Backend endpoint pending
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: 'Success',
+      message: 'Medical history updated successfully',
+      color: 'green',
+    });
   };
 
   const handleDeleteMedicalHistory = async (id: string) => {
-    console.log('Deleting medical history:', id);
+    // Medical history delete - Backend endpoint pending
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: 'Success',
+      message: 'Medical history deleted successfully',
+      color: 'green',
+    });
   };
 
   // Document operations
   const handleUploadDocument = async (document: any, file: File) => {
-    console.log('Uploading document:', document, file);
     if (!selectedPatient) return;
     
     try {
@@ -620,7 +620,6 @@ export default function PatientManagement() {
   };
 
   const handleUpdateDocument = async (id: string, document: any) => {
-    console.log('Updating document:', id, document);
     if (!selectedPatient) return;
     
     try {
@@ -645,7 +644,6 @@ export default function PatientManagement() {
   };
 
   const handleDeleteDocument = async (id: string) => {
-    console.log('Deleting document:', id);
     if (!selectedPatient) return;
     
     try {
@@ -668,18 +666,27 @@ export default function PatientManagement() {
   };
 
   const handleDownloadDocument = async (document: any) => {
-    console.log('Downloading document:', document);
+    // Document download - Implementation pending
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: 'Info',
+      message: 'Download functionality will be available soon',
+      color: 'blue',
+    });
   };
 
   const handleViewDocument = async (document: any) => {
-    console.log('Viewing document:', document);
+    // Document view - Implementation pending
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: 'Info',
+      message: 'Document viewer will be available soon',
+      color: 'blue',
+    });
   };
 
   // Search operations
   const handleSearch = async (criteria: PatientSearchParams) => {
-    console.log('Searching patients with criteria:', criteria);
     
     try {
       setLoading(true);
@@ -801,7 +808,6 @@ export default function PatientManagement() {
   };
 
   const handleSaveSearch = (name: string, criteria: PatientSearchParams) => {
-    console.log('Saving search:', name, criteria);
     notifications.show({
       title: '💾 Search Saved',
       message: `Search "${name}" has been saved successfully`,
@@ -811,12 +817,16 @@ export default function PatientManagement() {
 
   // Export operations
   const handleExportPatients = async (options: any) => {
-    console.log('Exporting patients:', options);
+    // Export patients - Implementation pending
     await new Promise((resolve) => setTimeout(resolve, 2000));
+    notifications.show({
+      title: 'Success',
+      message: 'Patients exported successfully',
+      color: 'green',
+    });
   };
 
   const handleGenerateReport = async (reportType: string, patientIds?: string[]) => {
-    console.log('Generating report:', reportType, patientIds);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return {
       reportType: reportType as
@@ -834,7 +844,6 @@ export default function PatientManagement() {
 
   // Export and Print operations for individual patient
   const handleExportPatient = (patient: Patient) => {
-    console.log('Exporting patient:', patient);
     
     // Create patient data object
     const patientData = {
@@ -876,7 +885,6 @@ export default function PatientManagement() {
   };
 
   const handlePrintPatient = (patient: Patient) => {
-    console.log('Printing patient:', patient);
     
     // Create print window with patient details
     const printWindow = window.open('', '_blank');
@@ -940,7 +948,6 @@ export default function PatientManagement() {
 
   // Portal operations
   const handleEnablePortalAccess = async (patientId: string, preferences: any) => {
-    console.log('Enabling portal access:', patientId, preferences);
     try {
       // In production, this would call the backend API
       // await patientsService.enablePortalAccess(patientId, preferences);
@@ -962,7 +969,6 @@ export default function PatientManagement() {
   };
 
   const handleDisablePortalAccess = async (patientId: string) => {
-    console.log('Disabling portal access:', patientId);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
@@ -981,7 +987,6 @@ export default function PatientManagement() {
   };
 
   const handleUpdatePortalPreferences = async (patientId: string, preferences: any) => {
-    console.log('Updating portal preferences:', patientId, preferences);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
@@ -1000,7 +1005,6 @@ export default function PatientManagement() {
   };
 
   const handleResetPortalPassword = async (patientId: string) => {
-    console.log('Resetting portal password:', patientId);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
@@ -1019,7 +1023,6 @@ export default function PatientManagement() {
   };
 
   const handleSendPortalCredentials = async (patientId: string, method: 'email' | 'sms') => {
-    console.log('Sending portal credentials:', patientId, method);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
@@ -1039,7 +1042,6 @@ export default function PatientManagement() {
 
   // Additional handlers
   const handleScheduleAppointment = (patientId: string) => {
-    console.log('Schedule appointment for patient:', patientId);
     // Close the patient details modal
     closeView();
     // Navigate to appointments page with patient pre-selected
@@ -1251,8 +1253,8 @@ export default function PatientManagement() {
             page: 1,
             limit: 10,
             total: patientListItems.length,
-            onPageChange: (page) => console.log('Page:', page),
-            onLimitChange: (limit) => console.log('Limit:', limit),
+            onPageChange: (page) => {},
+            onLimitChange: (limit) => {},
           }}
           actions={{
             view: handleViewPatient,

@@ -142,6 +142,51 @@ export interface IpdStatsResponse {
   };
 }
 
+// Admission types
+export interface CreateAdmissionDto {
+  patientId: string;
+  wardId: string;
+  bedId: string;
+  doctorId?: string;
+  admissionType: 'ELECTIVE' | 'EMERGENCY' | 'TRANSFER';
+  diagnosis: string;
+  notes?: string;
+  expectedDischargeDate?: string;
+}
+
+export interface UpdateAdmissionDto {
+  status?: string;
+  diagnosis?: string;
+  notes?: string;
+  expectedDischargeDate?: string;
+  doctorId?: string;
+}
+
+export interface DischargePatientDto {
+  dischargeSummary: string;
+  followUpInstructions?: string;
+  followUpDate?: string;
+}
+
+export interface AdmissionResponse {
+  success: boolean;
+  message?: string;
+  data: any;
+}
+
+export interface AdmissionsListResponse {
+  success: boolean;
+  data: {
+    items: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+    };
+  };
+}
+
 const ipdService = {
   // ==================== WARD OPERATIONS ====================
 
@@ -217,6 +262,50 @@ const ipdService = {
    */
   getStats: async (): Promise<IpdStatsResponse> => {
     return enhancedApiClient.get('/ipd/stats');
+  },
+
+  // ==================== ADMISSION OPERATIONS ====================
+
+  /**
+   * Create new admission
+   */
+  createAdmission: async (data: CreateAdmissionDto): Promise<AdmissionResponse> => {
+    return enhancedApiClient.post('/ipd/admissions', data);
+  },
+
+  /**
+   * Get all admissions
+   */
+  getAdmissions: async (filters?: any): Promise<AdmissionsListResponse> => {
+    return enhancedApiClient.get('/ipd/admissions', filters);
+  },
+
+  /**
+   * Get admission by ID
+   */
+  getAdmissionById: async (id: string): Promise<AdmissionResponse> => {
+    return enhancedApiClient.get(`/ipd/admissions/${id}`);
+  },
+
+  /**
+   * Update admission
+   */
+  updateAdmission: async (id: string, data: UpdateAdmissionDto): Promise<AdmissionResponse> => {
+    return enhancedApiClient.patch(`/ipd/admissions/${id}`, data);
+  },
+
+  /**
+   * Discharge patient
+   */
+  dischargePatient: async (id: string, data: DischargePatientDto): Promise<AdmissionResponse> => {
+    return enhancedApiClient.post(`/ipd/admissions/${id}/discharge`, data);
+  },
+
+  /**
+   * Cancel admission
+   */
+  cancelAdmission: async (id: string): Promise<AdmissionResponse> => {
+    return enhancedApiClient.delete(`/ipd/admissions/${id}`);
   },
 };
 

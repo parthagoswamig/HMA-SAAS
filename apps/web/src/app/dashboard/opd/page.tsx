@@ -717,8 +717,8 @@ const OPDManagement = () => {
             </Title>
 
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
-              {[].map(
-                /* TODO: Fetch from API */ (doctor) => (
+              {/* Doctor schedules - Backend endpoint pending */}
+              {[].map((doctor) => (
                   <Card key={doctor.id} padding="lg" radius="md" withBorder>
                     <Group justify="space-between" mb="md">
                       <div>

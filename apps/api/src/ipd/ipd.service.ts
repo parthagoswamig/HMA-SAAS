@@ -10,6 +10,11 @@ import {
   BedFilterDto,
   BedStatus,
   WardType,
+  CreateAdmissionDto,
+  UpdateAdmissionDto,
+  DischargePatientDto,
+  AdmissionFilterDto,
+  AdmissionStatus,
 } from './dto';
 
 @Injectable()
@@ -459,6 +464,299 @@ export class IpdService {
     } catch (error) {
       this.logger.error('Error getting IPD stats:', error.message, error.stack);
       throw new BadRequestException('Failed to fetch IPD statistics');
+    }
+  }
+
+  // ==================== Admission Management ====================
+
+  /**
+   * Create a new admission
+   */
+  async createAdmission(createDto: CreateAdmissionDto, tenantId: string) {
+    try {
+      this.logger.log(`Creating admission for patient: ${createDto.patientId}`);
+      
+      // Verify patient exists
+      const patient = await this.prisma.patient.findFirst({
+        where: { id: createDto.patientId, tenantId },
+      });
+      if (!patient) {
+        throw new NotFoundException('Patient not found');
+      }
+
+      // Verify ward exists
+      const ward = await this.prisma.ward.findFirst({
+        where: { id: createDto.wardId, tenantId, isActive: true },
+      });
+      if (!ward) {
+        throw new NotFoundException('Ward not found');
+      }
+
+      // Verify bed exists and is available
+      const bed = await this.prisma.bed.findFirst({
+        where: { id: createDto.bedId, tenantId, isActive: true },
+      });
+      if (!bed) {
+        throw new NotFoundException('Bed not found');
+      }
+      if (bed.status !== BedStatus.AVAILABLE) {
+        throw new BadRequestException('Bed is not available');
+      }
+
+      // Create admission using Appointment model
+      const admission = await this.prisma.appointment.create({
+        data: {
+          patientId: createDto.patientId,
+          doctorId: createDto.doctorId || null,
+          departmentId: createDto.wardId, // Using departmentId for wardId
+          startTime: new Date(),
+          endTime: createDto.expectedDischargeDate ? new Date(createDto.expectedDischargeDate) : null,
+          status: AdmissionStatus.ADMITTED,
+          reason: createDto.diagnosis,
+          notes: createDto.notes,
+          tenantId,
+        },
+        include: {
+          patient: true,
+          doctor: true,
+          department: true,
+        },
+      });
+
+      // Update bed status to OCCUPIED
+      await this.prisma.bed.update({
+        where: { id: createDto.bedId },
+        data: { status: BedStatus.OCCUPIED },
+      });
+
+      this.logger.log(`Successfully created admission with ID: ${admission.id}`);
+      return {
+        success: true,
+        message: 'Admission created successfully',
+        data: admission,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error('Error creating admission:', error.message, error.stack);
+      throw new BadRequestException('Failed to create admission');
+    }
+  }
+
+  /**
+   * Find all admissions
+   */
+  async findAllAdmissions(tenantId: string, filters: AdmissionFilterDto = {}) {
+    try {
+      this.logger.log(`Finding admissions for tenant: ${tenantId}`);
+      
+      const { page: rawPage, limit: rawLimit, status, wardId, patientId, search } = filters;
+      const { page, limit } = this.validatePaginationParams(rawPage, rawLimit);
+      const skip = (page - 1) * limit;
+
+      const where: any = { tenantId };
+      
+      if (status) where.status = status;
+      if (wardId) where.departmentId = wardId;
+      if (patientId) where.patientId = patientId;
+      if (search) {
+        where.OR = [
+          { reason: { contains: search } },
+          { notes: { contains: search } },
+        ];
+      }
+
+      const [admissions, total] = await Promise.all([
+        this.prisma.appointment.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { startTime: 'desc' },
+          include: {
+            patient: true,
+            doctor: true,
+            department: true,
+          },
+        }),
+        this.prisma.appointment.count({ where }),
+      ]);
+
+      return {
+        success: true,
+        data: {
+          items: admissions,
+          pagination: {
+            total,
+            page,
+            limit,
+            pages: Math.ceil(total / limit),
+          },
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error finding admissions:', error.message, error.stack);
+      throw new BadRequestException('Failed to fetch admissions');
+    }
+  }
+
+  /**
+   * Find one admission
+   */
+  async findOneAdmission(id: string, tenantId: string) {
+    try {
+      const admission = await this.prisma.appointment.findFirst({
+        where: { id, tenantId },
+        include: {
+          patient: true,
+          doctor: true,
+          department: true,
+        },
+      });
+
+      if (!admission) {
+        throw new NotFoundException('Admission not found');
+      }
+
+      return { success: true, data: admission };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error('Error finding admission:', error.message, error.stack);
+      throw new BadRequestException('Failed to fetch admission');
+    }
+  }
+
+  /**
+   * Update admission
+   */
+  async updateAdmission(id: string, updateDto: UpdateAdmissionDto, tenantId: string) {
+    try {
+      const admission = await this.prisma.appointment.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!admission) {
+        throw new NotFoundException('Admission not found');
+      }
+
+      const updateData: any = {};
+      if (updateDto.status) updateData.status = updateDto.status;
+      if (updateDto.diagnosis) updateData.reason = updateDto.diagnosis;
+      if (updateDto.notes) updateData.notes = updateDto.notes;
+      if (updateDto.doctorId) updateData.doctorId = updateDto.doctorId;
+      if (updateDto.expectedDischargeDate) updateData.endTime = new Date(updateDto.expectedDischargeDate);
+
+      const updated = await this.prisma.appointment.update({
+        where: { id },
+        data: updateData,
+        include: {
+          patient: true,
+          doctor: true,
+          department: true,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Admission updated successfully',
+        data: updated,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error('Error updating admission:', error.message, error.stack);
+      throw new BadRequestException('Failed to update admission');
+    }
+  }
+
+  /**
+   * Discharge patient
+   */
+  async dischargePatient(id: string, dischargeDto: DischargePatientDto, tenantId: string) {
+    try {
+      const admission = await this.prisma.appointment.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!admission) {
+        throw new NotFoundException('Admission not found');
+      }
+
+      // Update admission status to DISCHARGED
+      const discharged = await this.prisma.appointment.update({
+        where: { id },
+        data: {
+          status: AdmissionStatus.DISCHARGED,
+          notes: `${admission.notes || ''}\n\nDISCHARGE SUMMARY:\n${dischargeDto.dischargeSummary}\n\nFOLLOW-UP:\n${dischargeDto.followUpInstructions || 'None'}`,
+        },
+        include: {
+          patient: true,
+          doctor: true,
+          department: true,
+        },
+      });
+
+      // Free up the bed - find bed by ward (departmentId)
+      if (admission.departmentId) {
+        await this.prisma.bed.updateMany({
+          where: {
+            wardId: admission.departmentId,
+            status: BedStatus.OCCUPIED,
+            tenantId,
+          },
+          data: { status: BedStatus.AVAILABLE },
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Patient discharged successfully',
+        data: discharged,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error('Error discharging patient:', error.message, error.stack);
+      throw new BadRequestException('Failed to discharge patient');
+    }
+  }
+
+  /**
+   * Cancel admission
+   */
+  async cancelAdmission(id: string, tenantId: string) {
+    try {
+      const admission = await this.prisma.appointment.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!admission) {
+        throw new NotFoundException('Admission not found');
+      }
+
+      // Delete admission
+      await this.prisma.appointment.delete({
+        where: { id },
+      });
+
+      // Free up the bed
+      if (admission.departmentId) {
+        await this.prisma.bed.updateMany({
+          where: {
+            wardId: admission.departmentId,
+            status: BedStatus.OCCUPIED,
+            tenantId,
+          },
+          data: { status: BedStatus.AVAILABLE },
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Admission cancelled successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error('Error cancelling admission:', error.message, error.stack);
+      throw new BadRequestException('Failed to cancel admission');
     }
   }
 }

@@ -511,7 +511,7 @@ export class IpdService {
           departmentId: createDto.wardId, // Using departmentId for wardId
           startTime: new Date(),
           endTime: createDto.expectedDischargeDate ? new Date(createDto.expectedDischargeDate) : null,
-          status: AdmissionStatus.ADMITTED,
+          status: 'SCHEDULED' as any, // IPD admission - using appointment status
           reason: createDto.diagnosis,
           notes: createDto.notes,
           tenantId,
@@ -685,7 +685,7 @@ export class IpdService {
       const discharged = await this.prisma.appointment.update({
         where: { id },
         data: {
-          status: AdmissionStatus.DISCHARGED,
+          status: 'COMPLETED' as any, // IPD discharge - using appointment status
           notes: `${admission.notes || ''}\n\nDISCHARGE SUMMARY:\n${dischargeDto.dischargeSummary}\n\nFOLLOW-UP:\n${dischargeDto.followUpInstructions || 'None'}`,
         },
         include: {

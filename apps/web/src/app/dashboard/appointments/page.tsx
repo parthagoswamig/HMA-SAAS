@@ -406,8 +406,14 @@ const AppointmentManagement = () => {
     openBookAppointment();
   };
 
-  const handleDateTimeChange = (value: Date | null) => {
-    setFormData({ ...formData, appointmentDateTime: value ? value.toISOString() : '' });
+  const handleDateTimeChange = (value: Date | string | null) => {
+    if (value instanceof Date) {
+      setFormData({ ...formData, appointmentDateTime: value.toISOString() });
+    } else if (typeof value === 'string') {
+      setFormData({ ...formData, appointmentDateTime: value });
+    } else {
+      setFormData({ ...formData, appointmentDateTime: '' });
+    }
   };
 
   // Helper functions

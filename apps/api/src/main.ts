@@ -17,11 +17,13 @@ async function bootstrap() {
   const corsOriginsEnv =
     process.env.CORS_ORIGINS ||
     process.env.CORS_ORIGIN ||
-    'http://localhost:3000,http://localhost:3001';
+    'http://localhost:3000,http://localhost:3001,https://hma-saas-web.vercel.app';
   const parsedOrigins = corsOriginsEnv
     .split(',')
     .map((o) => o.trim())
     .filter((o) => o.length > 0);
+  
+  logger.log(`🌐 CORS Origins: ${parsedOrigins.join(', ')}`);
 
   app.enableCors({
     origin: (origin, callback) => {

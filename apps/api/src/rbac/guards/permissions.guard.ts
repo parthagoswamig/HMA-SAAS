@@ -28,8 +28,8 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
 
-    // Super admins bypass permission checks
-    if (user.role === 'SUPER_ADMIN') {
+    // Super admins and hospital admins bypass permission checks
+    if (user.role === 'SUPER_ADMIN' || user.role === 'HOSPITAL_ADMIN') {
       return true;
     }
 

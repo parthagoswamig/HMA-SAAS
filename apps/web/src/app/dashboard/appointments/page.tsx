@@ -723,7 +723,7 @@ const AppointmentManagement = () => {
                                 {appointment.patient.firstName} {appointment.patient.lastName}
                               </Text>
                               <Text size="sm" c="dimmed">
-                                {appointment.patient.medicalRecordNumber || appointment.id.slice(0, 8)}
+                                {(appointment.patient as any).medicalRecordNumber || appointment.id.slice(0, 8)}
                               </Text>
                             </div>
                           </Group>
@@ -734,17 +734,17 @@ const AppointmentManagement = () => {
                               {appointment.doctor.firstName} {appointment.doctor.lastName}
                             </Text>
                             <Text size="sm" c="dimmed">
-                              {appointment.department?.name || 'N/A'}
+                              {(appointment.department as any)?.name || 'N/A'}
                             </Text>
                           </div>
                         </Table.Td>
                         <Table.Td>
                           <div>
                             <Text fw={500}>
-                              {isClient ? new Date(appointment.startTime).toLocaleDateString() : 'Loading...'}
+                              {isClient ? new Date((appointment as any).startTime).toLocaleDateString() : 'Loading...'}
                             </Text>
                             <Text size="sm" c="dimmed">
-                              {new Date(appointment.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              {new Date((appointment as any).startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </Text>
                           </div>
                         </Table.Td>
@@ -1221,7 +1221,7 @@ const AppointmentManagement = () => {
                 <Title order={3}>
                   {selectedAppointment.patient.firstName} {selectedAppointment.patient.lastName}
                 </Title>
-                <Text c="dimmed">{selectedAppointment.patient.medicalRecordNumber || selectedAppointment.id.slice(0, 8)}</Text>
+                <Text c="dimmed">{(selectedAppointment.patient as any).medicalRecordNumber || selectedAppointment.id.slice(0, 8)}</Text>
                 <Badge color={getStatusColor(selectedAppointment.status)} variant="light" mt="xs">
                   {selectedAppointment.status?.replace('_', ' ') || 'Unknown'}
                 </Badge>
@@ -1245,7 +1245,7 @@ const AppointmentManagement = () => {
                   Department
                 </Text>
                 <Text size="sm" c="dimmed">
-                  {selectedAppointment.department?.name || 'N/A'}
+                  {(selectedAppointment.department as any)?.name || 'N/A'}
                 </Text>
               </div>
               <div>
@@ -1253,8 +1253,8 @@ const AppointmentManagement = () => {
                   Date & Time
                 </Text>
                 <Text size="sm" c="dimmed">
-                  {new Date(selectedAppointment.startTime).toLocaleDateString()} at{' '}
-                  {new Date(selectedAppointment.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  {new Date((selectedAppointment as any).startTime).toLocaleDateString()} at{' '}
+                  {new Date((selectedAppointment as any).startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </Text>
               </div>
               <div>
@@ -1262,7 +1262,7 @@ const AppointmentManagement = () => {
                   Duration
                 </Text>
                 <Text size="sm" c="dimmed">
-                  {Math.round((new Date(selectedAppointment.endTime).getTime() - new Date(selectedAppointment.startTime).getTime()) / 60000)} minutes
+                  {Math.round((new Date((selectedAppointment as any).endTime).getTime() - new Date((selectedAppointment as any).startTime).getTime()) / 60000)} minutes
                 </Text>
               </div>
               <div>

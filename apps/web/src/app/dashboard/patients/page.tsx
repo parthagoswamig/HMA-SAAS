@@ -391,7 +391,9 @@ export default function PatientManagement() {
     try {
       // Creating new patient
       
-      if (!user) {
+      // Check if user is authenticated by checking localStorage token
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      if (!token) {
         notifications.show({
           title: 'Authentication Required',
           message: 'Please log in to create patients',

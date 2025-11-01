@@ -619,10 +619,10 @@ const AppointmentManagement = () => {
               <Select
                 placeholder="Doctor"
                 data={doctors.map((doc) => ({
-                  value: doc.id,
+                  value: doc.user?.id || doc.userId || doc.id,
                   label: `${doc.user?.firstName || doc.firstName || ''} ${doc.user?.lastName || doc.lastName || ''}`.trim()
                 }))}
-                value={selectedDoctor}
+                value={formData.doctorId}
                 onChange={(value) => setSelectedDoctor(value || '')}
                 searchable
                 clearable
@@ -851,10 +851,10 @@ const AppointmentManagement = () => {
                 <Select
                   placeholder="Select Doctor"
                   data={doctors.map((doctor) => ({
-                    value: doctor.id,
+                    value: doctor.user?.id || doctor.userId || doctor.id,
                     label: `${doctor.user?.firstName || doctor.firstName || ''} ${doctor.user?.lastName || doctor.lastName || ''}`.trim(),
                   }))}
-                  value={selectedDoctor}
+                  value={filterDoctor}
                   onChange={(value) => setSelectedDoctor(value || '')}
                 />
                 <Button leftSection={<IconPlus size={16} />}>Add Slot</Button>

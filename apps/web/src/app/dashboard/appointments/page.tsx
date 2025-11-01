@@ -288,10 +288,17 @@ const AppointmentManagement = () => {
       fetchStats();
       resetForm();
     } catch (error: any) {
+      console.error('❌ Appointment creation error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create appointment';
+      const displayMsg = Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg;
+      
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to create appointment',
+        message: displayMsg,
         color: 'red',
+        autoClose: 10000,
       });
     }
   };

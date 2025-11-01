@@ -13,22 +13,6 @@ async function bootstrap() {
     logger.log('🔧 Using DUMMY DATABASE URL for fast deployment');
   }
 
-  // Configure global validation pipe with RELAXED settings
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: false, // CRITICAL: Allow extra fields from frontend
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-      skipMissingProperties: false,
-      skipNullProperties: false,
-      skipUndefinedProperties: false,
-    }),
-  );
-  logger.log('✅ Global validation pipe configured with relaxed settings');
-
   // Enable CORS
   const corsOriginsEnv =
     process.env.CORS_ORIGINS ||

@@ -133,8 +133,8 @@ export class OpdService {
         throw new NotFoundException('Patient not found');
       }
 
-      // Verify doctor exists
-      const doctor = await this.prisma.staff.findFirst({
+      // Verify doctor exists (doctorId is User.id, not Staff.id)
+      const doctor = await this.prisma.user.findFirst({
         where: { id: createDto.doctorId, tenantId },
       });
       if (!doctor) {

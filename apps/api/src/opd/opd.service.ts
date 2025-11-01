@@ -130,16 +130,20 @@ export class OpdService {
         where: { id: createDto.patientId, tenantId },
       });
       if (!patient) {
-        throw new NotFoundException('Patient not found');
+        this.logger.error(`Patient not found: ${createDto.patientId} in tenant: ${tenantId}`);
+        throw new NotFoundException(`Patient not found with ID: ${createDto.patientId}`);
       }
+      this.logger.log(`✅ Patient found: ${patient.firstName} ${patient.lastName}`);
 
       // Verify doctor exists (doctorId is User.id, not Staff.id)
       const doctor = await this.prisma.user.findFirst({
         where: { id: createDto.doctorId, tenantId },
       });
       if (!doctor) {
-        throw new NotFoundException('Doctor not found');
+        this.logger.error(`Doctor not found: ${createDto.doctorId} in tenant: ${tenantId}`);
+        throw new NotFoundException(`Doctor not found with ID: ${createDto.doctorId}`);
       }
+      this.logger.log(`✅ Doctor found: ${doctor.firstName} ${doctor.lastName}`);
 
       // Create appointment for OPD visit
       const visit = await this.prisma.appointment.create({

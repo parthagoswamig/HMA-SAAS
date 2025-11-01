@@ -13,17 +13,17 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AppointmentStatus } from '@prisma/client';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
-  @IsUUID()
+  @ApiProperty({ example: 'cmhgbr0ff0003jv1w9zpyz2w9' })
+  @IsString()
   patientId: string;
 
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
-  @IsUUID()
+  @ApiProperty({ example: 'cmh7l0zbz0009v4d8vulskzil' })
+  @IsString()
   doctorId: string;
 
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174002' })
+  @ApiPropertyOptional({ example: 'cmh7l0zbz0009v4d8vulskzil' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   departmentId?: string;
 
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
@@ -47,19 +47,19 @@ export class CreateAppointmentDto {
 }
 
 export class UpdateAppointmentDto {
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiPropertyOptional({ example: 'cmhgbr0ff0003jv1w9zpyz2w9' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   patientId?: string;
 
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174001' })
+  @ApiPropertyOptional({ example: 'cmh7l0zbz0009v4d8vulskzil' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   doctorId?: string;
 
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174002' })
+  @ApiPropertyOptional({ example: 'cmh7l0zbz0009v4d8vulskzil' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   departmentId?: string;
 
   @ApiPropertyOptional({ example: '2024-01-15T10:30:00Z' })
@@ -109,14 +109,14 @@ export class AppointmentQueryDto {
   @IsEnum(AppointmentStatus)
   status?: AppointmentStatus;
 
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174001' })
+  @ApiPropertyOptional({ example: 'cmh7l0zbz0009v4d8vulskzil' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   doctorId?: string;
 
-  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiPropertyOptional({ example: 'cmhgbr0ff0003jv1w9zpyz2w9' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   patientId?: string;
 
   @ApiPropertyOptional({ example: '2024-01-01' })
@@ -137,8 +137,8 @@ export class UpdateAppointmentStatusDto {
 }
 
 export class CheckAvailabilityDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
-  @IsUUID()
+  @ApiProperty({ example: 'cmh7l0zbz0009v4d8vulskzil' })
+  @IsString()
   doctorId: string;
 
   @ApiProperty({ example: '2024-01-15' })

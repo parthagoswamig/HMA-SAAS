@@ -59,11 +59,19 @@ apiClient.interceptors.response.use(
     });
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 Unauthorized
+    // Handle 403 Forbidden - Permission Error (DON'T redirect to login!)
+    if (error.response?.status === 403) {
+      console.error('❌ Permission Denied:', error.response?.data);
+      // Let the error bubble up so the form can show the error message
+      return Promise.reject(error);
+    }
+
+    // Handle 401 Unauthorized - Token expired
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
+        console.log('🔄 Attempting token refresh...');
         // Try to refresh token
         const refreshToken =
           typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
@@ -75,6 +83,7 @@ apiClient.interceptors.response.use(
 
           const { accessToken } = response.data;
 
+          console.log('✅ Token refreshed successfully');
           // Save new token
           if (typeof window !== 'undefined') {
             localStorage.setItem('accessToken', accessToken);
@@ -85,13 +94,18 @@ apiClient.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           }
           return apiClient(originalRequest);
+        } else {
+          console.warn('⚠️ No refresh token available');
         }
       } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
         // Refresh failed, logout user
         if (typeof window !== 'undefined') {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
+          // Add a message before redirecting
+          alert('Your session has expired. Please login again.');
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);

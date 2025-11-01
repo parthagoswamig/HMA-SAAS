@@ -1,0 +1,12 @@
+{
+  "name": "hms-e2e-testing",
+  "version": "1.0.0",
+  "description": "E2E testing for HMS SaaS",
+  "scripts": {
+    "test:e2e": "node scripts/comprehensive-e2e-test.js",
+    "test:e2e:headed": "HEADLESS=false node scripts/comprehensive-e2e-test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}

@@ -1,0 +1,813 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration Success",
+    "description": "Verify that a new user can register successfully using POST /auth/register with valid data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /auth/register with valid user data for all roles"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains JWT token and user profile data"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Login Success",
+    "description": "Validate successful login using POST /auth/login with correct credentials",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /auth/login with registered username/email and correct password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains valid JWT access token and refresh token"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Login Failure with Incorrect Credentials",
+    "description": "Check login failure when incorrect username/email or password is provided",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /auth/login with invalid username/email or password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 401 Unauthorized"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response message indicates invalid credentials"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "JWT Token Refresh Success",
+    "description": "Validate token refresh using POST /auth/refresh with valid refresh token",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /auth/refresh with a valid refresh token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains new valid JWT access token"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Access Protected Profile Endpoint with Valid Token",
+    "description": "Verify GET /auth/profile returns user profile data when called with valid JWT token",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /auth/profile with valid JWT access token in Authorization header"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and returns correct user profile data"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Access Protected Profile Endpoint without Token",
+    "description": "Check that GET /auth/profile without JWT token returns 401 Unauthorized",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /auth/profile without Authorization header"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 401 Unauthorized"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Create New Patient Record",
+    "description": "Verify that POST /patients creates a new patient with valid data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /patients with all required patient registration fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response body contains the new patient record with correct data"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Retrieve Patient List",
+    "description": "Verify GET /patients returns a list of patients accessible according to RBAC",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /patients with valid JWT tokens of different roles"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the returned patient list matches permissions of the calling user role"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Update Existing Patient Data",
+    "description": "Verify PUT /patients/:id updates patient data properly with valid input and permissions",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send PUT /patients/:id with updated patient fields and a valid patient ID"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the patient record is updated accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Delete Patient Record",
+    "description": "Verify DELETE /patients/:id deletes patient record when requested by authorized role",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send DELETE /patients/:id with valid patient ID and authorized user token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 204 No Content"
+      },
+      {
+        "type": "action",
+        "description": "Attempt GET /patients/:id for deleted patient"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 404 Not Found"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Book Appointment Success",
+    "description": "Verify POST /appointments can create a new appointment with valid patient, doctor, and available time slot",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /appointments with valid patient ID, doctor ID, date and time within availability"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appointment details are correct in response"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Prevent Double Booking Appointment",
+    "description": "Verify that creating an appointment in a time slot already booked fails with proper error",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create an appointment in a specific time slot"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to create another appointment for the same doctor and time slot"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 409 Conflict"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message indicates time slot is already booked"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Retrieve Appointment by ID",
+    "description": "Verify GET /appointments/:id returns appointment details when given existing appointment ID",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /appointments/:id with valid appointment ID"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK with correct appointment data"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Update Appointment Details",
+    "description": "Verify PUT /appointments/:id updates existing appointment data properly",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send PUT /appointments/:id with updated appointment date or doctor"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appointment data is updated"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Get Appointment Calendar View",
+    "description": "Verify GET /appointments/calendar returns calendar view with scheduled appointments",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /appointments/calendar with valid user token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains calendar data structured by date and time"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Check Doctor Appointment Availability",
+    "description": "Validate GET /appointments/availability returns available time slots for a given doctor",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /appointments/availability with doctor ID and date"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response lists all available appointment slots"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Generate Invoice Successfully",
+    "description": "Verify POST /billing/invoices creates an invoice with valid billing details",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /billing/invoices with valid patient, service, and billing data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created and invoice has correct totals"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Retrieve Billing Invoices List",
+    "description": "Verify GET /billing/invoices returns a list of invoices accessible to the user",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /billing/invoices with valid token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK with list of invoices"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Process Payment for Invoice",
+    "description": "Verify POST /billing/payments processes payment correctly and updates invoice status",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /billing/payments with valid invoice ID and payment information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and invoice status is updated to paid/partial"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Retrieve Billing Statistics",
+    "description": "Verify GET /billing/invoices/stats returns correct aggregated statistics for invoices",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /billing/invoices/stats with valid user token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains total revenue, outstanding payments, and invoice count"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Generate Revenue Report",
+    "description": "Validate GET /billing/invoices/reports/revenue returns accurate revenue report data",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /billing/invoices/reports/revenue with date range filters"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains summarized revenue figures for the specified period"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Add New Staff Member",
+    "description": "Verify POST /staff creates a new staff record with required information",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /staff with valid staff details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created and staff data is returned"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Update Staff Information",
+    "description": "Verify PUT /staff/:id updates existing staff details correctly",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send PUT /staff/:id with modified fields for the staff member"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and updated information is saved"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Retrieve Staff Member Details",
+    "description": "Verify GET /staff/:id returns detailed information on specified staff member",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /staff/:id with valid staff ID"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and contains staff details"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Place Lab Test Order",
+    "description": "Verify POST /laboratory/orders creates a new lab test order successfully",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /laboratory/orders with valid patient ID, test details, and ordering doctor"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created and order details contain correct information"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Update Lab Test Results",
+    "description": "Verify PUT /laboratory/orders/:id/results updates lab test results for given order ID",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send PUT /laboratory/orders/:id/results with test result data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and results are saved correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Retrieve Pharmacy Orders List",
+    "description": "Verify GET /pharmacy/orders returns a list of pharmacy orders accessible by user",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /pharmacy/orders with valid authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK with list of pharmacy orders"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Place a Pharmacy Order",
+    "description": "Verify POST /pharmacy/orders successfully creates a new prescription order",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /pharmacy/orders with valid patient ID, medication details, and prescribing doctor"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created and order details are correct"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Retrieve Pharmacy Inventory",
+    "description": "Verify GET /pharmacy-management/inventory returns current inventory data of medicines",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /pharmacy-management/inventory with authorized Pharmacist token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and lists all medicines with stock counts"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Send Internal Message",
+    "description": "Verify POST /communications/messages allows sending internal messages between users",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /communications/messages with valid sender, recipient, and message body"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created with message metadata"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Retrieve User Messages",
+    "description": "Verify GET /communications/messages returns list of messages for the authenticated user",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /communications/messages with valid user token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK with messages list"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Retrieve Notifications",
+    "description": "Verify GET /communications/notifications returns notifications for the authenticated user",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /communications/notifications with valid JWT token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and contains notifications"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "List RBAC Roles",
+    "description": "Verify GET /rbac/roles returns all roles defined in the system",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /rbac/roles with valid SUPER_ADMIN token"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and contains list of roles"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Create New Role in RBAC",
+    "description": "Verify POST /rbac/roles creates a new role with valid data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /rbac/roles with new role details using SUPER_ADMIN privileges"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 201 Created and role data is correct"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "List RBAC Permissions",
+    "description": "Verify GET /rbac/permissions returns all permissions available in the system",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send GET /rbac/permissions as SUPER_ADMIN"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response contains permissions list"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Assign Permissions to Role",
+    "description": "Verify POST /rbac/roles/:id/permissions assigns permissions to specific role",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send POST /rbac/roles/:id/permissions with list of permission IDs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 200 OK and role permissions updated"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "RBAC Permission Enforcement on Endpoint Access",
+    "description": "Verify users cannot access endpoints or perform actions without proper RBAC permissions",
+    "category": "security",
+    "priority": "Critical",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to access restricted endpoint with insufficient role permissions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 403 Forbidden"
+      },
+      {
+        "type": "action",
+        "description": "Access same endpoint with correct permissions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is granted and response status is 200 OK"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Handle Database Connectivity Failure",
+    "description": "Simulate database unavailability and verify system handles the failure gracefully",
+    "category": "error handling",
+    "priority": "Critical",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Make database unreachable or disconnect Supabase connection"
+      },
+      {
+        "type": "action",
+        "description": "Perform data operation such as GET /patients"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify system returns 503 Service Unavailable or appropriate error message"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Frontend Component Rendering Tests",
+    "description": "Verify key UI components render correctly with various props and states",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Render components like PatientList, AppointmentCalendar, BillingInvoice with dummy data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify components display all information correctly as per design"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "E2E User Flow: Patient Registration to Appointment Booking",
+    "description": "Test end-to-end flow where a receptionist registers a patient and books an appointment successfully",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as RECEPTIONIST"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to patient registration page and register a new patient"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to appointment scheduling and book an appointment for the registered patient"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appointment appears in calendar and patient record is linked"
+      }
+    ]
+  },
+  {
+    "id": "TC041",
+    "title": "API Integration Test: Billing Invoice Creation and Payment",
+    "description": "Validate API integration from invoice creation to payment processing",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create patient invoice using POST /billing/invoices"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invoice is created with correct details"
+      },
+      {
+        "type": "action",
+        "description": "Process payment for invoice using POST /billing/payments"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invoice status updated accordingly and payment is recorded"
+      }
+    ]
+  },
+  {
+    "id": "TC042",
+    "title": "Database Migration Validation",
+    "description": "Test that the database migrations apply cleanly and data consistency is maintained",
+    "category": "functional",
+    "priority": "Critical",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Run database migration scripts on a staging/test environment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify migrations complete without errors"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify existing data remains consistent and accessible"
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "TypeScript Enum Handling in Communications Service",
+    "description": "Verify that communications service handles enums correctly to avoid type errors",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform messaging operations involving enum values in communications service"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no runtime or compile-time errors related to enum handling"
+      }
+    ]
+  }
+]

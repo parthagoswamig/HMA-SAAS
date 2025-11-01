@@ -1,0 +1,430 @@
+{
+  "projectName": "HMS SaaS Production Validation",
+  "baseUrl": "https://hma-saas-web.vercel.app",
+  "apiUrl": "https://hma-saas-1.onrender.com",
+  "testUser": {
+    "email": "admin@test.com",
+    "password": "Admin@123"
+  },
+  "tests": [
+    {
+      "id": "TC_PROD_001",
+      "name": "Production Backend Health Check",
+      "type": "api",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "GET",
+          "url": "https://hma-saas-1.onrender.com/health",
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_002",
+      "name": "Production Frontend Homepage Load",
+      "type": "frontend",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app",
+          "waitFor": "networkidle"
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_003",
+      "name": "Production Login Flow",
+      "type": "e2e",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/login"
+        },
+        {
+          "action": "fill",
+          "selector": "input[name='email']",
+          "value": "admin@test.com"
+        },
+        {
+          "action": "fill",
+          "selector": "input[name='password']",
+          "value": "Admin@123"
+        },
+        {
+          "action": "click",
+          "selector": "button[type='submit']"
+        },
+        {
+          "action": "waitForNavigation",
+          "url": "/dashboard"
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_004",
+      "name": "Dashboard Load After Login",
+      "type": "frontend",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_005",
+      "name": "Patients Module - List Patients",
+      "type": "e2e",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/patients",
+          "requiresAuth": true
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid='patients-list'], .patients-table, table"
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_006",
+      "name": "Appointments Module - View Appointments",
+      "type": "e2e",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/appointments",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_007",
+      "name": "Billing Module - View Invoices",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/billing",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_008",
+      "name": "Staff Module - View Staff List",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/staff",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_009",
+      "name": "Laboratory Module - View Lab Tests",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/laboratory",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_010",
+      "name": "Pharmacy Module - View Medications",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/pharmacy",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_011",
+      "name": "API - Authentication Endpoint",
+      "type": "api",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "POST",
+          "url": "https://hma-saas-1.onrender.com/auth/login",
+          "body": {
+            "email": "admin@test.com",
+            "password": "Admin@123"
+          },
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_012",
+      "name": "API - Get Patients List",
+      "type": "api",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "GET",
+          "url": "https://hma-saas-1.onrender.com/patients",
+          "requiresAuth": true,
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_013",
+      "name": "API - Get Appointments List",
+      "type": "api",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "GET",
+          "url": "https://hma-saas-1.onrender.com/appointments",
+          "requiresAuth": true,
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_014",
+      "name": "API - Get Staff List",
+      "type": "api",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "GET",
+          "url": "https://hma-saas-1.onrender.com/staff",
+          "requiresAuth": true,
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_015",
+      "name": "API - Get Billing Invoices",
+      "type": "api",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "GET",
+          "url": "https://hma-saas-1.onrender.com/billing/invoices",
+          "requiresAuth": true,
+          "expectedStatus": 200
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_016",
+      "name": "IPD Module - View Admissions",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/ipd",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_017",
+      "name": "OPD Module - View Visits",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/opd",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_018",
+      "name": "Emergency Module - View Cases",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/emergency",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_019",
+      "name": "Radiology Module - View Studies",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/radiology",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_020",
+      "name": "Inventory Module - View Items",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/inventory",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_021",
+      "name": "Insurance Module - View Claims",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/insurance",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_022",
+      "name": "Departments Module - View List",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/departments",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_023",
+      "name": "Roles Module - View Roles",
+      "type": "e2e",
+      "priority": "critical",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/roles",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_024",
+      "name": "Communications Module - View Messages",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/communications",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_025",
+      "name": "Reports Module - View Reports",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/reports",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_026",
+      "name": "Settings Module - View Settings",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/settings",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_027",
+      "name": "Audit Module - View Logs",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/audit",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_028",
+      "name": "EMR Module - View Medical Records",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/emr",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_029",
+      "name": "Surgery Module - View Surgeries",
+      "type": "e2e",
+      "priority": "medium",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/surgery",
+          "requiresAuth": true
+        }
+      ]
+    },
+    {
+      "id": "TC_PROD_030",
+      "name": "Patient Portal Module",
+      "type": "e2e",
+      "priority": "high",
+      "steps": [
+        {
+          "action": "navigate",
+          "url": "https://hma-saas-web.vercel.app/dashboard/patient-portal",
+          "requiresAuth": true
+        }
+      ]
+    }
+  ]
+}

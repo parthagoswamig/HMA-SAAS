@@ -1,0 +1,47 @@
+[
+  {
+    "id": "TC001",
+    "title": "test_authentication_and_authorization_endpoints",
+    "description": "Verify the functionality of authentication endpoints including user registration, login, token refresh, and profile retrieval with role-based access control enforcement."
+  },
+  {
+    "id": "TC002",
+    "title": "test_patient_management_endpoints",
+    "description": "Validate patient management endpoints for creating, retrieving, updating, and deleting patient records ensuring data integrity and access control."
+  },
+  {
+    "id": "TC003",
+    "title": "test_appointment_scheduling_endpoints",
+    "description": "Test appointment scheduling endpoints for booking, updating, retrieving appointments, checking calendar views, and availability to ensure correct scheduling logic."
+  },
+  {
+    "id": "TC004",
+    "title": "test_billing_and_invoicing_endpoints",
+    "description": "Verify billing endpoints for invoice generation, payment processing, invoice statistics, and revenue reporting for accuracy and security."
+  },
+  {
+    "id": "TC005",
+    "title": "test_staff_management_endpoints",
+    "description": "Validate staff management endpoints for managing hospital staff details, shifts, and schedules with proper role permissions."
+  },
+  {
+    "id": "TC006",
+    "title": "test_laboratory_endpoints",
+    "description": "Test laboratory endpoints for ordering lab tests, updating test results, and retrieving orders to ensure correct lab workflow."
+  },
+  {
+    "id": "TC007",
+    "title": "test_pharmacy_endpoints",
+    "description": "Verify pharmacy endpoints for managing prescription orders and inventory to ensure accurate pharmacy operations."
+  },
+  {
+    "id": "TC008",
+    "title": "test_communications_endpoints",
+    "description": "Test internal messaging and notification endpoints for sending, receiving messages, and retrieving notifications with correct user access."
+  },
+  {
+    "id": "TC009",
+    "title": "test_rbac_system_endpoints",
+    "description": "Validate role-based access control endpoints for managing roles, permissions, and assigning permissions to roles ensuring security compliance."
+  }
+]

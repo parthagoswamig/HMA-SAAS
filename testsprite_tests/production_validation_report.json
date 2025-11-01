@@ -1,0 +1,655 @@
+{
+  "timestamp": "2025-11-01T08:46:31.788Z",
+  "environment": {
+    "frontend": "https://hma-saas-web.vercel.app",
+    "backend": "https://hma-saas-1.onrender.com"
+  },
+  "summary": {
+    "total": 20,
+    "passed": 17,
+    "failed": 0,
+    "warnings": 3
+  },
+  "modules": [
+    {
+      "id": 1,
+      "name": "Authentication",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "POST /auth/login",
+          "type": "API",
+          "status": "PASS",
+          "duration": 2484,
+          "error": null
+        },
+        {
+          "name": "GET /auth/profile",
+          "type": "API",
+          "status": "PASS",
+          "duration": 164,
+          "error": null
+        },
+        {
+          "name": "GET /auth/health",
+          "type": "API",
+          "status": "PASS",
+          "duration": 273,
+          "error": null
+        },
+        {
+          "name": "Route: /login",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 846,
+          "error": null
+        },
+        {
+          "name": "Route: /signup",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 81,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 2,
+      "name": "Dashboard",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /dashboard/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 447,
+          "error": null
+        },
+        {
+          "name": "GET /dashboard/recent-activities",
+          "type": "API",
+          "status": "PASS",
+          "duration": 179,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 83,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 3,
+      "name": "Patients",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /patients",
+          "type": "API",
+          "status": "PASS",
+          "duration": 303,
+          "error": null
+        },
+        {
+          "name": "GET /patients/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 7851,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/patients",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 272,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 4,
+      "name": "Appointments",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /appointments",
+          "type": "API",
+          "status": "PASS",
+          "duration": 293,
+          "error": null
+        },
+        {
+          "name": "GET /appointments/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 206,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/appointments",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 90,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 5,
+      "name": "Billing",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /billing/invoices",
+          "type": "API",
+          "status": "PASS",
+          "duration": 202,
+          "error": null
+        },
+        {
+          "name": "GET /billing/invoices/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 245,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/billing",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 98,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 6,
+      "name": "Staff",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /staff",
+          "type": "API",
+          "status": "PASS",
+          "duration": 212,
+          "error": null
+        },
+        {
+          "name": "GET /staff/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 215,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/staff",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 81,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 7,
+      "name": "Laboratory",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /laboratory/tests",
+          "type": "API",
+          "status": "PASS",
+          "duration": 222,
+          "error": null
+        },
+        {
+          "name": "GET /laboratory/orders",
+          "type": "API",
+          "status": "PASS",
+          "duration": 213,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/laboratory",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 75,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 8,
+      "name": "Pharmacy",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /pharmacy/medications",
+          "type": "API",
+          "status": "PASS",
+          "duration": 198,
+          "error": null
+        },
+        {
+          "name": "GET /pharmacy/orders",
+          "type": "API",
+          "status": "PASS",
+          "duration": 372,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/pharmacy",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 72,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 9,
+      "name": "IPD",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /ipd/admissions",
+          "type": "API",
+          "status": "PASS",
+          "duration": 257,
+          "error": null
+        },
+        {
+          "name": "GET /ipd/wards",
+          "type": "API",
+          "status": "PASS",
+          "duration": 535,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/ipd",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 73,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 10,
+      "name": "OPD",
+      "priority": "high",
+      "status": "WARNING",
+      "tests": [
+        {
+          "name": "GET /opd/visits",
+          "type": "API",
+          "status": "PASS",
+          "duration": 217,
+          "error": null
+        },
+        {
+          "name": "GET /opd/queue",
+          "type": "API",
+          "status": "FAIL",
+          "duration": 0,
+          "error": "Failed to fetch OPD queue"
+        },
+        {
+          "name": "Route: /dashboard/opd",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 71,
+          "error": null
+        }
+      ],
+      "issues": [
+        {
+          "type": "API_ERROR",
+          "severity": "high",
+          "description": "Failed to fetch OPD queue",
+          "location": "GET /opd/queue"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Emergency",
+      "priority": "high",
+      "status": "WARNING",
+      "tests": [
+        {
+          "name": "GET /emergency/cases",
+          "type": "API",
+          "status": "FAIL",
+          "duration": 0,
+          "error": "Failed to fetch emergency cases"
+        },
+        {
+          "name": "GET /emergency/queue",
+          "type": "API",
+          "status": "FAIL",
+          "duration": 0,
+          "error": "Failed to fetch emergency queue"
+        },
+        {
+          "name": "Route: /dashboard/emergency",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 80,
+          "error": null
+        }
+      ],
+      "issues": [
+        {
+          "type": "API_ERROR",
+          "severity": "high",
+          "description": "Failed to fetch emergency cases",
+          "location": "GET /emergency/cases"
+        },
+        {
+          "type": "API_ERROR",
+          "severity": "high",
+          "description": "Failed to fetch emergency queue",
+          "location": "GET /emergency/queue"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Radiology",
+      "priority": "medium",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /radiology/studies",
+          "type": "API",
+          "status": "PASS",
+          "duration": 174,
+          "error": null
+        },
+        {
+          "name": "GET /radiology/orders",
+          "type": "API",
+          "status": "PASS",
+          "duration": 176,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/radiology",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 76,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 13,
+      "name": "Inventory",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /inventory",
+          "type": "API",
+          "status": "PASS",
+          "duration": 799,
+          "error": null
+        },
+        {
+          "name": "GET /inventory/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 296,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/inventory",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 72,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 14,
+      "name": "Insurance",
+      "priority": "medium",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /insurance/claims",
+          "type": "API",
+          "status": "PASS",
+          "duration": 199,
+          "error": null
+        },
+        {
+          "name": "GET /insurance/stats",
+          "type": "API",
+          "status": "PASS",
+          "duration": 314,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/insurance",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 82,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 15,
+      "name": "Departments",
+      "priority": "medium",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /hr/departments",
+          "type": "API",
+          "status": "PASS",
+          "duration": 217,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/departments",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 76,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 16,
+      "name": "Roles & Permissions",
+      "priority": "critical",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /roles",
+          "type": "API",
+          "status": "PASS",
+          "duration": 207,
+          "error": null
+        },
+        {
+          "name": "GET /permissions",
+          "type": "API",
+          "status": "PASS",
+          "duration": 173,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/roles",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 85,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 17,
+      "name": "Shifts",
+      "priority": "medium",
+      "status": "WARNING",
+      "tests": [
+        {
+          "name": "GET /shifts",
+          "type": "API",
+          "status": "FAIL",
+          "duration": 0,
+          "error": "Internal server error"
+        },
+        {
+          "name": "Route: /dashboard/shifts",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 80,
+          "error": null
+        }
+      ],
+      "issues": [
+        {
+          "type": "API_ERROR",
+          "severity": "high",
+          "description": "Internal server error",
+          "location": "GET /shifts"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Communications",
+      "priority": "medium",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /communications/messages",
+          "type": "API",
+          "status": "PASS",
+          "duration": 168,
+          "error": null
+        },
+        {
+          "name": "GET /communications/notifications",
+          "type": "API",
+          "status": "PASS",
+          "duration": 182,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/communications",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 73,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 19,
+      "name": "Reports",
+      "priority": "medium",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /reports/dashboard",
+          "type": "API",
+          "status": "PASS",
+          "duration": 383,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/reports",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 69,
+          "error": null
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": 20,
+      "name": "EMR",
+      "priority": "high",
+      "status": "PASS",
+      "tests": [
+        {
+          "name": "GET /emr/records",
+          "type": "API",
+          "status": "PASS",
+          "duration": 214,
+          "error": null
+        },
+        {
+          "name": "Route: /dashboard/emr",
+          "type": "ROUTE",
+          "status": "PASS",
+          "duration": 70,
+          "error": null
+        }
+      ],
+      "issues": []
+    }
+  ],
+  "issues": [
+    {
+      "type": "API_ERROR",
+      "severity": "high",
+      "description": "Failed to fetch OPD queue",
+      "location": "GET /opd/queue"
+    },
+    {
+      "type": "API_ERROR",
+      "severity": "high",
+      "description": "Failed to fetch emergency cases",
+      "location": "GET /emergency/cases"
+    },
+    {
+      "type": "API_ERROR",
+      "severity": "high",
+      "description": "Failed to fetch emergency queue",
+      "location": "GET /emergency/queue"
+    },
+    {
+      "type": "API_ERROR",
+      "severity": "high",
+      "description": "Internal server error",
+      "location": "GET /shifts"
+    }
+  ],
+  "fixes": []
+}

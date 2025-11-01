@@ -1,0 +1,749 @@
+{
+  "startTime": "2025-11-01T10:55:22.434Z",
+  "endTime": "2025-11-01T10:55:40.589Z",
+  "summary": {
+    "totalModules": 20,
+    "passed": 17,
+    "warning": 3,
+    "failed": 0,
+    "totalTests": 58,
+    "passedTests": 53,
+    "failedTests": 4
+  },
+  "modules": [
+    {
+      "name": "Authentication",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/auth/profile",
+          "description": "Get profile",
+          "status": "passed",
+          "responseTime": 161,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/auth/health",
+          "description": "Health check",
+          "status": "passed",
+          "responseTime": 136,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/login",
+          "description": "Login page",
+          "status": "passed",
+          "responseTime": 826,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        },
+        {
+          "route": "/signup",
+          "description": "Signup page",
+          "status": "passed",
+          "responseTime": 137,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Dashboard",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/dashboard/stats",
+          "description": "Dashboard stats",
+          "status": "passed",
+          "responseTime": 2814,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/dashboard/recent-activities",
+          "description": "Recent activities",
+          "status": "passed",
+          "responseTime": 193,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard",
+          "description": "Dashboard page",
+          "status": "passed",
+          "responseTime": 121,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Patients",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/patients",
+          "description": "List patients",
+          "status": "passed",
+          "responseTime": 220,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/patients/stats",
+          "description": "Patient stats",
+          "status": "passed",
+          "responseTime": 211,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/patients",
+          "description": "Patients page",
+          "status": "passed",
+          "responseTime": 95,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        },
+        {
+          "route": "/dashboard/patients/add",
+          "description": "Add patient page",
+          "status": "warning",
+          "responseTime": 86,
+          "statusCode": 404,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 1
+    },
+    {
+      "name": "Appointments",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/appointments",
+          "description": "List appointments",
+          "status": "passed",
+          "responseTime": 760,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/appointments/stats",
+          "description": "Appointment stats",
+          "status": "passed",
+          "responseTime": 219,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/appointments",
+          "description": "Appointments page",
+          "status": "passed",
+          "responseTime": 88,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Billing",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/billing/invoices",
+          "description": "List invoices",
+          "status": "passed",
+          "responseTime": 222,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/billing/invoices/stats",
+          "description": "Billing stats",
+          "status": "passed",
+          "responseTime": 262,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/billing",
+          "description": "Billing page",
+          "status": "passed",
+          "responseTime": 80,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Staff",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/staff",
+          "description": "List staff",
+          "status": "passed",
+          "responseTime": 270,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/staff/stats",
+          "description": "Staff stats",
+          "status": "passed",
+          "responseTime": 232,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/staff",
+          "description": "Staff page",
+          "status": "passed",
+          "responseTime": 83,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Laboratory",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/laboratory/tests",
+          "description": "List lab tests",
+          "status": "passed",
+          "responseTime": 213,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/laboratory/orders",
+          "description": "List lab orders",
+          "status": "passed",
+          "responseTime": 215,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/laboratory",
+          "description": "Laboratory page",
+          "status": "passed",
+          "responseTime": 85,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Pharmacy",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/pharmacy/medications",
+          "description": "List medications",
+          "status": "passed",
+          "responseTime": 216,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/pharmacy/orders",
+          "description": "List pharmacy orders",
+          "status": "passed",
+          "responseTime": 264,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/pharmacy",
+          "description": "Pharmacy page",
+          "status": "passed",
+          "responseTime": 85,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "IPD",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/ipd/admissions",
+          "description": "List admissions",
+          "status": "passed",
+          "responseTime": 223,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/ipd/wards",
+          "description": "List wards",
+          "status": "passed",
+          "responseTime": 221,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/ipd",
+          "description": "IPD page",
+          "status": "passed",
+          "responseTime": 124,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "OPD",
+      "status": "warning",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/opd/visits",
+          "description": "List OPD visits",
+          "status": "passed",
+          "responseTime": 228,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/opd/queue",
+          "description": "OPD queue",
+          "status": "failed",
+          "responseTime": 191,
+          "statusCode": 400,
+          "error": "Failed to fetch OPD queue"
+        },
+        {
+          "route": "/dashboard/opd",
+          "description": "OPD page",
+          "status": "passed",
+          "responseTime": 81,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 2,
+      "failed": 1,
+      "warning": 0
+    },
+    {
+      "name": "Emergency",
+      "status": "warning",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/emergency/cases",
+          "description": "List emergency cases",
+          "status": "failed",
+          "responseTime": 208,
+          "statusCode": 400,
+          "error": "Failed to fetch emergency cases"
+        },
+        {
+          "method": "GET",
+          "url": "/emergency/queue",
+          "description": "Emergency queue",
+          "status": "failed",
+          "responseTime": 193,
+          "statusCode": 400,
+          "error": "Failed to fetch emergency queue"
+        },
+        {
+          "route": "/dashboard/emergency",
+          "description": "Emergency page",
+          "status": "passed",
+          "responseTime": 235,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 1,
+      "failed": 2,
+      "warning": 0
+    },
+    {
+      "name": "Radiology",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/radiology/studies",
+          "description": "List studies",
+          "status": "passed",
+          "responseTime": 167,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/radiology/orders",
+          "description": "List orders",
+          "status": "passed",
+          "responseTime": 172,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/radiology",
+          "description": "Radiology page",
+          "status": "passed",
+          "responseTime": 91,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Inventory",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/inventory",
+          "description": "List inventory",
+          "status": "passed",
+          "responseTime": 343,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/inventory/stats",
+          "description": "Inventory stats",
+          "status": "passed",
+          "responseTime": 301,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/inventory",
+          "description": "Inventory page",
+          "status": "passed",
+          "responseTime": 79,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Insurance",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/insurance/claims",
+          "description": "List claims",
+          "status": "passed",
+          "responseTime": 204,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/insurance/stats",
+          "description": "Insurance stats",
+          "status": "passed",
+          "responseTime": 480,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/insurance",
+          "description": "Insurance page",
+          "status": "passed",
+          "responseTime": 76,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Departments",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/hr/departments",
+          "description": "List departments",
+          "status": "passed",
+          "responseTime": 216,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/departments",
+          "description": "Departments page",
+          "status": "passed",
+          "responseTime": 91,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Roles & Permissions",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/roles",
+          "description": "List roles",
+          "status": "passed",
+          "responseTime": 220,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/permissions",
+          "description": "List permissions",
+          "status": "passed",
+          "responseTime": 221,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/roles",
+          "description": "Roles page",
+          "status": "passed",
+          "responseTime": 82,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Shifts",
+      "status": "warning",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/shifts",
+          "description": "List shifts",
+          "status": "failed",
+          "responseTime": 169,
+          "statusCode": 500,
+          "error": "Internal server error"
+        },
+        {
+          "route": "/dashboard/shifts",
+          "description": "Shifts page",
+          "status": "passed",
+          "responseTime": 82,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 1,
+      "failed": 1,
+      "warning": 0
+    },
+    {
+      "name": "Communications",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/communications/messages",
+          "description": "List messages",
+          "status": "passed",
+          "responseTime": 179,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "method": "GET",
+          "url": "/communications/notifications",
+          "description": "List notifications",
+          "status": "passed",
+          "responseTime": 176,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/communications",
+          "description": "Communications page",
+          "status": "passed",
+          "responseTime": 77,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "Reports",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/reports/dashboard",
+          "description": "Reports dashboard",
+          "status": "passed",
+          "responseTime": 257,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/reports",
+          "description": "Reports page",
+          "status": "passed",
+          "responseTime": 82,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "name": "EMR",
+      "status": "passed",
+      "tests": [
+        {
+          "method": "GET",
+          "url": "/emr/records",
+          "description": "List medical records",
+          "status": "passed",
+          "responseTime": 541,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
+        },
+        {
+          "route": "/dashboard/emr",
+          "description": "EMR page",
+          "status": "passed",
+          "responseTime": 79,
+          "statusCode": 200,
+          "error": null,
+          "htmlReceived": true
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "warning": 0
+    }
+  ]
+}

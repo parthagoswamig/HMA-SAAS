@@ -1,0 +1,150 @@
+{
+  "projectName": "HMS SaaS - Hospital Management System",
+  "projectType": "fullstack",
+  "description": "Multi-tenant Hospital Management System with comprehensive modules for patient care, appointments, billing, inventory, staff management, and administration",
+  "techStack": {
+    "frontend": "Next.js 15.5.4 with React 19, TypeScript, Mantine UI",
+    "backend": "NestJS 11.x with TypeScript, Prisma ORM",
+    "database": "PostgreSQL on Supabase",
+    "authentication": "JWT with Passport, RBAC"
+  },
+  "features": [
+    {
+      "name": "Authentication & Authorization",
+      "description": "JWT-based authentication with role-based access control",
+      "endpoints": [
+        "POST /auth/register",
+        "POST /auth/login",
+        "POST /auth/refresh",
+        "GET /auth/profile"
+      ],
+      "priority": "critical"
+    },
+    {
+      "name": "Patient Management",
+      "description": "Complete patient registration, records, and medical history",
+      "endpoints": [
+        "GET /patients",
+        "POST /patients",
+        "GET /patients/:id",
+        "PUT /patients/:id",
+        "DELETE /patients/:id"
+      ],
+      "priority": "high"
+    },
+    {
+      "name": "Appointment Scheduling",
+      "description": "Book, manage, and track patient appointments with doctors",
+      "endpoints": [
+        "GET /appointments",
+        "POST /appointments",
+        "GET /appointments/:id",
+        "PUT /appointments/:id",
+        "GET /appointments/calendar",
+        "GET /appointments/availability"
+      ],
+      "priority": "high"
+    },
+    {
+      "name": "Billing & Invoicing",
+      "description": "Generate invoices, process payments, track revenue",
+      "endpoints": [
+        "GET /billing/invoices",
+        "POST /billing/invoices",
+        "POST /billing/payments",
+        "GET /billing/invoices/stats",
+        "GET /billing/invoices/reports/revenue"
+      ],
+      "priority": "high"
+    },
+    {
+      "name": "Staff Management",
+      "description": "Manage hospital staff, shifts, and schedules",
+      "endpoints": [
+        "GET /staff",
+        "POST /staff",
+        "GET /staff/:id",
+        "PUT /staff/:id"
+      ],
+      "priority": "medium"
+    },
+    {
+      "name": "Laboratory",
+      "description": "Lab test orders, results, and management",
+      "endpoints": [
+        "GET /laboratory/orders",
+        "POST /laboratory/orders",
+        "PUT /laboratory/orders/:id/results"
+      ],
+      "priority": "medium"
+    },
+    {
+      "name": "Pharmacy",
+      "description": "Prescription management and pharmacy operations",
+      "endpoints": [
+        "GET /pharmacy/orders",
+        "POST /pharmacy/orders",
+        "GET /pharmacy-management/inventory"
+      ],
+      "priority": "medium"
+    },
+    {
+      "name": "Communications",
+      "description": "Internal messaging and notifications",
+      "endpoints": [
+        "GET /communications/messages",
+        "POST /communications/messages",
+        "GET /communications/notifications"
+      ],
+      "priority": "medium"
+    },
+    {
+      "name": "RBAC System",
+      "description": "Role and permission management",
+      "endpoints": [
+        "GET /rbac/roles",
+        "POST /rbac/roles",
+        "GET /rbac/permissions",
+        "POST /rbac/roles/:id/permissions"
+      ],
+      "priority": "critical"
+    }
+  ],
+  "userRoles": [
+    "SUPER_ADMIN",
+    "ADMIN",
+    "DOCTOR",
+    "NURSE",
+    "RECEPTIONIST",
+    "PHARMACIST",
+    "LAB_TECHNICIAN",
+    "PATIENT"
+  ],
+  "criticalIssues": [
+    {
+      "issue": "Database connectivity failure",
+      "description": "Supabase database unreachable - blocking all data operations",
+      "priority": "critical",
+      "status": "identified"
+    },
+    {
+      "issue": "TypeScript error in communications service",
+      "description": "Enum treated as relation object",
+      "priority": "high",
+      "status": "fixed"
+    }
+  ],
+  "testingRequirements": {
+    "backend": [
+      "Unit tests for all services",
+      "E2E tests for critical endpoints",
+      "RBAC permission validation",
+      "Database migration tests"
+    ],
+    "frontend": [
+      "Component tests",
+      "E2E user flows",
+      "API integration tests"
+    ]
+  }
+}

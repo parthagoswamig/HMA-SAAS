@@ -1,0 +1,804 @@
+{
+  "projectName": "HMS SaaS - Production Validation",
+  "environment": "production",
+  "urls": {
+    "frontend": "https://hma-saas-web.vercel.app",
+    "backend": "https://hma-saas-1.onrender.com",
+    "database": "postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+  },
+  "testCredentials": {
+    "admin": {
+      "email": "admin@test.com",
+      "password": "Admin@123"
+    },
+    "doctor": {
+      "email": "doctor@test.com",
+      "password": "Doctor@123"
+    }
+  },
+  "modules": [
+    {
+      "id": 1,
+      "name": "Authentication",
+      "routes": [
+        "/login",
+        "/signup",
+        "/forgot-password",
+        "/reset-password"
+      ],
+      "apiEndpoints": [
+        "POST /auth/login",
+        "POST /auth/register",
+        "POST /auth/refresh",
+        "POST /auth/logout",
+        "POST /auth/forgot-password",
+        "POST /auth/reset-password"
+      ],
+      "tests": [
+        "Login with valid credentials",
+        "Login with invalid credentials",
+        "Register new user",
+        "JWT token generation",
+        "Token refresh mechanism",
+        "Password reset flow"
+      ],
+      "priority": "critical"
+    },
+    {
+      "id": 2,
+      "name": "Dashboard Overview",
+      "routes": ["/dashboard"],
+      "apiEndpoints": [
+        "GET /dashboard/stats",
+        "GET /dashboard/recent-activities",
+        "GET /dashboard/appointments-today"
+      ],
+      "tests": [
+        "Dashboard loads with stats",
+        "Recent activities display",
+        "Today's appointments show",
+        "Charts render correctly"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 3,
+      "name": "Patients",
+      "routes": ["/dashboard/patients"],
+      "apiEndpoints": [
+        "GET /patients",
+        "POST /patients",
+        "GET /patients/:id",
+        "PATCH /patients/:id",
+        "DELETE /patients/:id",
+        "GET /patients/search",
+        "GET /patients/stats"
+      ],
+      "tests": [
+        "List all patients",
+        "Create new patient",
+        "View patient details",
+        "Update patient information",
+        "Delete patient",
+        "Search patients",
+        "Patient statistics"
+      ],
+      "priority": "critical"
+    },
+    {
+      "id": 4,
+      "name": "IPD (Inpatient Department)",
+      "routes": ["/dashboard/ipd"],
+      "apiEndpoints": [
+        "GET /ipd/admissions",
+        "POST /ipd/admissions",
+        "GET /ipd/wards",
+        "GET /ipd/beds",
+        "PATCH /ipd/beds/:id/status",
+        "GET /ipd/stats"
+      ],
+      "tests": [
+        "List admissions",
+        "Create admission",
+        "View wards",
+        "Check bed availability",
+        "Update bed status",
+        "IPD statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 5,
+      "name": "OPD (Outpatient Department)",
+      "routes": ["/dashboard/opd"],
+      "apiEndpoints": [
+        "GET /opd/visits",
+        "POST /opd/visits",
+        "GET /opd/queue",
+        "GET /opd/stats"
+      ],
+      "tests": [
+        "List OPD visits",
+        "Create OPD visit",
+        "View queue",
+        "OPD statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 6,
+      "name": "Appointments",
+      "routes": ["/dashboard/appointments"],
+      "apiEndpoints": [
+        "GET /appointments",
+        "POST /appointments",
+        "GET /appointments/:id",
+        "PATCH /appointments/:id",
+        "DELETE /appointments/:id",
+        "GET /appointments/calendar",
+        "GET /appointments/availability"
+      ],
+      "tests": [
+        "List appointments",
+        "Book appointment",
+        "View appointment details",
+        "Modify appointment",
+        "Cancel appointment",
+        "Calendar view",
+        "Check availability"
+      ],
+      "priority": "critical"
+    },
+    {
+      "id": 7,
+      "name": "Radiology",
+      "routes": ["/dashboard/radiology"],
+      "apiEndpoints": [
+        "GET /radiology/studies",
+        "POST /radiology/studies",
+        "GET /radiology/reports",
+        "POST /radiology/reports",
+        "GET /radiology/orders",
+        "GET /radiology/stats"
+      ],
+      "tests": [
+        "List radiology studies",
+        "Create study",
+        "View reports",
+        "Create report",
+        "View orders",
+        "Radiology statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 8,
+      "name": "Laboratory",
+      "routes": ["/dashboard/laboratory"],
+      "apiEndpoints": [
+        "GET /laboratory/tests",
+        "POST /laboratory/tests",
+        "GET /laboratory/orders",
+        "POST /laboratory/orders",
+        "PATCH /laboratory/orders/:orderId/tests/:testId/result",
+        "GET /laboratory/orders/stats"
+      ],
+      "tests": [
+        "List lab tests",
+        "Create test",
+        "View orders",
+        "Create order",
+        "Update test results",
+        "Lab statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 9,
+      "name": "Pharmacy",
+      "routes": ["/dashboard/pharmacy"],
+      "apiEndpoints": [
+        "GET /pharmacy/medications",
+        "POST /pharmacy/medications",
+        "GET /pharmacy/orders",
+        "POST /pharmacy/orders",
+        "PATCH /pharmacy/orders/:id",
+        "GET /pharmacy/orders/stats"
+      ],
+      "tests": [
+        "List medications",
+        "Add medication",
+        "View orders",
+        "Create order",
+        "Update order",
+        "Pharmacy statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 10,
+      "name": "Billing",
+      "routes": ["/dashboard/billing"],
+      "apiEndpoints": [
+        "GET /billing/invoices",
+        "POST /billing/invoices",
+        "GET /billing/invoices/:id",
+        "PATCH /billing/invoices/:id",
+        "GET /billing/payments",
+        "POST /billing/payments",
+        "GET /billing/invoices/stats"
+      ],
+      "tests": [
+        "List invoices",
+        "Generate invoice",
+        "View invoice details",
+        "Update invoice",
+        "List payments",
+        "Process payment",
+        "Billing statistics"
+      ],
+      "priority": "critical"
+    },
+    {
+      "id": 11,
+      "name": "Insurance",
+      "routes": ["/dashboard/insurance"],
+      "apiEndpoints": [
+        "GET /insurance/claims",
+        "POST /insurance/claims",
+        "GET /insurance/claims/:id",
+        "PATCH /insurance/claims/:id",
+        "PATCH /insurance/claims/:id/status",
+        "GET /insurance/stats"
+      ],
+      "tests": [
+        "List claims",
+        "Create claim",
+        "View claim details",
+        "Update claim",
+        "Change claim status",
+        "Insurance statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 12,
+      "name": "Inventory",
+      "routes": ["/dashboard/inventory"],
+      "apiEndpoints": [
+        "GET /inventory",
+        "POST /inventory",
+        "GET /inventory/:id",
+        "PATCH /inventory/:id",
+        "DELETE /inventory/:id",
+        "GET /inventory/low-stock",
+        "PATCH /inventory/:id/adjust-stock",
+        "GET /inventory/stats"
+      ],
+      "tests": [
+        "List inventory items",
+        "Add item",
+        "View item details",
+        "Update item",
+        "Delete item",
+        "Check low stock",
+        "Adjust stock",
+        "Inventory statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 13,
+      "name": "Staff",
+      "routes": ["/dashboard/staff"],
+      "apiEndpoints": [
+        "GET /staff",
+        "POST /staff",
+        "GET /staff/:id",
+        "PATCH /staff/:id",
+        "DELETE /staff/:id",
+        "GET /staff/search",
+        "GET /staff/stats"
+      ],
+      "tests": [
+        "List staff",
+        "Add staff member",
+        "View staff details",
+        "Update staff",
+        "Remove staff",
+        "Search staff",
+        "Staff statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 14,
+      "name": "Departments",
+      "routes": ["/dashboard/departments"],
+      "apiEndpoints": [
+        "GET /hr/departments",
+        "POST /hr/departments",
+        "GET /hr/departments/:id",
+        "PATCH /hr/departments/:id",
+        "DELETE /hr/departments/:id"
+      ],
+      "tests": [
+        "List departments",
+        "Create department",
+        "View department",
+        "Update department",
+        "Delete department"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 15,
+      "name": "Roles & Permissions",
+      "routes": ["/dashboard/roles"],
+      "apiEndpoints": [
+        "GET /roles",
+        "POST /roles",
+        "GET /roles/:id",
+        "PATCH /roles/:id",
+        "DELETE /roles/:id",
+        "GET /permissions",
+        "GET /roles/:id/permissions"
+      ],
+      "tests": [
+        "List roles",
+        "Create role",
+        "View role",
+        "Update role",
+        "Delete role",
+        "List permissions",
+        "View role permissions"
+      ],
+      "priority": "critical"
+    },
+    {
+      "id": 16,
+      "name": "Shifts",
+      "routes": ["/dashboard/shifts"],
+      "apiEndpoints": [
+        "GET /shifts",
+        "POST /shifts",
+        "GET /shifts/:id",
+        "PATCH /shifts/:id",
+        "DELETE /shifts/:id",
+        "GET /shifts/stats"
+      ],
+      "tests": [
+        "List shifts",
+        "Create shift",
+        "View shift",
+        "Update shift",
+        "Delete shift",
+        "Shift statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 17,
+      "name": "Communications",
+      "routes": ["/dashboard/communications"],
+      "apiEndpoints": [
+        "GET /communications/messages",
+        "POST /communications/messages",
+        "PATCH /communications/messages/:id/read",
+        "DELETE /communications/messages/:id",
+        "GET /communications/notifications",
+        "POST /communications/notifications",
+        "PATCH /communications/notifications/:id/read",
+        "GET /communications/stats"
+      ],
+      "tests": [
+        "List messages",
+        "Send message",
+        "Mark message as read",
+        "Delete message",
+        "List notifications",
+        "Create notification",
+        "Mark notification as read",
+        "Communication statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 18,
+      "name": "Reports",
+      "routes": ["/dashboard/reports"],
+      "apiEndpoints": [
+        "GET /reports/dashboard",
+        "GET /reports/patients",
+        "GET /reports/appointments",
+        "GET /reports/revenue",
+        "GET /reports/lab",
+        "GET /reports/pharmacy"
+      ],
+      "tests": [
+        "Dashboard report",
+        "Patient report",
+        "Appointment report",
+        "Revenue report",
+        "Lab report",
+        "Pharmacy report"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 19,
+      "name": "Emergency",
+      "routes": ["/dashboard/emergency"],
+      "apiEndpoints": [
+        "GET /emergency/cases",
+        "POST /emergency/cases",
+        "GET /emergency/cases/:id",
+        "PATCH /emergency/cases/:id",
+        "PATCH /emergency/cases/:id/triage",
+        "GET /emergency/queue",
+        "GET /emergency/stats"
+      ],
+      "tests": [
+        "List emergency cases",
+        "Create case",
+        "View case details",
+        "Update case",
+        "Triage case",
+        "View queue",
+        "Emergency statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 20,
+      "name": "Surgery",
+      "routes": ["/dashboard/surgery"],
+      "apiEndpoints": [
+        "GET /surgery",
+        "POST /surgery",
+        "GET /surgery/:id",
+        "PATCH /surgery/:id",
+        "GET /surgery/schedule/upcoming",
+        "GET /surgery/theaters/available",
+        "GET /surgery/stats"
+      ],
+      "tests": [
+        "List surgeries",
+        "Schedule surgery",
+        "View surgery details",
+        "Update surgery",
+        "View upcoming schedule",
+        "Check theater availability",
+        "Surgery statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 21,
+      "name": "EMR (Electronic Medical Records)",
+      "routes": ["/dashboard/emr"],
+      "apiEndpoints": [
+        "GET /emr/records",
+        "POST /emr/records",
+        "GET /emr/records/:id",
+        "PATCH /emr/records/:id",
+        "DELETE /emr/records/:id",
+        "GET /emr/records/patient/:patientId",
+        "GET /emr/stats"
+      ],
+      "tests": [
+        "List medical records",
+        "Create record",
+        "View record",
+        "Update record",
+        "Delete record",
+        "View patient records",
+        "EMR statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 22,
+      "name": "Pathology",
+      "routes": ["/dashboard/pathology"],
+      "apiEndpoints": [
+        "GET /pathology/tests",
+        "POST /pathology/tests",
+        "GET /pathology/orders",
+        "POST /pathology/orders",
+        "PATCH /pathology/orders/:orderId/tests/:testId/result",
+        "GET /pathology/stats"
+      ],
+      "tests": [
+        "List pathology tests",
+        "Create test",
+        "View orders",
+        "Create order",
+        "Update test results",
+        "Pathology statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 23,
+      "name": "Finance",
+      "routes": ["/dashboard/finance"],
+      "apiEndpoints": [
+        "GET /finance/invoices",
+        "GET /finance/payments",
+        "POST /finance/payments",
+        "GET /finance/reports/revenue",
+        "GET /finance/reports/outstanding",
+        "GET /finance/stats"
+      ],
+      "tests": [
+        "List invoices",
+        "List payments",
+        "Record payment",
+        "Revenue report",
+        "Outstanding report",
+        "Finance statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 24,
+      "name": "HR & Payroll",
+      "routes": ["/dashboard/hr", "/dashboard/payroll"],
+      "apiEndpoints": [
+        "GET /hr/staff",
+        "POST /hr/staff",
+        "GET /hr/departments",
+        "GET /hr/attendance",
+        "GET /hr/stats"
+      ],
+      "tests": [
+        "List HR staff",
+        "Add staff",
+        "View departments",
+        "View attendance",
+        "HR statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 25,
+      "name": "Patient Portal",
+      "routes": ["/dashboard/patient-portal"],
+      "apiEndpoints": [
+        "GET /patient-portal/my-profile",
+        "PATCH /patient-portal/my-profile",
+        "GET /patient-portal/my-appointments",
+        "POST /patient-portal/book-appointment",
+        "GET /patient-portal/my-medical-records",
+        "GET /patient-portal/my-lab-results",
+        "GET /patient-portal/my-prescriptions",
+        "GET /patient-portal/my-invoices"
+      ],
+      "tests": [
+        "View profile",
+        "Update profile",
+        "View appointments",
+        "Book appointment",
+        "View medical records",
+        "View lab results",
+        "View prescriptions",
+        "View invoices"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 26,
+      "name": "Telemedicine",
+      "routes": ["/dashboard/telemedicine"],
+      "apiEndpoints": [
+        "GET /telemedicine/consultations",
+        "POST /telemedicine/consultations",
+        "GET /telemedicine/consultations/:id",
+        "PATCH /telemedicine/consultations/:id",
+        "GET /telemedicine/stats"
+      ],
+      "tests": [
+        "List consultations",
+        "Create consultation",
+        "View consultation",
+        "Update consultation",
+        "Telemedicine statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 27,
+      "name": "Pharmacy Management",
+      "routes": ["/dashboard/pharmacy-management"],
+      "apiEndpoints": [
+        "GET /pharmacy-management/medications",
+        "POST /pharmacy-management/medications",
+        "GET /pharmacy-management/orders",
+        "PATCH /pharmacy-management/orders/:id/dispense",
+        "GET /pharmacy-management/stats"
+      ],
+      "tests": [
+        "List medications",
+        "Add medication",
+        "View orders",
+        "Dispense order",
+        "Pharmacy management statistics"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 28,
+      "name": "Quality Management",
+      "routes": ["/dashboard/quality"],
+      "apiEndpoints": [
+        "GET /quality/metrics",
+        "POST /quality/metrics",
+        "GET /quality/incidents",
+        "POST /quality/incidents",
+        "GET /quality/stats"
+      ],
+      "tests": [
+        "List quality metrics",
+        "Create metric",
+        "View incidents",
+        "Report incident",
+        "Quality statistics"
+      ],
+      "priority": "low"
+    },
+    {
+      "id": 29,
+      "name": "Research",
+      "routes": ["/dashboard/research"],
+      "apiEndpoints": [
+        "GET /research/projects",
+        "POST /research/projects",
+        "GET /research/projects/:id",
+        "PATCH /research/projects/:id",
+        "GET /research/stats"
+      ],
+      "tests": [
+        "List research projects",
+        "Create project",
+        "View project",
+        "Update project",
+        "Research statistics"
+      ],
+      "priority": "low"
+    },
+    {
+      "id": 30,
+      "name": "Integration",
+      "routes": ["/dashboard/integration"],
+      "apiEndpoints": [
+        "GET /integration/configs",
+        "POST /integration/configs",
+        "GET /integration/configs/:id",
+        "PATCH /integration/configs/:id",
+        "POST /integration/configs/:id/test",
+        "GET /integration/stats"
+      ],
+      "tests": [
+        "List integrations",
+        "Create integration",
+        "View integration",
+        "Update integration",
+        "Test integration",
+        "Integration statistics"
+      ],
+      "priority": "low"
+    },
+    {
+      "id": 31,
+      "name": "Settings",
+      "routes": ["/dashboard/settings"],
+      "apiEndpoints": [
+        "GET /settings/hospital",
+        "PATCH /settings/hospital",
+        "GET /settings/subscription",
+        "PATCH /settings/subscription"
+      ],
+      "tests": [
+        "View hospital settings",
+        "Update hospital settings",
+        "View subscription",
+        "Update subscription"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 32,
+      "name": "Audit Trail",
+      "routes": ["/dashboard/audit"],
+      "apiEndpoints": [
+        "GET /audit/logs"
+      ],
+      "tests": [
+        "View audit logs",
+        "Filter logs",
+        "Export logs"
+      ],
+      "priority": "medium"
+    },
+    {
+      "id": 33,
+      "name": "Users",
+      "routes": ["/dashboard/users"],
+      "apiEndpoints": [
+        "GET /users",
+        "POST /users",
+        "GET /users/:id",
+        "PATCH /users/:id",
+        "DELETE /users/:id",
+        "POST /users/:id/change-password",
+        "POST /users/:id/assign-role",
+        "GET /users/stats"
+      ],
+      "tests": [
+        "List users",
+        "Create user",
+        "View user",
+        "Update user",
+        "Delete user",
+        "Change password",
+        "Assign role",
+        "User statistics"
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 34,
+      "name": "Tenants",
+      "routes": ["/dashboard/admin/tenants"],
+      "apiEndpoints": [
+        "GET /tenants",
+        "POST /tenants",
+        "GET /tenants/:id",
+        "PATCH /tenants/:id",
+        "DELETE /tenants/:id",
+        "GET /tenants/slug/:slug",
+        "GET /tenants/:id/stats"
+      ],
+      "tests": [
+        "List tenants",
+        "Create tenant",
+        "View tenant",
+        "Update tenant",
+        "Delete tenant",
+        "Get tenant by slug",
+        "Tenant statistics"
+      ],
+      "priority": "critical"
+    }
+  ],
+  "validationChecks": [
+    "Frontend page loads without errors",
+    "Forms render correctly",
+    "Submit buttons are functional",
+    "API endpoints respond with correct status codes",
+    "JWT authentication works",
+    "Role-based access control enforced",
+    "CORS configured properly",
+    "Database queries execute successfully",
+    "DTOs match between frontend and backend",
+    "Error messages display correctly",
+    "Success notifications show",
+    "Navigation works between modules",
+    "Data persists in database",
+    "Search and filter functions work",
+    "Pagination works correctly"
+  ],
+  "autoFixCapabilities": [
+    "Fix mismatched DTOs",
+    "Correct API route paths",
+    "Update CORS configuration",
+    "Fix authentication guards",
+    "Repair broken service methods",
+    "Update environment variables",
+    "Fix database schema mismatches",
+    "Correct form validation",
+    "Fix navigation routes",
+    "Update API client configuration"
+  ]
+}

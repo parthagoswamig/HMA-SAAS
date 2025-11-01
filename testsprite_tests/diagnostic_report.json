@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-11-01T11:01:24.742Z",
+  "results": {
+    "opd": {
+      "success": false,
+      "error": "Request failed with status code 400",
+      "response": {
+        "message": "Failed to fetch OPD queue",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    "emergencyCases": {
+      "success": false,
+      "error": "Request failed with status code 400",
+      "response": {
+        "message": "Failed to fetch emergency cases",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    "emergencyQueue": {
+      "success": false,
+      "error": "Request failed with status code 400",
+      "response": {
+        "message": "Failed to fetch emergency queue",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    "shifts": {
+      "success": false,
+      "error": "Request failed with status code 500",
+      "response": {
+        "statusCode": 500,
+        "message": "Internal server error"
+      }
+    }
+  },
+  "summary": {
+    "working": 0,
+    "emptyData": 0,
+    "broken": 4
+  }
+}

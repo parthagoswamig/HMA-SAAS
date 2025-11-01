@@ -755,7 +755,7 @@ const AppointmentManagement = () => {
                         </Table.Td>
                         <Table.Td>
                           <Badge color={getStatusColor(appointment.status)} variant="light">
-                            {appointment.status.replace('_', ' ')}
+                            {appointment.status?.replace('_', ' ') || 'Unknown'}
                           </Badge>
                         </Table.Td>
                         <Table.Td>

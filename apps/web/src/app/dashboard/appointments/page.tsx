@@ -750,7 +750,7 @@ const AppointmentManagement = () => {
                         </Table.Td>
                         <Table.Td>
                           <Badge color={getTypeColor(appointment.appointmentType)} variant="light">
-                            {appointment.appointmentType.replace('_', ' ')}
+                            {appointment.appointmentType?.replace('_', ' ') || 'Regular'}
                           </Badge>
                         </Table.Td>
                         <Table.Td>
@@ -1095,7 +1095,7 @@ const AppointmentManagement = () => {
                     <Timeline.Item
                       key={reminder.id}
                       bullet={<IconBell size={12} />}
-                      title={reminder.reminderType.replace('_', ' ').toUpperCase()}
+                      title={reminder.reminderType?.replace('_', ' ').toUpperCase() || 'REMINDER'}
                     >
                       <Text size="sm" c="dimmed">
                         {reminder.message}
@@ -1230,7 +1230,7 @@ const AppointmentManagement = () => {
                 </Title>
                 <Text c="dimmed">{selectedAppointment.appointmentNumber}</Text>
                 <Badge color={getStatusColor(selectedAppointment.status)} variant="light" mt="xs">
-                  {selectedAppointment.status.replace('_', ' ')}
+                  {selectedAppointment.status?.replace('_', ' ') || 'Unknown'}
                 </Badge>
               </div>
             </Group>
@@ -1281,7 +1281,7 @@ const AppointmentManagement = () => {
                   variant="light"
                   size="sm"
                 >
-                  {selectedAppointment.appointmentType.replace('_', ' ')}
+                  {selectedAppointment.appointmentType?.replace('_', ' ') || 'Regular'}
                 </Badge>
               </div>
               <div>

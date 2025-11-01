@@ -36,7 +36,9 @@ import {
 @Controller('opd')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class OpdController {
-  constructor(private readonly opdService: OpdService) {}
+  constructor(private readonly opdService: OpdService) {
+    console.log('🏥 OPD Controller initialized');
+  }
 
   /**
    * Create a new OPD visit

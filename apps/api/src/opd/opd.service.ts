@@ -145,6 +145,18 @@ export class OpdService {
       }
       this.logger.log(`✅ Doctor found: ${doctor.firstName} ${doctor.lastName}`);
 
+      // Map OPD status to Appointment status
+      const statusMapping = {
+        [OpdVisitStatus.WAITING]: AppointmentStatus.SCHEDULED,
+        [OpdVisitStatus.ARRIVED]: AppointmentStatus.ARRIVED,
+        [OpdVisitStatus.IN_CONSULTATION]: AppointmentStatus.IN_PROGRESS,
+        [OpdVisitStatus.COMPLETED]: AppointmentStatus.COMPLETED,
+        [OpdVisitStatus.CANCELLED]: AppointmentStatus.CANCELLED,
+        [OpdVisitStatus.NO_SHOW]: AppointmentStatus.NO_SHOW,
+      };
+      
+      const appointmentStatus = statusMapping[createDto.status || OpdVisitStatus.WAITING];
+
       // Create appointment for OPD visit
       const visit = await this.prisma.appointment.create({
         data: {
@@ -153,7 +165,7 @@ export class OpdService {
           departmentId: createDto.departmentId,
           startTime: new Date(),
           endTime: new Date(Date.now() + 30 * 60000), // 30 min default
-          status: (createDto.status || OpdVisitStatus.WAITING) as any,
+          status: appointmentStatus,
           reason: createDto.chiefComplaint,
           notes: createDto.notes,
           tenantId,

@@ -1,14 +1,14 @@
 {
-  "startTime": "2025-11-01T10:55:22.434Z",
-  "endTime": "2025-11-01T10:55:40.589Z",
+  "startTime": "2025-11-01T12:11:39.941Z",
+  "endTime": "2025-11-01T12:12:03.671Z",
   "summary": {
     "totalModules": 20,
-    "passed": 17,
-    "warning": 3,
+    "passed": 20,
+    "warning": 0,
     "failed": 0,
     "totalTests": 58,
-    "passedTests": 53,
-    "failedTests": 4
+    "passedTests": 58,
+    "failedTests": 0
   },
   "modules": [
     {
@@ -20,7 +20,7 @@
           "url": "/auth/profile",
           "description": "Get profile",
           "status": "passed",
-          "responseTime": 161,
+          "responseTime": 159,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -30,7 +30,7 @@
           "url": "/auth/health",
           "description": "Health check",
           "status": "passed",
-          "responseTime": 136,
+          "responseTime": 140,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -39,7 +39,7 @@
           "route": "/login",
           "description": "Login page",
           "status": "passed",
-          "responseTime": 826,
+          "responseTime": 878,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -48,7 +48,7 @@
           "route": "/signup",
           "description": "Signup page",
           "status": "passed",
-          "responseTime": 137,
+          "responseTime": 547,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -67,7 +67,7 @@
           "url": "/dashboard/stats",
           "description": "Dashboard stats",
           "status": "passed",
-          "responseTime": 2814,
+          "responseTime": 428,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -77,7 +77,7 @@
           "url": "/dashboard/recent-activities",
           "description": "Recent activities",
           "status": "passed",
-          "responseTime": 193,
+          "responseTime": 180,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -86,7 +86,7 @@
           "route": "/dashboard",
           "description": "Dashboard page",
           "status": "passed",
-          "responseTime": 121,
+          "responseTime": 605,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -105,7 +105,7 @@
           "url": "/patients",
           "description": "List patients",
           "status": "passed",
-          "responseTime": 220,
+          "responseTime": 297,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -115,7 +115,7 @@
           "url": "/patients/stats",
           "description": "Patient stats",
           "status": "passed",
-          "responseTime": 211,
+          "responseTime": 183,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -124,7 +124,7 @@
           "route": "/dashboard/patients",
           "description": "Patients page",
           "status": "passed",
-          "responseTime": 95,
+          "responseTime": 533,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -132,16 +132,16 @@
         {
           "route": "/dashboard/patients/add",
           "description": "Add patient page",
-          "status": "warning",
-          "responseTime": 86,
-          "statusCode": 404,
+          "status": "passed",
+          "responseTime": 542,
+          "statusCode": 200,
           "error": null,
           "htmlReceived": true
         }
       ],
-      "passed": 3,
+      "passed": 4,
       "failed": 0,
-      "warning": 1
+      "warning": 0
     },
     {
       "name": "Appointments",
@@ -152,7 +152,7 @@
           "url": "/appointments",
           "description": "List appointments",
           "status": "passed",
-          "responseTime": 760,
+          "responseTime": 211,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -162,7 +162,7 @@
           "url": "/appointments/stats",
           "description": "Appointment stats",
           "status": "passed",
-          "responseTime": 219,
+          "responseTime": 194,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -171,7 +171,7 @@
           "route": "/dashboard/appointments",
           "description": "Appointments page",
           "status": "passed",
-          "responseTime": 88,
+          "responseTime": 80,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -190,7 +190,7 @@
           "url": "/billing/invoices",
           "description": "List invoices",
           "status": "passed",
-          "responseTime": 222,
+          "responseTime": 192,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -200,7 +200,7 @@
           "url": "/billing/invoices/stats",
           "description": "Billing stats",
           "status": "passed",
-          "responseTime": 262,
+          "responseTime": 202,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -209,7 +209,7 @@
           "route": "/dashboard/billing",
           "description": "Billing page",
           "status": "passed",
-          "responseTime": 80,
+          "responseTime": 611,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -228,7 +228,7 @@
           "url": "/staff",
           "description": "List staff",
           "status": "passed",
-          "responseTime": 270,
+          "responseTime": 191,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -238,7 +238,7 @@
           "url": "/staff/stats",
           "description": "Staff stats",
           "status": "passed",
-          "responseTime": 232,
+          "responseTime": 191,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -247,7 +247,7 @@
           "route": "/dashboard/staff",
           "description": "Staff page",
           "status": "passed",
-          "responseTime": 83,
+          "responseTime": 578,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -266,7 +266,7 @@
           "url": "/laboratory/tests",
           "description": "List lab tests",
           "status": "passed",
-          "responseTime": 213,
+          "responseTime": 188,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -276,7 +276,7 @@
           "url": "/laboratory/orders",
           "description": "List lab orders",
           "status": "passed",
-          "responseTime": 215,
+          "responseTime": 183,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -285,7 +285,7 @@
           "route": "/dashboard/laboratory",
           "description": "Laboratory page",
           "status": "passed",
-          "responseTime": 85,
+          "responseTime": 572,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -304,7 +304,7 @@
           "url": "/pharmacy/medications",
           "description": "List medications",
           "status": "passed",
-          "responseTime": 216,
+          "responseTime": 186,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -314,7 +314,7 @@
           "url": "/pharmacy/orders",
           "description": "List pharmacy orders",
           "status": "passed",
-          "responseTime": 264,
+          "responseTime": 768,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -323,7 +323,7 @@
           "route": "/dashboard/pharmacy",
           "description": "Pharmacy page",
           "status": "passed",
-          "responseTime": 85,
+          "responseTime": 614,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -342,7 +342,7 @@
           "url": "/ipd/admissions",
           "description": "List admissions",
           "status": "passed",
-          "responseTime": 223,
+          "responseTime": 209,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -352,7 +352,7 @@
           "url": "/ipd/wards",
           "description": "List wards",
           "status": "passed",
-          "responseTime": 221,
+          "responseTime": 256,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -361,7 +361,7 @@
           "route": "/dashboard/ipd",
           "description": "IPD page",
           "status": "passed",
-          "responseTime": 124,
+          "responseTime": 572,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -373,14 +373,14 @@
     },
     {
       "name": "OPD",
-      "status": "warning",
+      "status": "passed",
       "tests": [
         {
           "method": "GET",
           "url": "/opd/visits",
           "description": "List OPD visits",
           "status": "passed",
-          "responseTime": 228,
+          "responseTime": 191,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -389,59 +389,62 @@
           "method": "GET",
           "url": "/opd/queue",
           "description": "OPD queue",
-          "status": "failed",
-          "responseTime": 191,
-          "statusCode": 400,
-          "error": "Failed to fetch OPD queue"
+          "status": "passed",
+          "responseTime": 224,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
         },
         {
           "route": "/dashboard/opd",
           "description": "OPD page",
           "status": "passed",
-          "responseTime": 81,
+          "responseTime": 536,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
         }
       ],
-      "passed": 2,
-      "failed": 1,
+      "passed": 3,
+      "failed": 0,
       "warning": 0
     },
     {
       "name": "Emergency",
-      "status": "warning",
+      "status": "passed",
       "tests": [
         {
           "method": "GET",
           "url": "/emergency/cases",
           "description": "List emergency cases",
-          "status": "failed",
-          "responseTime": 208,
-          "statusCode": 400,
-          "error": "Failed to fetch emergency cases"
+          "status": "passed",
+          "responseTime": 179,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
         },
         {
           "method": "GET",
           "url": "/emergency/queue",
           "description": "Emergency queue",
-          "status": "failed",
-          "responseTime": 193,
-          "statusCode": 400,
-          "error": "Failed to fetch emergency queue"
+          "status": "passed",
+          "responseTime": 182,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
         },
         {
           "route": "/dashboard/emergency",
           "description": "Emergency page",
           "status": "passed",
-          "responseTime": 235,
+          "responseTime": 631,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
         }
       ],
-      "passed": 1,
-      "failed": 2,
+      "passed": 3,
+      "failed": 0,
       "warning": 0
     },
     {
@@ -453,7 +456,7 @@
           "url": "/radiology/studies",
           "description": "List studies",
           "status": "passed",
-          "responseTime": 167,
+          "responseTime": 171,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -463,7 +466,7 @@
           "url": "/radiology/orders",
           "description": "List orders",
           "status": "passed",
-          "responseTime": 172,
+          "responseTime": 194,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -472,7 +475,7 @@
           "route": "/dashboard/radiology",
           "description": "Radiology page",
           "status": "passed",
-          "responseTime": 91,
+          "responseTime": 578,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -491,7 +494,7 @@
           "url": "/inventory",
           "description": "List inventory",
           "status": "passed",
-          "responseTime": 343,
+          "responseTime": 329,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -501,7 +504,7 @@
           "url": "/inventory/stats",
           "description": "Inventory stats",
           "status": "passed",
-          "responseTime": 301,
+          "responseTime": 274,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -510,7 +513,7 @@
           "route": "/dashboard/inventory",
           "description": "Inventory page",
           "status": "passed",
-          "responseTime": 79,
+          "responseTime": 557,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -529,7 +532,7 @@
           "url": "/insurance/claims",
           "description": "List claims",
           "status": "passed",
-          "responseTime": 204,
+          "responseTime": 226,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -539,7 +542,7 @@
           "url": "/insurance/stats",
           "description": "Insurance stats",
           "status": "passed",
-          "responseTime": 480,
+          "responseTime": 319,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -548,7 +551,7 @@
           "route": "/dashboard/insurance",
           "description": "Insurance page",
           "status": "passed",
-          "responseTime": 76,
+          "responseTime": 535,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -567,7 +570,7 @@
           "url": "/hr/departments",
           "description": "List departments",
           "status": "passed",
-          "responseTime": 216,
+          "responseTime": 190,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -576,7 +579,7 @@
           "route": "/dashboard/departments",
           "description": "Departments page",
           "status": "passed",
-          "responseTime": 91,
+          "responseTime": 531,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -595,7 +598,7 @@
           "url": "/roles",
           "description": "List roles",
           "status": "passed",
-          "responseTime": 220,
+          "responseTime": 189,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -605,7 +608,7 @@
           "url": "/permissions",
           "description": "List permissions",
           "status": "passed",
-          "responseTime": 221,
+          "responseTime": 170,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -614,7 +617,7 @@
           "route": "/dashboard/roles",
           "description": "Roles page",
           "status": "passed",
-          "responseTime": 82,
+          "responseTime": 600,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -626,29 +629,30 @@
     },
     {
       "name": "Shifts",
-      "status": "warning",
+      "status": "passed",
       "tests": [
         {
           "method": "GET",
           "url": "/shifts",
           "description": "List shifts",
-          "status": "failed",
-          "responseTime": 169,
-          "statusCode": 500,
-          "error": "Internal server error"
+          "status": "passed",
+          "responseTime": 145,
+          "statusCode": 200,
+          "error": null,
+          "dataReceived": true
         },
         {
           "route": "/dashboard/shifts",
           "description": "Shifts page",
           "status": "passed",
-          "responseTime": 82,
+          "responseTime": 543,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
         }
       ],
-      "passed": 1,
-      "failed": 1,
+      "passed": 2,
+      "failed": 0,
       "warning": 0
     },
     {
@@ -660,7 +664,7 @@
           "url": "/communications/messages",
           "description": "List messages",
           "status": "passed",
-          "responseTime": 179,
+          "responseTime": 170,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -670,7 +674,7 @@
           "url": "/communications/notifications",
           "description": "List notifications",
           "status": "passed",
-          "responseTime": 176,
+          "responseTime": 169,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -679,7 +683,7 @@
           "route": "/dashboard/communications",
           "description": "Communications page",
           "status": "passed",
-          "responseTime": 77,
+          "responseTime": 538,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -698,7 +702,7 @@
           "url": "/reports/dashboard",
           "description": "Reports dashboard",
           "status": "passed",
-          "responseTime": 257,
+          "responseTime": 279,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -707,7 +711,7 @@
           "route": "/dashboard/reports",
           "description": "Reports page",
           "status": "passed",
-          "responseTime": 82,
+          "responseTime": 594,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true
@@ -726,7 +730,7 @@
           "url": "/emr/records",
           "description": "List medical records",
           "status": "passed",
-          "responseTime": 541,
+          "responseTime": 206,
           "statusCode": 200,
           "error": null,
           "dataReceived": true
@@ -735,7 +739,7 @@
           "route": "/dashboard/emr",
           "description": "EMR page",
           "status": "passed",
-          "responseTime": 79,
+          "responseTime": 524,
           "statusCode": 200,
           "error": null,
           "htmlReceived": true

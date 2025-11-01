@@ -1,0 +1,411 @@
+{
+  "timestamp": "2025-11-01T12:26:09.190Z",
+  "totalModules": 30,
+  "passed": 29,
+  "failed": 1,
+  "readiness": 96.7,
+  "results": [
+    {
+      "id": 1,
+      "name": "Authentication",
+      "routes": [
+        {
+          "route": "/login",
+          "status": "PASS",
+          "code": 200,
+          "size": 17123
+        },
+        {
+          "route": "/signup",
+          "status": "PASS",
+          "code": 200,
+          "size": 16493
+        },
+        {
+          "route": "/reset-password",
+          "status": "PASS",
+          "code": 200,
+          "size": 16104
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 2,
+      "name": "Dashboard Overview",
+      "routes": [
+        {
+          "route": "/dashboard",
+          "status": "PASS",
+          "code": 200,
+          "size": 18193
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 3,
+      "name": "Patients",
+      "routes": [
+        {
+          "route": "/dashboard/patients",
+          "status": "PASS",
+          "code": 200,
+          "size": 20565
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 4,
+      "name": "IPD (Inpatient Department)",
+      "routes": [
+        {
+          "route": "/dashboard/ipd",
+          "status": "PASS",
+          "code": 200,
+          "size": 19508
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 5,
+      "name": "OPD (Outpatient Department)",
+      "routes": [
+        {
+          "route": "/dashboard/opd",
+          "status": "PASS",
+          "code": 200,
+          "size": 19735
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 6,
+      "name": "Admissions",
+      "routes": [
+        {
+          "route": "/dashboard/admissions",
+          "status": "PASS",
+          "code": 200,
+          "size": 18673
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 7,
+      "name": "Discharge Summary",
+      "routes": [
+        {
+          "route": "/dashboard/discharge-summary",
+          "status": "PASS",
+          "code": 200,
+          "size": 18708
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 8,
+      "name": "Appointments",
+      "routes": [
+        {
+          "route": "/dashboard/appointments",
+          "status": "PASS",
+          "code": 200,
+          "size": 20047
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 9,
+      "name": "Radiology",
+      "routes": [
+        {
+          "route": "/dashboard/radiology",
+          "status": "PASS",
+          "code": 200,
+          "size": 19874
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 10,
+      "name": "Laboratory",
+      "routes": [
+        {
+          "route": "/dashboard/laboratory",
+          "status": "PASS",
+          "code": 200,
+          "size": 19827
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 11,
+      "name": "Pharmacy",
+      "routes": [
+        {
+          "route": "/dashboard/pharmacy",
+          "status": "PASS",
+          "code": 200,
+          "size": 19995
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 12,
+      "name": "Billing",
+      "routes": [
+        {
+          "route": "/dashboard/billing",
+          "status": "PASS",
+          "code": 200,
+          "size": 20072
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 13,
+      "name": "Insurance",
+      "routes": [
+        {
+          "route": "/dashboard/insurance",
+          "status": "PASS",
+          "code": 200,
+          "size": 19900
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 14,
+      "name": "Inventory",
+      "routes": [
+        {
+          "route": "/dashboard/inventory",
+          "status": "PASS",
+          "code": 200,
+          "size": 19870
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 15,
+      "name": "Assets",
+      "routes": [
+        {
+          "route": "/dashboard/assets",
+          "status": "PASS",
+          "code": 200,
+          "size": 18653
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 16,
+      "name": "Staff",
+      "routes": [
+        {
+          "route": "/dashboard/staff",
+          "status": "PASS",
+          "code": 200,
+          "size": 19749
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 17,
+      "name": "Departments",
+      "routes": [
+        {
+          "route": "/dashboard/departments",
+          "status": "PASS",
+          "code": 200,
+          "size": 19306
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 18,
+      "name": "Roles & Permissions",
+      "routes": [
+        {
+          "route": "/dashboard/roles",
+          "status": "PASS",
+          "code": 200,
+          "size": 19433
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 19,
+      "name": "Attendance",
+      "routes": [
+        {
+          "route": "/dashboard/attendance",
+          "status": "PASS",
+          "code": 200,
+          "size": 18672
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 20,
+      "name": "Payroll",
+      "routes": [
+        {
+          "route": "/dashboard/payroll",
+          "status": "PASS",
+          "code": 200,
+          "size": 18658
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 21,
+      "name": "Communications",
+      "routes": [
+        {
+          "route": "/dashboard/communications",
+          "status": "PASS",
+          "code": 200,
+          "size": 19664
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 22,
+      "name": "Notifications",
+      "routes": [
+        {
+          "route": "/dashboard/notifications",
+          "status": "PASS",
+          "code": 200,
+          "size": 18688
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 23,
+      "name": "Support",
+      "routes": [
+        {
+          "route": "/dashboard/support",
+          "status": "PASS",
+          "code": 200,
+          "size": 18658
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 24,
+      "name": "Reports",
+      "routes": [
+        {
+          "route": "/dashboard/reports",
+          "status": "PASS",
+          "code": 200,
+          "size": 19447
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 25,
+      "name": "Statistics",
+      "routes": [
+        {
+          "route": "/dashboard/statistics",
+          "status": "PASS",
+          "code": 200,
+          "size": 18673
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 26,
+      "name": "Logs",
+      "routes": [
+        {
+          "route": "/dashboard/logs",
+          "status": "FAIL",
+          "code": 404,
+          "error": "HTTP 404"
+        }
+      ],
+      "overallStatus": "FAIL"
+    },
+    {
+      "id": 27,
+      "name": "Audit Trail",
+      "routes": [
+        {
+          "route": "/dashboard/audit",
+          "status": "PASS",
+          "code": 200,
+          "size": 19171
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 28,
+      "name": "Settings",
+      "routes": [
+        {
+          "route": "/dashboard/settings",
+          "status": "PASS",
+          "code": 200,
+          "size": 18663
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 29,
+      "name": "System Config",
+      "routes": [
+        {
+          "route": "/dashboard/system-config",
+          "status": "PASS",
+          "code": 200,
+          "size": 18688
+        }
+      ],
+      "overallStatus": "PASS"
+    },
+    {
+      "id": 30,
+      "name": "Profile & Hospital Info",
+      "routes": [
+        {
+          "route": "/dashboard/profile",
+          "status": "PASS",
+          "code": 200,
+          "size": 18657
+        }
+      ],
+      "overallStatus": "PASS"
+    }
+  ]
+}

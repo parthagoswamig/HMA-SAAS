@@ -1,0 +1,498 @@
+{
+  "timestamp": "2025-11-01T12:13:05.668Z",
+  "total": 49,
+  "passed": 37,
+  "failed": 12,
+  "modules": [
+    {
+      "id": 1,
+      "name": "Authentication - Login",
+      "frontend": "/login",
+      "api": "/auth/login",
+      "method": "public",
+      "frontendStatus": "pass",
+      "apiStatus": null,
+      "overall": "pass"
+    },
+    {
+      "id": 2,
+      "name": "Authentication - Register",
+      "frontend": "/signup",
+      "api": "/auth/register",
+      "method": "public",
+      "frontendStatus": "pass",
+      "apiStatus": null,
+      "overall": "pass"
+    },
+    {
+      "id": 3,
+      "name": "Authentication - Profile",
+      "frontend": null,
+      "api": "/auth/profile",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 4,
+      "name": "Dashboard Overview",
+      "frontend": "/dashboard",
+      "api": "/dashboard/stats",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 5,
+      "name": "Patients",
+      "frontend": "/dashboard/patients",
+      "api": "/patients",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 6,
+      "name": "Patients - Add",
+      "frontend": "/dashboard/patients/add",
+      "api": null,
+      "method": "page",
+      "frontendStatus": "pass",
+      "apiStatus": null,
+      "overall": "pass"
+    },
+    {
+      "id": 7,
+      "name": "IPD - Admissions",
+      "frontend": "/dashboard/ipd",
+      "api": "/ipd/admissions",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 8,
+      "name": "IPD - Wards",
+      "frontend": null,
+      "api": "/ipd/wards",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 9,
+      "name": "IPD - Beds",
+      "frontend": null,
+      "api": "/ipd/beds",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "error: Failed to fetch beds",
+      "overall": "fail"
+    },
+    {
+      "id": 10,
+      "name": "OPD",
+      "frontend": "/dashboard/opd",
+      "api": "/opd/visits",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 11,
+      "name": "OPD - Queue",
+      "frontend": null,
+      "api": "/opd/queue",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 12,
+      "name": "OPD - Stats",
+      "frontend": null,
+      "api": "/opd/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 13,
+      "name": "Appointments",
+      "frontend": "/dashboard/appointments",
+      "api": "/appointments",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 14,
+      "name": "Appointments - Stats",
+      "frontend": null,
+      "api": "/appointments/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 15,
+      "name": "Radiology",
+      "frontend": "/dashboard/radiology",
+      "api": "/radiology/studies",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 16,
+      "name": "Radiology - Orders",
+      "frontend": null,
+      "api": "/radiology/orders",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 17,
+      "name": "Laboratory",
+      "frontend": "/dashboard/laboratory",
+      "api": "/laboratory/tests",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 18,
+      "name": "Laboratory - Orders",
+      "frontend": null,
+      "api": "/laboratory/orders",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 19,
+      "name": "Pharmacy",
+      "frontend": "/dashboard/pharmacy",
+      "api": "/pharmacy/medications",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 20,
+      "name": "Pharmacy - Orders",
+      "frontend": null,
+      "api": "/pharmacy/orders",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 21,
+      "name": "Billing",
+      "frontend": "/dashboard/billing",
+      "api": "/billing/invoices",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 22,
+      "name": "Billing - Stats",
+      "frontend": null,
+      "api": "/billing/invoices/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 23,
+      "name": "Insurance",
+      "frontend": "/dashboard/insurance",
+      "api": "/insurance/claims",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 24,
+      "name": "Insurance - Stats",
+      "frontend": null,
+      "api": "/insurance/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 25,
+      "name": "Inventory",
+      "frontend": "/dashboard/inventory",
+      "api": "/inventory",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 26,
+      "name": "Inventory - Stats",
+      "frontend": null,
+      "api": "/inventory/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 27,
+      "name": "Assets",
+      "frontend": "/dashboard/assets",
+      "api": "/assets",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 28,
+      "name": "Staff",
+      "frontend": "/dashboard/staff",
+      "api": "/staff",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 29,
+      "name": "Staff - Stats",
+      "frontend": null,
+      "api": "/staff/stats",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 30,
+      "name": "Departments",
+      "frontend": "/dashboard/departments",
+      "api": "/hr/departments",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 31,
+      "name": "Roles",
+      "frontend": "/dashboard/roles",
+      "api": "/roles",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 32,
+      "name": "Permissions",
+      "frontend": null,
+      "api": "/permissions",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 33,
+      "name": "Attendance",
+      "frontend": "/dashboard/attendance",
+      "api": "/hr/attendance",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "pass",
+      "overall": "fail"
+    },
+    {
+      "id": 34,
+      "name": "Payroll",
+      "frontend": "/dashboard/payroll",
+      "api": "/hr/payroll",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 35,
+      "name": "Shifts",
+      "frontend": "/dashboard/shifts",
+      "api": "/shifts",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 36,
+      "name": "Communications",
+      "frontend": "/dashboard/communications",
+      "api": "/communications/messages",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 37,
+      "name": "Notifications",
+      "frontend": "/dashboard/notifications",
+      "api": "/communications/notifications",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "pass",
+      "overall": "fail"
+    },
+    {
+      "id": 38,
+      "name": "Support",
+      "frontend": "/dashboard/support",
+      "api": "/support/tickets",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 39,
+      "name": "Reports",
+      "frontend": "/dashboard/reports",
+      "api": "/reports/dashboard",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 40,
+      "name": "Statistics",
+      "frontend": "/dashboard/statistics",
+      "api": "/reports/statistics",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 41,
+      "name": "Logs",
+      "frontend": "/dashboard/logs",
+      "api": "/audit/logs",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 42,
+      "name": "Audit Trail",
+      "frontend": "/dashboard/audit",
+      "api": "/audit/trail",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "not_found",
+      "overall": "pass"
+    },
+    {
+      "id": 43,
+      "name": "Settings",
+      "frontend": "/dashboard/settings",
+      "api": "/settings",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 44,
+      "name": "System Config",
+      "frontend": "/dashboard/system-config",
+      "api": "/settings/system",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    },
+    {
+      "id": 45,
+      "name": "Profile",
+      "frontend": "/dashboard/profile",
+      "api": "/users/profile",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "error: Insufficient permissions. Required: user.view or USER_READ or VIEW_USERS",
+      "overall": "fail"
+    },
+    {
+      "id": 46,
+      "name": "Emergency",
+      "frontend": "/dashboard/emergency",
+      "api": "/emergency/cases",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 47,
+      "name": "Emergency - Queue",
+      "frontend": null,
+      "api": "/emergency/queue",
+      "method": "GET",
+      "frontendStatus": null,
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 48,
+      "name": "EMR",
+      "frontend": "/dashboard/emr",
+      "api": "/emr/records",
+      "method": "GET",
+      "frontendStatus": "pass",
+      "apiStatus": "pass",
+      "overall": "pass"
+    },
+    {
+      "id": 49,
+      "name": "Discharge Summary",
+      "frontend": "/dashboard/discharge-summary",
+      "api": "/ipd/discharge",
+      "method": "GET",
+      "frontendStatus": "fail (404)",
+      "apiStatus": "not_found",
+      "overall": "fail"
+    }
+  ]
+}

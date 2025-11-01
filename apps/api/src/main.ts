@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 // Deployment trigger - DB URL updated
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +12,22 @@ async function bootstrap() {
     process.env.DATABASE_URL = 'postgresql://dummy:dummy@localhost:5432/dummy';
     logger.log('🔧 Using DUMMY DATABASE URL for fast deployment');
   }
+
+  // Configure global validation pipe with RELAXED settings
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false, // CRITICAL: Allow extra fields from frontend
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      skipMissingProperties: false,
+      skipNullProperties: false,
+      skipUndefinedProperties: false,
+    }),
+  );
+  logger.log('✅ Global validation pipe configured with relaxed settings');
 
   // Enable CORS
   const corsOriginsEnv =

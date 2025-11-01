@@ -866,7 +866,7 @@ const AppointmentManagement = () => {
                     const dateObj = new Date(date as any);
                     const hasAppointments = appointments.some(
                       (apt) =>
-                        new Date(apt.appointmentDate).toDateString() === dateObj.toDateString()
+                        new Date((apt as any).startTime).toDateString() === dateObj.toDateString()
                     );
                     return (
                       <div
@@ -892,7 +892,7 @@ const AppointmentManagement = () => {
                   {appointments
                     .filter(
                       (apt) =>
-                        new Date(apt.appointmentDate).toDateString() === new Date().toDateString()
+                        new Date((apt as any).startTime).toDateString() === new Date().toDateString()
                     )
                     .map((appointment) => (
                       <Group
@@ -902,7 +902,7 @@ const AppointmentManagement = () => {
                         style={{ border: '1px solid #e9ecef', borderRadius: '8px' }}
                       >
                         <div>
-                          <Text fw={500}>{appointment.appointmentTime}</Text>
+                          <Text fw={500}>{new Date((appointment as any).startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
                           <Text size="sm" c="dimmed">
                             {appointment.patient.firstName} {appointment.patient.lastName}
                           </Text>
@@ -1001,7 +1001,7 @@ const AppointmentManagement = () => {
                     </Group>
                     <Group>
                       <Text size="sm" c="dimmed">
-                        Est. {appointment.appointmentTime}
+                        Est. {new Date((appointment as any).startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </Text>
                       <Badge
                         color={appointment.status === 'ARRIVED' ? 'green' : 'blue'}

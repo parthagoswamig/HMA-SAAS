@@ -854,7 +854,7 @@ const AppointmentManagement = () => {
                     value: doctor.user?.id || doctor.userId || doctor.id,
                     label: `${doctor.user?.firstName || doctor.firstName || ''} ${doctor.user?.lastName || doctor.lastName || ''}`.trim(),
                   }))}
-                  value={filterDoctor}
+                  value={selectedDoctor}
                   onChange={(value) => setSelectedDoctor(value || '')}
                 />
                 <Button leftSection={<IconPlus size={16} />}>Add Slot</Button>

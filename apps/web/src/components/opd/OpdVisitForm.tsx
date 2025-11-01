@@ -122,7 +122,7 @@ const OpdVisitForm: React.FC<OpdVisitFormProps> = ({ opened, onClose, visit, onS
         const doctorOptions = response.data.staff
           .filter((s: any) => s.user?.role === 'DOCTOR')
           .map((d: any) => ({
-            value: d.id,
+            value: d.user?.id || d.userId || d.id,
             label: `Dr. ${d.user?.firstName} ${d.user?.lastName} - ${d.user?.specialization || 'General'}`,
           }));
         setDoctors(doctorOptions);

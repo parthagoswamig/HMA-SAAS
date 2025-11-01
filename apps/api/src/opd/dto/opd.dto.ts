@@ -26,30 +26,27 @@ export enum OpdVisitStatus {
  */
 export class CreateOpdVisitDto {
   @ApiProperty({ 
-    example: 'patient-uuid-123',
+    example: 'cmhgbr0ff0003jv1w9zpyz2w9',
     description: 'ID of the patient visiting OPD'
   })
   @IsString()
   @IsNotEmpty()
-  @IsUUID()
   patientId: string;
 
   @ApiProperty({ 
-    example: 'doctor-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'ID of the doctor for the consultation'
   })
   @IsString()
   @IsNotEmpty()
-  @IsUUID()
   doctorId: string;
 
   @ApiPropertyOptional({ 
-    example: 'department-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'ID of the department (optional)'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   departmentId?: string;
 
   @ApiProperty({ 
@@ -116,21 +113,19 @@ export class CreateOpdVisitDto {
  */
 export class UpdateOpdVisitDto {
   @ApiPropertyOptional({ 
-    example: 'doctor-uuid-456',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Updated doctor ID for the consultation'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   doctorId?: string;
 
   @ApiPropertyOptional({ 
-    example: 'department-uuid-456',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Updated department ID'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   departmentId?: string;
 
   @ApiPropertyOptional({ 
@@ -226,21 +221,19 @@ export class OpdVisitFilterDto {
   status?: OpdVisitStatus;
 
   @ApiPropertyOptional({ 
-    example: 'doctor-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Filter by doctor ID'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   doctorId?: string;
 
   @ApiPropertyOptional({ 
-    example: 'department-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Filter by department ID'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   departmentId?: string;
 
   @ApiPropertyOptional({ 
@@ -252,12 +245,11 @@ export class OpdVisitFilterDto {
   date?: string;
 
   @ApiPropertyOptional({ 
-    example: 'patient-uuid-123',
+    example: 'cmhgbr0ff0003jv1w9zpyz2w9',
     description: 'Filter by patient ID'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   patientId?: string;
 
   @ApiPropertyOptional({ 
@@ -274,20 +266,18 @@ export class OpdVisitFilterDto {
  */
 export class OpdQueueFilterDto {
   @ApiPropertyOptional({ 
-    example: 'doctor-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Filter queue by specific doctor'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   doctorId?: string;
 
   @ApiPropertyOptional({ 
-    example: 'department-uuid-123',
+    example: 'cmh7l0zbz0009v4d8vulskzil',
     description: 'Filter queue by specific department'
   })
   @IsOptional()
   @IsString()
-  @IsUUID()
   departmentId?: string;
 }

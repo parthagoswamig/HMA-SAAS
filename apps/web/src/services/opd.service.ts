@@ -10,18 +10,13 @@ export interface CreateOpdVisitDto {
   patientId: string;
   doctorId: string;
   departmentId?: string;
-  visitDate: string;
-  reason: string;
-  chiefComplaint?: string;
-  vitalSigns?: {
-    temperature?: number;
-    bloodPressure?: string;
-    heartRate?: number;
-    respiratoryRate?: number;
-    weight?: number;
-    height?: number;
-  };
+  chiefComplaint: string;
+  symptoms?: string;
+  diagnosis?: string;
+  treatment?: string;
   notes?: string;
+  followUpDate?: string;
+  status?: 'WAITING' | 'ARRIVED' | 'IN_CONSULTATION' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
 }
 
 export interface UpdateOpdVisitDto {

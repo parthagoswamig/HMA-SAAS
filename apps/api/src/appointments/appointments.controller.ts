@@ -48,6 +48,7 @@ export class AppointmentsController {
     @Body() createAppointmentDto: CreateAppointmentDto,
     @TenantId() tenantId: string,
   ) {
+    console.log('📝 Received appointment data:', JSON.stringify(createAppointmentDto, null, 2));
     return this.appointmentsService.create(tenantId, createAppointmentDto);
   }
 

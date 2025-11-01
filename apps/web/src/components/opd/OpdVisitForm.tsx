@@ -203,18 +203,10 @@ const OpdVisitForm: React.FC<OpdVisitFormProps> = ({ opened, onClose, visit, onS
         patientId: formData.patientId,
         doctorId: formData.doctorId,
         departmentId: formData.departmentId || undefined,
-        visitDate: visitDateTime.toISOString(),
-        reason: formData.reason,
         chiefComplaint: formData.chiefComplaint,
-        vitalSigns: {
-          temperature: formData.vitalSigns.temperature ? parseFloat(formData.vitalSigns.temperature) : undefined,
-          bloodPressure: formData.vitalSigns.bloodPressure || undefined,
-          heartRate: formData.vitalSigns.heartRate ? parseInt(formData.vitalSigns.heartRate) : undefined,
-          respiratoryRate: formData.vitalSigns.respiratoryRate ? parseInt(formData.vitalSigns.respiratoryRate) : undefined,
-          weight: formData.vitalSigns.weight ? parseFloat(formData.vitalSigns.weight) : undefined,
-          height: formData.vitalSigns.height ? parseFloat(formData.vitalSigns.height) : undefined,
-        },
+        symptoms: formData.reason || undefined, // Map reason to symptoms
         notes: formData.notes || undefined,
+        status: 'WAITING' as const,
       };
 
       let response;

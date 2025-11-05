@@ -1,0 +1,84 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  INSURANCE
+  BANK_TRANSFER
+  UPI
+  CHEQUE
+  NET_BANKING
+  CORPORATE
+  OTHER
+}
+
+model Tenant {
+  id                String            @id @default(cuid())
+  name              String
+  slug              String            @unique
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  departments       Department[]
+  specialties       Specialty[]
+  staff             Staff[]
+  staffSpecialties  StaffSpecialty[]
+  staffRoles        StaffRole[]
+  locations         Location[]
+  shifts            Shift[]
+  leaves            Leave[]
+  attendances       Attendance[]
+  staffCredentials  StaffCredential[]
+  staffPrivileges   StaffPrivilege[]
+  permissions       Permission[]
+  rolePermissions   RolePermission[]
+  notifications     Notification[]
+  invoiceLines      InvoiceLine[]
+  ledgers          Ledger[]
+}
+
+model InvoiceLine {
+  id           String  @id @default(cuid())
+  invoiceId    String
+  invoice      Invoice @relation(fields: [invoiceId], references: [id])
+  chargeItemId String?
+  chargeItem   ChargeItem? @relation(fields: [chargeItemId], references: [id])
+  packageId    String?
+  package     Package? @relation(fields: [packageId], references: [id])
+  qty         Int
+  rate        Decimal @db.Decimal(10, 2)
+  amount      Decimal @db.Decimal(10, 2)
+  gstRate     Decimal @db.Decimal(5, 2) @default(0)
+  gstAmount   Decimal @db.Decimal(10, 2) @default(0)
+  dept        String?
+  tenantId    String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id])
+  
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([chargeItemId])
+  @@index([packageId])
+}
+
+model Ledger {
+  id          String   @id @default(cuid())
+  date        DateTime
+  refType     String
+  refId       String
+  amount      Decimal  @db.Decimal(10, 2)
+  balance     Decimal  @db.Decimal(10, 2)
+  description String?
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId])
+}

@@ -1,0 +1,276 @@
+================================================================================
+HMS SAAS - VERCEL ENVIRONMENT VARIABLES SETUP GUIDE
+================================================================================
+
+This guide shows you exactly which environment variables to add in the Vercel
+dashboard for both your backend API and frontend deployments.
+
+================================================================================
+PART 1: BACKEND API ENVIRONMENT VARIABLES
+================================================================================
+
+Go to: https://vercel.com/dashboard → Your API Project → Settings → Environment Variables
+
+Add these variables (one by one):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ REQUIRED VARIABLES                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. NODE_ENV
+   Value: production
+   
+2. DATABASE_URL
+   Value: postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+   Note: Uses port 6543 (pgBouncer pooler) for serverless
+   
+3. DIRECT_DATABASE_URL
+   Value: postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+   Note: Uses port 5432 (direct) for migrations only
+   
+4. SUPABASE_URL
+   Value: https://uoxyyqbwuzjraxhaypko.supabase.co
+   
+5. SUPABASE_SERVICE_ROLE_KEY
+   Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTU2NTM0MywiZXhwIjoyMDc1MTQxMzQzfQ.17ZYMGLqzcntTgpQwm1YzCT6eE8OGkGUCOONBgPC9DE
+   
+6. SUPABASE_ANON_KEY
+   Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw
+   
+7. JWT_SECRET
+   Value: LBxZkVGZOFv63/NW7KHJoSqpxy4UmOgydImcsUPeqL0s0H5zF6s/p85UQwkWjZl5PEKqW1RKPyP36cI1ikv2fQ==
+   
+8. JWT_ACCESS_SECRET
+   Value: ynV9+MHiz9BDGvBH0eeD2QZtFfFrLrf3LfJVT8LaIu0=
+   
+9. JWT_REFRESH_SECRET
+   Value: 0yqN0qpJDu8uKOL5NhXJsDIWW1Ps8perSVRjO+5mBI8=
+   
+10. JWT_ACCESS_EXPIRATION
+    Value: 15m
+    
+11. JWT_REFRESH_EXPIRATION
+    Value: 7d
+    
+12. CORS_ORIGINS
+    Value: https://hma-saas-web.vercel.app
+    Note: Update this after deploying frontend
+    
+13. FRONTEND_URL
+    Value: https://hma-saas-web.vercel.app
+    Note: Update this after deploying frontend
+    
+14. VERCEL
+    Value: 1
+    
+15. BCRYPT_SALT_ROUNDS
+    Value: 12
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ OPTIONAL VARIABLES (Add if needed)                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+16. RAZORPAY_KEY_ID
+    Value: rzp_live_YOUR_LIVE_KEY_ID
+    Note: Replace with your actual Razorpay LIVE key for production
+    
+17. RAZORPAY_KEY_SECRET
+    Value: YOUR_LIVE_KEY_SECRET
+    Note: Replace with your actual Razorpay LIVE secret
+    
+18. RAZORPAY_WEBHOOK_SECRET
+    Value: YOUR_LIVE_WEBHOOK_SECRET
+    
+19. SENTRY_DSN (Optional - for error tracking)
+    Value: https://your-sentry-dsn@sentry.io/project-id
+
+================================================================================
+PART 2: FRONTEND WEB ENVIRONMENT VARIABLES
+================================================================================
+
+Go to: https://vercel.com/dashboard → Your Frontend Project → Settings → Environment Variables
+
+Add these variables (one by one):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ REQUIRED VARIABLES                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. NEXT_PUBLIC_API_URL
+   Value: https://hma-saas-api.vercel.app
+   Note: Update this with your actual backend API URL after deploying
+   
+2. NEXT_PUBLIC_SUPABASE_URL
+   Value: https://uoxyyqbwuzjraxhaypko.supabase.co
+   
+3. NEXT_PUBLIC_SUPABASE_ANON_KEY
+   Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw
+   
+4. NEXT_PUBLIC_APP_ENV
+   Value: production
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ OPTIONAL VARIABLES                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+5. NEXT_PUBLIC_RAZORPAY_KEY_ID (if using Razorpay)
+   Value: rzp_live_YOUR_LIVE_KEY_ID
+   Note: Replace with your actual Razorpay LIVE key
+
+================================================================================
+PART 3: DEPLOYMENT ORDER & UPDATES
+================================================================================
+
+STEP 1: Deploy Backend First
+-----------------------------
+1. Go to apps/api directory
+2. Run: vercel --prod
+3. Note the deployment URL (e.g., https://hma-saas-api.vercel.app)
+4. Add all backend environment variables in Vercel dashboard
+5. Redeploy if needed: vercel --prod
+
+STEP 2: Update Backend CORS
+----------------------------
+After you know your frontend URL:
+1. Go to backend project settings in Vercel
+2. Update CORS_ORIGINS to: https://hma-saas-web.vercel.app
+3. Update FRONTEND_URL to: https://hma-saas-web.vercel.app
+4. Redeploy backend: vercel --prod
+
+STEP 3: Deploy Frontend
+-----------------------
+1. Go to apps/web directory
+2. Update NEXT_PUBLIC_API_URL with your backend URL from Step 1
+3. Add all frontend environment variables in Vercel dashboard
+4. Run: vercel --prod
+5. Note the deployment URL (e.g., https://hma-saas-web.vercel.app)
+
+STEP 4: Verify Everything
+--------------------------
+1. Test backend: curl https://hma-saas-api.vercel.app/health
+2. Test frontend: Open https://hma-saas-web.vercel.app
+3. Test auth flow: Register → Login → Dashboard
+4. Check browser console for errors
+5. Check Vercel logs for any issues
+
+================================================================================
+PART 4: COPY-PASTE READY FORMAT
+================================================================================
+
+For quick setup, here's a copy-paste ready format for Vercel CLI:
+
+BACKEND (.env for local reference):
+------------------------------------
+NODE_ENV=production
+DATABASE_URL=postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_DATABASE_URL=postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+SUPABASE_URL=https://uoxyyqbwuzjraxhaypko.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTU2NTM0MywiZXhwIjoyMDc1MTQxMzQzfQ.17ZYMGLqzcntTgpQwm1YzCT6eE8OGkGUCOONBgPC9DE
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw
+JWT_SECRET=LBxZkVGZOFv63/NW7KHJoSqpxy4UmOgydImcsUPeqL0s0H5zF6s/p85UQwkWjZl5PEKqW1RKPyP36cI1ikv2fQ==
+JWT_ACCESS_SECRET=ynV9+MHiz9BDGvBH0eeD2QZtFfFrLrf3LfJVT8LaIu0=
+JWT_REFRESH_SECRET=0yqN0qpJDu8uKOL5NhXJsDIWW1Ps8perSVRjO+5mBI8=
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+CORS_ORIGINS=https://hma-saas-web.vercel.app
+FRONTEND_URL=https://hma-saas-web.vercel.app
+VERCEL=1
+BCRYPT_SALT_ROUNDS=12
+
+FRONTEND (.env.local for local reference):
+-------------------------------------------
+NEXT_PUBLIC_API_URL=https://hma-saas-api.vercel.app
+NEXT_PUBLIC_SUPABASE_URL=https://uoxyyqbwuzjraxhaypko.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw
+NEXT_PUBLIC_APP_ENV=production
+
+================================================================================
+PART 5: IMPORTANT NOTES
+================================================================================
+
+⚠️ SECURITY WARNINGS:
+---------------------
+1. Never commit .env files to git
+2. Use Vercel dashboard to set environment variables (encrypted)
+3. Rotate JWT secrets periodically (quarterly recommended)
+4. Use LIVE payment keys only in production
+5. Keep SUPABASE_SERVICE_ROLE_KEY secret (backend only)
+
+🔄 DATABASE URLS:
+-----------------
+• DATABASE_URL (port 6543): For serverless functions (pooled)
+• DIRECT_DATABASE_URL (port 5432): For migrations only (direct)
+• Always use pgbouncer=true for serverless
+• Always use connection_limit=1 for serverless
+
+🌐 CORS CONFIGURATION:
+----------------------
+• CORS_ORIGINS must match your frontend URL exactly
+• Include protocol (https://)
+• No trailing slash
+• Update after deploying frontend
+
+📝 PAYMENT KEYS:
+----------------
+• Current keys are TEST keys (rzp_test_xxx)
+• Replace with LIVE keys for production (rzp_live_xxx)
+• Get live keys from Razorpay dashboard
+• Test in staging environment first
+
+================================================================================
+PART 6: VERIFICATION CHECKLIST
+================================================================================
+
+After setting all environment variables:
+
+Backend:
+□ All 15 required variables added
+□ DATABASE_URL uses port 6543 with pgbouncer=true
+□ DIRECT_DATABASE_URL uses port 5432
+□ CORS_ORIGINS matches frontend URL
+□ JWT secrets are set
+□ VERCEL=1 is set
+
+Frontend:
+□ All 4 required variables added
+□ NEXT_PUBLIC_API_URL points to backend
+□ NEXT_PUBLIC_SUPABASE_URL is correct
+□ NEXT_PUBLIC_SUPABASE_ANON_KEY is set
+□ NEXT_PUBLIC_APP_ENV=production
+
+Testing:
+□ Backend health check works
+□ Frontend loads without errors
+□ Can register new user
+□ Can login
+□ Dashboard loads
+□ API calls work
+□ No CORS errors
+
+================================================================================
+PART 7: TROUBLESHOOTING
+================================================================================
+
+Issue: CORS errors
+Solution: Verify CORS_ORIGINS matches frontend URL exactly
+
+Issue: Database connection errors
+Solution: Verify DATABASE_URL uses port 6543 with pgbouncer=true
+
+Issue: JWT errors
+Solution: Verify all JWT secrets are set and match
+
+Issue: Frontend can't reach API
+Solution: Verify NEXT_PUBLIC_API_URL is correct
+
+Issue: Build fails
+Solution: Check Vercel build logs, verify all required env vars are set
+
+================================================================================
+END OF GUIDE
+================================================================================
+
+For more information, see:
+- SERVERLESS_DEPLOYMENT_GUIDE.txt
+- QUICK_START.txt
+- PRE_DEPLOYMENT_CHECKLIST.txt

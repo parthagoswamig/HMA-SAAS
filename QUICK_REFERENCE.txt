@@ -1,0 +1,246 @@
+================================================================================
+HMS SAAS - QUICK REFERENCE GUIDE
+================================================================================
+
+📁 PROJECT LOCATIONS
+================================================================================
+Backend API:     apps/api/
+Frontend Web:    apps/web/
+Database Schema: apps/api/prisma/schema.prisma
+Vercel Config:   vercel.json (root + each app)
+
+🚀 DEPLOYMENT URLS
+================================================================================
+Frontend:  https://your-app.vercel.app
+Backend:   https://your-app.vercel.app/api
+Database:  Supabase PostgreSQL
+
+⚙️ LOCAL DEVELOPMENT
+================================================================================
+# Install dependencies
+npm install
+
+# Run backend (development)
+cd apps/api
+npm run start:dev
+
+# Run frontend (development)
+cd apps/web
+npm run dev
+
+# Database operations
+cd apps/api
+npx prisma generate          # Generate Prisma client
+npx prisma migrate dev       # Run migrations
+npx prisma studio            # Open database GUI
+
+🏗️ BUILD COMMANDS
+================================================================================
+# Backend build
+cd apps/api
+npm run build
+
+# Frontend build
+cd apps/web
+npm run build
+
+# Full workspace build
+npm run build
+
+📦 DEPLOYMENT COMMANDS
+================================================================================
+# Deploy to Vercel (automatic on git push)
+git add .
+git commit -m "your message"
+git push origin main
+
+# Manual Vercel deploy
+vercel --prod
+
+# Database migration (production)
+cd apps/api
+npx prisma migrate deploy
+
+🔑 KEY FILES
+================================================================================
+apps/api/src/main.ts                    # Backend entry point
+apps/api/api/index.ts                   # Vercel serverless handler
+apps/api/src/app.module.ts              # Main NestJS module
+apps/web/src/app/layout.tsx             # Root layout
+apps/web/src/app/(dashboard)/layout.tsx # Dashboard layout
+
+📊 MODULE STRUCTURE (40+ Modules)
+================================================================================
+CLINICAL:
+✅ Patients          ✅ Appointments      ✅ Doctors
+✅ Staff             ✅ OPD               ✅ IPD
+✅ Emergency         ✅ Surgery           ✅ Laboratory
+✅ Radiology         ✅ Pathology         ✅ EMR
+
+PHARMACY:
+✅ Pharmacy          ✅ Pharmacy Drugs    ✅ Pharmacy Management
+
+FINANCIAL:
+✅ Billing           ✅ Finance           ✅ Insurance
+✅ Subscription
+
+OPERATIONS:
+✅ Inventory         ✅ HR                ✅ Reports
+✅ PDF Reports       ✅ Communications
+
+ADVANCED:
+✅ Analytics         ✅ Notifications     ✅ Telemedicine
+✅ Patient Portal    ✅ Quality           ✅ Research
+✅ Integration       ✅ Admin RBAC
+
+SYSTEM:
+✅ Settings System   ✅ Settings Hospital ✅ Audit Log
+✅ Queue             ✅ Cron
+
+CORE:
+✅ Auth              ✅ Users             ✅ Tenants
+✅ Prisma            ✅ RBAC
+
+🔐 AUTHENTICATION FLOW
+================================================================================
+1. User logs in → POST /auth/login
+2. Receives JWT access token + refresh token
+3. Access token stored in localStorage
+4. All API requests include: Authorization: Bearer <token>
+5. Token includes: userId, tenantId, role
+6. Middleware extracts tenantId for multi-tenancy
+
+🏢 MULTI-TENANCY
+================================================================================
+- Each hospital = 1 tenant
+- tenantId in JWT token
+- Automatic tenant filtering in Prisma queries
+- Tenant middleware on all routes
+- Data isolation per tenant
+
+👥 ROLE-BASED ACCESS CONTROL
+================================================================================
+Roles:
+- SUPER_ADMIN      # Platform admin
+- HOSPITAL_ADMIN   # Hospital owner
+- DOCTOR           # Medical staff
+- NURSE            # Nursing staff
+- RECEPTIONIST     # Front desk
+- PHARMACIST       # Pharmacy staff
+- LAB_TECHNICIAN   # Lab staff
+- ACCOUNTANT       # Finance staff
+
+Guards:
+- JwtAuthGuard     # Requires authentication
+- RolesGuard       # Requires specific role
+- TenantGuard      # Tenant isolation
+
+Usage:
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.HOSPITAL_ADMIN, UserRole.DOCTOR)
+
+📡 API PATTERNS
+================================================================================
+All endpoints follow REST conventions:
+
+GET    /resource           # List (paginated)
+POST   /resource           # Create
+GET    /resource/:id       # Get one
+PUT    /resource/:id       # Update
+DELETE /resource/:id       # Delete
+
+Query params:
+?page=1&limit=10           # Pagination
+?search=term               # Search
+?status=active             # Filtering
+
+Response format:
+{
+  items: [...],            # For list endpoints
+  total: 100,
+  page: 1,
+  pages: 10
+}
+
+🐛 DEBUGGING
+================================================================================
+Backend logs:
+- Vercel Dashboard → Functions → Logs
+- Local: Console output in terminal
+
+Frontend logs:
+- Browser DevTools → Console
+- Vercel Dashboard → Deployments → Build Logs
+
+Database:
+- Supabase Dashboard → Table Editor
+- Prisma Studio: npx prisma studio
+
+Common Issues:
+1. Build fails → Check TypeScript errors
+2. API 401 → Check JWT token validity
+3. API 403 → Check user roles/permissions
+4. Database error → Check Prisma schema sync
+
+🔧 TROUBLESHOOTING
+================================================================================
+Issue: Vercel build fails
+Fix: Check build logs, ensure all dependencies installed
+
+Issue: Database connection fails
+Fix: Verify DATABASE_URL in Vercel environment variables
+
+Issue: API returns 500
+Fix: Check Vercel function logs for error details
+
+Issue: Frontend can't reach API
+Fix: Verify NEXT_PUBLIC_API_URL is correct
+
+Issue: Prisma client out of sync
+Fix: Run `npx prisma generate`
+
+📚 USEFUL COMMANDS
+================================================================================
+# View all modules
+ls apps/api/src/
+
+# Check TypeScript errors
+cd apps/api && npx tsc --noEmit
+
+# Format code
+npm run format
+
+# View Prisma schema
+cat apps/api/prisma/schema.prisma
+
+# Check git status
+git status
+
+# View recent commits
+git log --oneline -10
+
+# Create new branch
+git checkout -b feature/new-feature
+
+# View environment variables (Vercel)
+vercel env ls
+
+🌐 IMPORTANT URLS
+================================================================================
+Vercel Dashboard:    https://vercel.com/dashboard
+Supabase Dashboard:  https://supabase.com/dashboard
+Stripe Dashboard:    https://dashboard.stripe.com
+GitHub Repo:         https://github.com/parthagoswamig/HMA-SAAS
+
+📞 SUPPORT RESOURCES
+================================================================================
+NestJS Docs:    https://docs.nestjs.com
+Next.js Docs:   https://nextjs.org/docs
+Prisma Docs:    https://www.prisma.io/docs
+Vercel Docs:    https://vercel.com/docs
+Supabase Docs:  https://supabase.com/docs
+
+================================================================================
+PROJECT STATUS: ✅ PRODUCTION READY
+Last Updated: November 5, 2025
+================================================================================

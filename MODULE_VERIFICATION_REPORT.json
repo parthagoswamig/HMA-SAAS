@@ -1,0 +1,294 @@
+{
+  "total": 26,
+  "passed": 26,
+  "failed": 0,
+  "warnings": 0,
+  "details": [
+    {
+      "name": "Auth",
+      "path": "auth",
+      "files": {
+        "auth.module.ts": true,
+        "auth.controller.ts": true,
+        "auth.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Patients",
+      "path": "patients",
+      "files": {
+        "patients.module.ts": true,
+        "patients.controller.ts": true,
+        "patients.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Appointments",
+      "path": "appointments",
+      "files": {
+        "appointments.module.ts": true,
+        "appointments.controller.ts": true,
+        "appointments.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Staff",
+      "path": "staff",
+      "files": {
+        "staff.module.ts": true,
+        "staff.controller.ts": true,
+        "staff.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Laboratory",
+      "path": "laboratory",
+      "files": {
+        "laboratory.module.ts": true,
+        "laboratory.controller.ts": true,
+        "laboratory.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Pharmacy",
+      "path": "pharmacy",
+      "files": {
+        "pharmacy.module.ts": true,
+        "pharmacy.controller.ts": true,
+        "pharmacy.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Billing",
+      "path": "billing",
+      "files": {
+        "billing.module.ts": true,
+        "billing.controller.ts": true,
+        "billing.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "OPD",
+      "path": "opd",
+      "files": {
+        "opd.module.ts": true,
+        "opd.controller.ts": true,
+        "opd.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "EMR",
+      "path": "emr",
+      "files": {
+        "emr.module.ts": true,
+        "emr.controller.ts": true,
+        "emr.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Radiology",
+      "path": "radiology",
+      "files": {
+        "radiology.module.ts": true,
+        "radiology.controller.ts": true,
+        "radiology.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Pathology",
+      "path": "pathology",
+      "files": {
+        "pathology.module.ts": true,
+        "pathology.controller.ts": true,
+        "pathology.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Finance",
+      "path": "finance",
+      "files": {
+        "finance.module.ts": true,
+        "finance.controller.ts": true,
+        "finance.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "HR",
+      "path": "hr",
+      "files": {
+        "hr.module.ts": true,
+        "hr.controller.ts": true,
+        "hr.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Reports",
+      "path": "reports",
+      "files": {
+        "reports.module.ts": true,
+        "reports.controller.ts": true,
+        "reports.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Patient Portal",
+      "path": "patient-portal",
+      "files": {
+        "patient-portal.module.ts": true,
+        "patient-portal.controller.ts": true,
+        "patient-portal.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Telemedicine",
+      "path": "telemedicine",
+      "files": {
+        "telemedicine.module.ts": true,
+        "telemedicine.controller.ts": true,
+        "telemedicine.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Pharmacy Management",
+      "path": "pharmacy-management",
+      "files": {
+        "pharmacy-management.module.ts": true,
+        "pharmacy-management.controller.ts": true,
+        "pharmacy-management.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "IPD",
+      "path": "ipd",
+      "files": {
+        "ipd.module.ts": true,
+        "ipd.controller.ts": true,
+        "ipd.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Emergency",
+      "path": "emergency",
+      "files": {
+        "emergency.module.ts": true,
+        "emergency.controller.ts": true,
+        "emergency.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Surgery",
+      "path": "surgery",
+      "files": {
+        "surgery.module.ts": true,
+        "surgery.controller.ts": true,
+        "surgery.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Inventory",
+      "path": "inventory",
+      "files": {
+        "inventory.module.ts": true,
+        "inventory.controller.ts": true,
+        "inventory.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Insurance",
+      "path": "insurance",
+      "files": {
+        "insurance.module.ts": true,
+        "insurance.controller.ts": true,
+        "insurance.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Communications",
+      "path": "communications",
+      "files": {
+        "communications.module.ts": true,
+        "communications.controller.ts": true,
+        "communications.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Quality",
+      "path": "quality",
+      "files": {
+        "quality.module.ts": true,
+        "quality.controller.ts": true,
+        "quality.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Research",
+      "path": "research",
+      "files": {
+        "research.module.ts": true,
+        "research.controller.ts": true,
+        "research.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    },
+    {
+      "name": "Integration",
+      "path": "integration",
+      "files": {
+        "integration.module.ts": true,
+        "integration.controller.ts": true,
+        "integration.service.ts": true
+      },
+      "issues": [],
+      "status": "PASSED"
+    }
+  ]
+}

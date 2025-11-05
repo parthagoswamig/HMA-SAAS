@@ -1,0 +1,197 @@
+================================================================================
+FIX: BACKEND NOT AUTO-DEPLOYING (URGENT)
+================================================================================
+
+🔴 PROBLEM IDENTIFIED:
+Frontend auto-deploys ✅ but Backend does NOT ❌
+
+Root Cause:
+- vercel.json has "builds" configuration (line 3-12)
+- This OVERRIDES Vercel Dashboard settings
+- Vercel warning: "Due to builds existing in your configuration file..."
+- Auto-deploy is disabled when "builds" is present
+
+================================================================================
+SOLUTION: FIX VERCEL DASHBOARD SETTINGS
+================================================================================
+
+STEP 1: Go to Vercel Dashboard
+────────────────────────────────────────────────────────────────────────────
+https://vercel.com/dashboard
+→ Click "hma-saas-api" project
+
+STEP 2: Go to Settings → General
+────────────────────────────────────────────────────────────────────────────
+
+Scroll down to "Build & Development Settings"
+
+CRITICAL: Set these EXACT values:
+
+Framework Preset: Other
+──────────────────────────────────────────────────────────────────────────
+Build Command: npm run build:vercel
+Output Directory: dist
+Install Command: npm install
+Development Command: npm run start:dev
+
+Root Directory:
+──────────────────────────────────────────────────────────────────────────
+apps/api  ✅ MUST BE SET!
+
+Node.js Version:
+──────────────────────────────────────────────────────────────────────────
+20.x
+
+STEP 3: Go to Settings → Git
+────────────────────────────────────────────────────────────────────────────
+
+Production Branch: main ✅
+
+Ignored Build Step: (leave empty)
+
+STEP 4: IMPORTANT - Remove "builds" from vercel.json
+────────────────────────────────────────────────────────────────────────────
+
+The "builds" configuration is DEPRECATED and prevents auto-deploy!
+
+We need to simplify vercel.json to ONLY have environment variables.
+
+STEP 5: Save All Settings
+────────────────────────────────────────────────────────────────────────────
+
+Click "Save" on all changes
+
+================================================================================
+ALTERNATIVE FIX: Update vercel.json (RECOMMENDED)
+================================================================================
+
+Replace apps/api/vercel.json with this simplified version:
+
+{
+  "version": 2,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": null,
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10,
+      "memory": 1024
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "DIRECT_DATABASE_URL": "@direct_database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "JWT_ACCESS_SECRET": "@jwt_access_secret",
+    "JWT_REFRESH_SECRET": "@jwt_refresh_secret",
+    "JWT_ACCESS_EXPIRATION": "15m",
+    "JWT_REFRESH_EXPIRATION": "7d",
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "FRONTEND_URL": "@frontend_url",
+    "CORS_ORIGINS": "@cors_origins",
+    "NODE_ENV": "production",
+    "VERCEL": "1",
+    "BCRYPT_SALT_ROUNDS": "12"
+  }
+}
+
+This removes the problematic "builds" and "routes" sections!
+
+================================================================================
+QUICK FIX: Manual Trigger First Deployment
+================================================================================
+
+After fixing settings:
+
+1. Go to Vercel Dashboard → hma-saas-api
+2. Click "Deployments" tab
+3. Click "..." menu on any deployment
+4. Click "Redeploy"
+5. UNCHECK "Use existing Build Cache" ✅
+6. Click "Redeploy"
+
+This will:
+- Use new settings
+- Build with latest commit (8a3f890)
+- Enable auto-deploy for future pushes
+
+================================================================================
+VERIFY AUTO-DEPLOY AFTER FIX
+================================================================================
+
+After manual redeploy succeeds:
+
+Test 1: Make a small change
+──────────────────────────────────────────────────────────────────────────
+echo "// Test auto-deploy" >> apps\api\src\main.ts
+git add .
+git commit -m "test: Verify auto-deploy works"
+git push origin main
+
+Wait 30 seconds, check Vercel Dashboard
+Should see NEW deployment automatically!
+
+Test 2: Check deployment
+──────────────────────────────────────────────────────────────────────────
+Vercel Dashboard → hma-saas-api → Deployments
+Should show deployment with commit message "test: Verify auto-deploy works"
+
+================================================================================
+WHY THIS HAPPENS
+================================================================================
+
+Vercel has 2 ways to configure builds:
+
+Method 1: Dashboard Settings (Modern, Recommended)
+- Set in Vercel Dashboard UI
+- Auto-deploy works automatically
+- Easy to change
+
+Method 2: vercel.json "builds" (Deprecated)
+- Old method from Vercel v1/v2
+- Overrides dashboard settings
+- Disables auto-deploy features
+- Shows warning in logs
+
+Your vercel.json uses Method 2 (deprecated)
+This is why auto-deploy doesn't work!
+
+================================================================================
+RECOMMENDED ACTION (DO THIS NOW)
+================================================================================
+
+Option A: Update vercel.json (Best)
+──────────────────────────────────────────────────────────────────────────
+1. I'll update apps/api/vercel.json to remove "builds"
+2. Commit and push
+3. Manual redeploy once
+4. Auto-deploy will work from then on
+
+Option B: Dashboard Settings (Quick)
+──────────────────────────────────────────────────────────────────────────
+1. Go to Dashboard → Settings
+2. Set Root Directory: apps/api
+3. Set Build Command: npm run build:vercel
+4. Manual redeploy once
+5. Auto-deploy should work
+
+I RECOMMEND Option A - Let me update the file!
+
+================================================================================
+EXPECTED RESULT
+================================================================================
+
+After fix:
+
+✅ Git push triggers auto-deploy
+✅ Vercel builds with latest commit
+✅ No manual intervention needed
+✅ Same behavior as frontend (auto-deploy)
+
+================================================================================
+Last Updated: November 5, 2025 at 2:35 PM IST
+Action: Update vercel.json to fix auto-deploy
+================================================================================

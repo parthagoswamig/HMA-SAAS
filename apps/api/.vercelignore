@@ -1,0 +1,45 @@
+# Test files
+*.test.ts
+*.spec.ts
+test/
+tests/
+__tests__/
+coverage/
+
+# Development files
+*.dev.ts
+*.local.ts
+scripts/test-*.ts
+
+# Documentation
+*.md
+docs/
+
+# Environment files (managed via Vercel dashboard)
+.env
+.env.local
+.env.development
+.env.test
+.env.staging
+.env.backup
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Database files
+*.sqlite
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db

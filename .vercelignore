@@ -1,0 +1,61 @@
+# Development and test files
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test/
+tests/
+__tests__/
+
+# Development scripts and tools
+# Completely exclude API from frontend deployment
+apps/api/
+backend-temp/
+scripts/
+*.sql
+*.dev.js
+*.dev.ts
+
+# Environment files (except production)
+.env
+.env.local
+.env.development
+.env.staging
+*.backup
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+temp/
+tmp/
+temp_modules/
+*.tmp
+
+# Documentation (can be included if needed)
+# *.md
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Build caches (keep for faster builds)
+# node_modules/
+# .next/
+
+# OS generated files
+Thumbs.db
+.DS_Store

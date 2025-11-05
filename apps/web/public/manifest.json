@@ -1,0 +1,17 @@
+{
+  "name": "HMS SAAS - Hospital Management System",
+  "short_name": "HMS SAAS",
+  "description": "Comprehensive Hospital Management System for healthcare facilities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vercel.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml"
+    }
+  ]
+}

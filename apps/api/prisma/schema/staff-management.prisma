@@ -1,0 +1,309 @@
+// Staff Management Module Schema
+
+enum StaffType {
+  DOCTOR
+  NURSE
+  ADMINISTRATOR
+  RECEPTIONIST
+  LAB_TECHNICIAN
+  PHARMACIST
+  SUPPORT_STAFF
+}
+
+enum StaffStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+  RETIRED
+}
+
+enum ShiftType {
+  MORNING
+  EVENING
+  NIGHT
+  ROTATIONAL
+  CUSTOM
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum CredentialStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  EXPIRED
+  REJECTED
+  SUSPENDED
+}
+
+model Staff {
+  id             String         @id @default(uuid())
+  tenantId       String
+  tenant         Tenant         @relation(fields: [tenantId], references: [id])
+  userId         String         @unique
+  user           User           @relation(fields: [userId], references: [id])
+  employeeId     String         @unique
+  type           StaffType
+  status         StaffStatus    @default(ACTIVE)
+  joiningDate    DateTime
+  departmentId   String?
+  department     Department?    @relation(fields: [departmentId], references: [id])
+  designation    String
+  qualifications String[]
+  bio            String?
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdBy      String
+  updatedBy      String?
+  
+  // Relations
+  roles          StaffRole[]
+  shifts         StaffShift[]
+  leaves         LeaveRequest[]
+  attendances    Attendance[]
+  credentials    StaffCredential[]
+  specialties    StaffSpecialty[]
+  privileges     StaffPrivilege[]
+  
+  @@map("staff")
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?
+  isSystem    Boolean      @default(false)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  permissions RolePermission[]
+  staff       StaffRole[]
+  
+  @@unique([tenantId, name])
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  key         String           @unique
+  name        String
+  description String?
+  module      String
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  
+  // Relations
+  rolePermissions RolePermission[]
+  
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  createdAt    DateTime   @default(now())
+  
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model StaffRole {
+  id        String   @id @default(uuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  isPrimary Boolean  @default(false)
+  assignedAt DateTime @default(now())
+  assignedBy String
+  
+  @@unique([staffId, roleId])
+  @@map("staff_roles")
+}
+
+model Department {
+  id          String    @id @default(uuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  name        String
+  code        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  staff       Staff[]
+  
+  @@unique([tenantId, code])
+  @@map("departments")
+}
+
+model Specialty {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  
+  // Relations
+  staffSpecialties StaffSpecialty[]
+  
+  @@map("specialties")
+}
+
+model StaffSpecialty {
+  id           String    @id @default(uuid())
+  staffId      String
+  staff        Staff     @relation(fields: [staffId], references: [id])
+  specialtyId  String
+  specialty    Specialty @relation(fields: [specialtyId], references: [id])
+  isPrimary    Boolean   @default(false)
+  experience   Int?      // in years
+  notes        String?
+  
+  @@unique([staffId, specialtyId])
+  @@map("staff_specialties")
+}
+
+model StaffShift {
+  id          String   @id @default(uuid())
+  staffId     String
+  staff       Staff    @relation(fields: [staffId], references: [id])
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id])
+  type        ShiftType
+  startTime   DateTime
+  endTime     DateTime
+  isRecurring Boolean  @default(false)
+  recurrence  Json?    // RRULE for recurring events
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("staff_shifts")
+  @@index([staffId])
+  @@index([startTime, endTime])
+}
+
+model StaffCredential {
+  id          String          @id @default(uuid())
+  staffId     String
+  staff       Staff           @relation(fields: [staffId], references: [id])
+  type        String          // e.g., 'MEDICAL_LICENSE', 'DEGREE', 'CERTIFICATION'
+  title       String
+  number      String?
+  issuingAuthority String
+  issueDate   DateTime
+  expiryDate  DateTime?
+  status      CredentialStatus @default(PENDING_VERIFICATION)
+  documentUrl String?         // URL to the uploaded document
+  verifiedBy  String?
+  verifiedAt  DateTime?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@map("staff_credentials")
+  @@index([staffId])
+  @@index([type, status])
+}
+
+model LeaveRequest {
+  id          String   @id @default(uuid())
+  staffId     String
+  staff       Staff    @relation(fields: [staffId], references: [id])
+  type        String   // e.g., 'ANNUAL', 'SICK', 'MATERNITY', 'STUDY'
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      String   // 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'
+  approvedBy  String?
+  approvedAt  DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("leave_requests")
+  @@index([staffId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+model Attendance {
+  id          String         @id @default(uuid())
+  staffId     String
+  staff       Staff          @relation(fields: [staffId], references: [id])
+  date        DateTime
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      AttendanceStatus
+  totalHours  Float?         // in hours
+  notes       String?
+  recordedBy  String?
+  deviceId    String?        // For tracking which device was used
+  location    Json?          // Geo-location data
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@map("attendances")
+  @@index([staffId])
+  @@index([date])
+}
+
+model StaffPrivilege {
+  id          String   @id @default(uuid())
+  staffId     String
+  staff       Staff    @relation(fields: [staffId], references: [id])
+  code        String   // Procedure or privilege code
+  name        String
+  description String?
+  grantedAt   DateTime @default(now())
+  grantedBy   String
+  validUntil  DateTime?
+  isActive    Boolean  @default(true)
+  
+  @@map("staff_privileges")
+  @@index([staffId])
+  @@index([code])
+}
+
+model Location {
+  id          String       @id @default(uuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  name        String
+  code        String
+  type        String       // 'HOSPITAL', 'CLINIC', 'LAB', 'PHARMACY', etc.
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  phone       String?
+  email       String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  shifts      StaffShift[]
+  
+  @@unique([tenantId, code])
+  @@map("locations")
+}

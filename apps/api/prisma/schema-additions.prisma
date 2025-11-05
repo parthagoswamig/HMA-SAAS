@@ -1,0 +1,47 @@
+// Add these models to the end of your schema.prisma file
+
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  interval    String   // 'monthly' or 'yearly'
+  features    Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  subscriptions Subscription[]
+  
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  tenantId             String   @map("tenant_id")
+  planId               String   @map("plan_id")
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime @map("current_period_start")
+  currentPeriodEnd     DateTime @map("current_period_end")
+  cancelAtPeriodEnd    Boolean  @default(false) @map("cancel_at_period_end")
+  stripeSubscriptionId String?  @map("stripe_subscription_id")
+  stripeCustomerId     String?  @map("stripe_customer_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  
+  tenant Tenant           @relation("TenantSubscriptions", fields: [tenantId], references: [id], onDelete: Cascade)
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+  
+  @@index([tenantId])
+  @@index([planId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  SUSPENDED
+  PAST_DUE
+  TRIALING
+}

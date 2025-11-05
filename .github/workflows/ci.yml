@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint API
+        run: npm --workspace api run lint
+      - name: Lint Web
+        run: npm --workspace web run lint || true
+      - name: Build API
+        run: npm --workspace api run build
+      - name: Build Web
+        run: npm --workspace web run build
+

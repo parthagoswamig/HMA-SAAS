@@ -1,0 +1,508 @@
+================================================================================
+HMS SAAS - PRE-DEPLOYMENT CHECKLIST
+================================================================================
+Date: November 2, 2025
+Status: Ready for Final Verification
+
+Use this checklist before deploying to production to ensure everything is
+configured correctly.
+
+================================================================================
+PART 1: LOCAL VERIFICATION
+================================================================================
+
+□ BACKEND (NestJS)
+  ----------------
+  □ Dependencies installed: cd apps/api && npm install
+  □ Prisma client generated: npm run prisma:generate
+  □ TypeScript compiles: npm run build
+  □ Linting passes: npm run lint (or exits gracefully)
+  □ Environment variables set in .env
+  □ Database connection works
+  □ Health endpoint responds: http://localhost:3001/health
+  □ Auth endpoints work: /auth/register, /auth/login
+  □ Protected routes require JWT token
+
+□ FRONTEND (Next.js)
+  ------------------
+  □ Dependencies installed: cd apps/web && npm install
+  □ TypeScript compiles: npm run build
+  □ Linting passes: npm run lint (or exits gracefully)
+  □ Environment variables set in .env.local
+  □ API client configured with correct NEXT_PUBLIC_API_URL
+  □ Pages load without errors
+  □ Authentication flow works
+  □ Protected routes redirect to login
+
+□ DATABASE (Supabase)
+  -------------------
+  □ Supabase project created
+  □ Database accessible
+  □ Migrations applied: npm run prisma:migrate:deploy
+  □ Connection pooler enabled (pgBouncer)
+  □ Both URLs configured:
+    - Pooled URL (port 6543) for runtime
+    - Direct URL (port 5432) for migrations
+  □ IP allowlist disabled (for pooler compatibility)
+
+================================================================================
+PART 2: SERVERLESS CONFIGURATION
+================================================================================
+
+□ BACKEND API FILES
+  -----------------
+  ✓ /apps/api/api/index.ts created (serverless entry point)
+  ✓ /apps/api/vercel.json created (deployment config)
+  ✓ /apps/api/.env.serverless created (env template)
+  ✓ /apps/api/.vercelignore created (deployment exclusions)
+  ✓ /apps/api/package.json updated (express, @vercel/node)
+  ✓ /apps/api/src/prisma/custom-prisma.service.ts optimized
+  ✓ /apps/api/prisma/schema.prisma updated (directUrl)
+  ✓ /apps/api/src/main.ts updated (serverless detection)
+
+□ FRONTEND FILES
+  --------------
+  ✓ /vercel.json updated (monorepo config)
+  ✓ /apps/web/next.config.js optimized
+  ✓ /.vercelignore configured
+
+□ DOCUMENTATION
+  -------------
+  ✓ /SERVERLESS_DEPLOYMENT_GUIDE.txt created
+  ✓ /SERVERLESS_CONVERSION_SUMMARY.txt created
+  ✓ /PRE_DEPLOYMENT_CHECKLIST.txt created (this file)
+  ✓ /deploy-serverless.ps1 created (automation script)
+
+================================================================================
+PART 3: VERCEL SETUP
+================================================================================
+
+□ VERCEL ACCOUNT
+  --------------
+  □ Vercel account created
+  □ Vercel CLI installed: npm install -g vercel
+  □ Logged in to Vercel: vercel login
+  □ Git repository connected (optional but recommended)
+
+□ BACKEND PROJECT (API)
+  ---------------------
+  □ Create new project: cd apps/api && vercel
+  □ Link to existing project (if redeploying)
+  □ Configure environment variables in Vercel dashboard:
+
+    REQUIRED:
+    □ NODE_ENV=production
+    □ DATABASE_URL=postgresql://postgres.[PROJECT]:[PASS]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+    □ DIRECT_DATABASE_URL=postgresql://postgres.[PROJECT]:[PASS]@aws-0-[REGION].pooler.supabase.com:5432/postgres
+    □ JWT_SECRET=[64-char-random-string]
+    □ JWT_ACCESS_SECRET=[32-char-random-string]
+    □ JWT_REFRESH_SECRET=[32-char-random-string]
+    □ JWT_ACCESS_EXPIRATION=15m
+    □ JWT_REFRESH_EXPIRATION=7d
+    □ CORS_ORIGINS=https://your-frontend.vercel.app
+    □ FRONTEND_URL=https://your-frontend.vercel.app
+    □ SUPABASE_URL=https://[PROJECT-ID].supabase.co
+    □ SUPABASE_ANON_KEY=[your-anon-key]
+    □ SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
+    □ VERCEL=1
+
+    OPTIONAL (if using payment gateways):
+    □ STRIPE_SECRET_KEY=sk_live_xxx
+    □ STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+    □ STRIPE_WEBHOOK_SECRET=whsec_xxx
+    □ RAZORPAY_KEY_ID=rzp_live_xxx
+    □ RAZORPAY_KEY_SECRET=xxx
+    □ RAZORPAY_WEBHOOK_SECRET=xxx
+
+    OPTIONAL (error tracking):
+    □ SENTRY_DSN=https://xxx@sentry.io/xxx
+
+  □ Deploy to preview: vercel
+  □ Test preview deployment
+  □ Deploy to production: vercel --prod
+  □ Note production URL: https://your-api.vercel.app
+
+□ FRONTEND PROJECT (WEB)
+  ----------------------
+  □ Create new project: cd apps/web && vercel
+  □ Link to existing project (if redeploying)
+  □ Configure environment variables in Vercel dashboard:
+
+    REQUIRED:
+    □ NEXT_PUBLIC_API_URL=https://your-api.vercel.app
+    □ NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT-ID].supabase.co
+    □ NEXT_PUBLIC_SUPABASE_ANON_KEY=[your-anon-key]
+    □ NEXT_PUBLIC_APP_ENV=production
+
+  □ Deploy to preview: vercel
+  □ Test preview deployment
+  □ Deploy to production: vercel --prod
+  □ Note production URL: https://your-frontend.vercel.app
+
+□ UPDATE CORS
+  -----------
+  □ Update backend CORS_ORIGINS with actual frontend URL
+  □ Redeploy backend if CORS was updated
+
+================================================================================
+PART 4: POST-DEPLOYMENT VERIFICATION
+================================================================================
+
+□ BACKEND API TESTS
+  -----------------
+  □ Health check: curl https://your-api.vercel.app/health
+    Expected: {"status":"ok","timestamp":"...","uptime":...}
+  
+  □ Root endpoint: curl https://your-api.vercel.app/
+    Expected: {"name":"HMS SaaS API","version":"1.0.0","status":"running"}
+  
+  □ Register user: POST /auth/register
+    {
+      "email": "test@example.com",
+      "password": "Test123!@#",
+      "firstName": "Test",
+      "lastName": "User",
+      "tenantSlug": "test-hospital"
+    }
+    Expected: 201 Created with user data
+  
+  □ Login: POST /auth/login
+    {
+      "email": "test@example.com",
+      "password": "Test123!@#"
+    }
+    Expected: 200 OK with accessToken and refreshToken
+  
+  □ Protected endpoint: GET /patients (with Authorization header)
+    Expected: 200 OK with patients list or empty array
+
+□ FRONTEND TESTS
+  --------------
+  □ Homepage loads: https://your-frontend.vercel.app
+  □ Login page loads: /login
+  □ Register page loads: /register
+  □ Can register new user
+  □ Can login with credentials
+  □ Dashboard loads after login
+  □ Protected routes redirect to login when not authenticated
+  □ Logout works
+  □ No console errors in browser
+  □ No 404 errors in Network tab
+  □ API calls use correct backend URL
+
+□ INTEGRATION TESTS
+  -----------------
+  □ Complete user flow:
+    1. Register new user
+    2. Login
+    3. Navigate to dashboard
+    4. Create a patient
+    5. View patient list
+    6. Update patient
+    7. Delete patient
+    8. Logout
+  
+  □ RBAC permissions work:
+    1. Login as admin
+    2. Verify admin-only features accessible
+    3. Login as regular user
+    4. Verify restricted features not accessible
+
+□ PERFORMANCE TESTS
+  -----------------
+  □ Cold start time < 3 seconds
+  □ Warm request time < 300ms
+  □ Page load time < 2 seconds (FCP)
+  □ Time to Interactive < 4 seconds
+  □ No memory leaks (check Vercel logs)
+  □ Database queries < 100ms average
+
+================================================================================
+PART 5: MONITORING SETUP
+================================================================================
+
+□ VERCEL MONITORING
+  -----------------
+  □ Enable Vercel Analytics
+  □ Setup alerts for:
+    - Function errors
+    - High response times
+    - Bandwidth limits
+  □ Review deployment logs
+  □ Check function execution metrics
+
+□ SUPABASE MONITORING
+  -------------------
+  □ Review database metrics
+  □ Check connection pool usage
+  □ Monitor query performance
+  □ Setup database backups (automatic with Pro)
+  □ Review slow query logs
+
+□ ERROR TRACKING (OPTIONAL)
+  -------------------------
+  □ Setup Sentry project
+  □ Add SENTRY_DSN to environment variables
+  □ Verify errors are being captured
+  □ Setup alert rules
+
+□ UPTIME MONITORING (OPTIONAL)
+  ----------------------------
+  □ Setup uptime monitoring (UptimeRobot, Pingdom, etc.)
+  □ Monitor both frontend and backend
+  □ Setup alerts for downtime
+  □ Configure status page
+
+================================================================================
+PART 6: SECURITY CHECKLIST
+================================================================================
+
+□ AUTHENTICATION & AUTHORIZATION
+  ------------------------------
+  □ JWT secrets are strong (64+ characters)
+  □ JWT expiration times are reasonable
+  □ Refresh tokens work correctly
+  □ Password hashing uses bcrypt
+  □ RBAC permissions enforced on backend
+  □ Protected routes require authentication
+  □ Tenant isolation works correctly
+
+□ API SECURITY
+  ------------
+  □ CORS configured correctly
+  □ Rate limiting enabled
+  □ Input validation on all endpoints
+  □ SQL injection prevention (Prisma handles this)
+  □ XSS prevention (React handles this)
+  □ CSRF protection (for forms)
+  □ Sensitive data not logged
+  □ Error messages don't leak information
+
+□ FRONTEND SECURITY
+  -----------------
+  □ Security headers configured (in next.config.js)
+  □ No sensitive data in localStorage (except tokens)
+  □ API keys not exposed in client code
+  □ Environment variables use NEXT_PUBLIC_ prefix only when needed
+  □ No console.log in production code
+  □ Dependencies up to date (npm audit)
+
+□ DATABASE SECURITY
+  -----------------
+  □ Database password is strong
+  □ Connection uses SSL (Supabase default)
+  □ Row Level Security enabled (if using Supabase Auth)
+  □ Backup strategy in place
+  □ No direct database access from frontend
+
+□ INFRASTRUCTURE SECURITY
+  -----------------------
+  □ Vercel environment variables are encrypted
+  □ No secrets in git repository
+  □ .env files in .gitignore
+  □ Production and staging environments separated
+  □ Access logs enabled
+  □ Two-factor authentication enabled on Vercel
+
+================================================================================
+PART 7: COMPLIANCE & LEGAL
+================================================================================
+
+□ DATA PROTECTION
+  ---------------
+  □ Privacy policy created
+  □ Terms of service created
+  □ Cookie consent implemented (if applicable)
+  □ GDPR compliance (if serving EU users)
+  □ HIPAA compliance (for healthcare data in US)
+  □ Data retention policy defined
+  □ Data deletion process implemented
+
+□ HEALTHCARE COMPLIANCE (HMS Specific)
+  ------------------------------------
+  □ Patient data encrypted at rest
+  □ Patient data encrypted in transit
+  □ Audit logs for all patient data access
+  □ User authentication and authorization
+  □ Data backup and disaster recovery plan
+  □ Incident response plan
+  □ Staff training on data protection
+
+================================================================================
+PART 8: DOCUMENTATION
+================================================================================
+
+□ TECHNICAL DOCUMENTATION
+  -----------------------
+  □ API documentation (Swagger/OpenAPI)
+  □ Database schema documented
+  □ Environment variables documented
+  □ Deployment process documented
+  □ Architecture diagrams created
+  □ Troubleshooting guide created
+
+□ USER DOCUMENTATION
+  ------------------
+  □ User manual created
+  □ Admin guide created
+  □ FAQ page created
+  □ Video tutorials (optional)
+  □ Support contact information
+
+□ OPERATIONAL DOCUMENTATION
+  -------------------------
+  □ Runbook for common issues
+  □ Incident response procedures
+  □ Backup and recovery procedures
+  □ Scaling procedures
+  □ Monitoring and alerting setup
+
+================================================================================
+PART 9: TEAM READINESS
+================================================================================
+
+□ TEAM TRAINING
+  -------------
+  □ Team trained on deployment process
+  □ Team trained on monitoring tools
+  □ Team trained on incident response
+  □ Team knows how to access logs
+  □ Team knows how to rollback deployments
+
+□ COMMUNICATION
+  -------------
+  □ Support email configured
+  □ Support ticket system setup (optional)
+  □ Status page created (optional)
+  □ Communication plan for outages
+  □ Escalation procedures defined
+
+================================================================================
+PART 10: LAUNCH PREPARATION
+================================================================================
+
+□ PRE-LAUNCH
+  ----------
+  □ All checklist items above completed
+  □ Load testing performed
+  □ Security audit completed
+  □ Backup and recovery tested
+  □ Rollback procedure tested
+  □ Team briefed on launch plan
+  □ Support team ready
+  □ Monitoring alerts configured
+
+□ LAUNCH DAY
+  ----------
+  □ Deploy to production during low-traffic period
+  □ Monitor logs closely for first few hours
+  □ Test all critical user flows
+  □ Verify monitoring and alerts working
+  □ Team on standby for issues
+  □ Communication channels open
+
+□ POST-LAUNCH
+  -----------
+  □ Monitor performance metrics
+  □ Review error logs
+  □ Gather user feedback
+  □ Address any issues immediately
+  □ Document lessons learned
+  □ Plan for next iteration
+
+================================================================================
+PART 11: ONGOING MAINTENANCE
+================================================================================
+
+□ DAILY
+  -----
+  □ Check Vercel dashboard for errors
+  □ Review function execution times
+  □ Monitor database performance
+  □ Check error tracking (if setup)
+
+□ WEEKLY
+  ------
+  □ Review Supabase metrics
+  □ Analyze slow queries
+  □ Check security logs
+  □ Review user feedback
+  □ Update documentation as needed
+
+□ MONTHLY
+  -------
+  □ Update dependencies (npm update)
+  □ Security audit
+  □ Performance optimization
+  □ Cost review and optimization
+  □ Backup verification
+  □ Team retrospective
+
+□ QUARTERLY
+  ---------
+  □ Major dependency updates
+  □ Comprehensive security audit
+  □ Load testing
+  □ Disaster recovery drill
+  □ Architecture review
+  □ Cost optimization review
+
+================================================================================
+TROUBLESHOOTING QUICK REFERENCE
+================================================================================
+
+ISSUE: Deployment fails
+SOLUTION: Check Vercel build logs, verify all dependencies in package.json
+
+ISSUE: Database connection errors
+SOLUTION: Verify DATABASE_URL uses pgBouncer (port 6543), check Supabase status
+
+ISSUE: CORS errors
+SOLUTION: Add frontend URL to CORS_ORIGINS, verify in Vercel environment variables
+
+ISSUE: JWT errors
+SOLUTION: Verify JWT_SECRET matches, check token expiration, clear localStorage
+
+ISSUE: Cold start timeouts
+SOLUTION: Increase timeout in vercel.json, optimize Prisma initialization
+
+ISSUE: High costs
+SOLUTION: Review bandwidth usage, optimize images, implement caching
+
+================================================================================
+SUPPORT CONTACTS
+================================================================================
+
+Vercel Support: https://vercel.com/support
+Supabase Support: https://supabase.com/support
+Prisma Support: https://www.prisma.io/support
+NestJS Discord: https://discord.gg/nestjs
+
+================================================================================
+FINAL SIGN-OFF
+================================================================================
+
+Before deploying to production, ensure:
+
+□ All items in this checklist are completed
+□ At least 2 team members have reviewed the deployment
+□ Rollback procedure is documented and tested
+□ Support team is briefed and ready
+□ Monitoring and alerts are configured
+□ Backup and recovery procedures are tested
+
+Deployment Approved By:
+Name: _______________________
+Date: _______________________
+Signature: __________________
+
+Technical Lead Approval:
+Name: _______________________
+Date: _______________________
+Signature: __________________
+
+================================================================================
+END OF CHECKLIST
+================================================================================
+
+Good luck with your deployment! 🚀

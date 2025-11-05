@@ -1,0 +1,136 @@
+# HMS SaaS - Optimized Render Deployment Configuration
+# Use this file for production deployment with Supabase
+services:
+  # Backend API Service
+  - type: web
+    name: hms-saas-backend
+    env: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    region: ohio
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      # Server Configuration
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      
+      # Database Configuration - Supabase PostgreSQL
+      - key: DATABASE_URL
+        value: postgresql://postgres.uoxyyqbwuzjraxhaypko:9800975588pG@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?schema=public
+      
+      # Supabase Configuration
+      - key: SUPABASE_URL
+        value: https://uoxyyqbwuzjraxhaypko.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NjUzNDMsImV4cCI6MjA3NTE0MTM0M30.ji2oHJykS6eFzkuMJssp8_zH83rjJyT11z2mw3NQLpw
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVveHl5cWJ3dXpqcmF4aGF5cGtvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTU2NTM0MywiZXhwIjoyMDc1MTQxMzQzfQ.17ZYMGLqzcntTgpQwm1YzCT6eE8OGkGUCOONBgPC9DE
+      
+      # JWT Configuration - Generate secure values in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_SECRET
+        generateValue: true  
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: JWT_ACCESS_EXPIRATION
+        value: 15m
+      - key: JWT_REFRESH_EXPIRATION
+        value: 7d
+      
+      # Security Configuration
+      - key: BCRYPT_SALT_ROUNDS
+        value: 12
+      - key: TRUST_PROXY
+        value: true
+      - key: HELMET_ENABLED
+        value: true
+      
+      # CORS and Frontend URLs (Update these with your actual frontend URLs)
+      - key: CORS_ORIGINS
+        value: https://hms-saas-frontend.vercel.app,http://localhost:3000,http://localhost:3001
+      - key: FRONTEND_URL
+        value: https://hms-saas-frontend.vercel.app
+      - key: RESET_PASSWORD_URL
+        value: https://hms-saas-frontend.vercel.app/reset-password
+      
+      # Application Configuration
+      - key: APP_NAME
+        value: HMS SaaS
+      - key: APP_VERSION
+        value: 1.0.0
+      - key: APP_URL
+        sync: false # Will be auto-set by Render
+      
+      # Logging Configuration
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_TO_FILE
+        value: false
+      
+      # API Documentation
+      - key: SWAGGER_ENABLED
+        value: true
+      - key: SWAGGER_PATH
+        value: api-docs
+      
+      # Rate Limiting
+      - key: THROTTLE_TTL
+        value: 60
+      - key: THROTTLE_LIMIT
+        value: 100
+      
+      # File Upload Configuration
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: UPLOAD_PATH
+        value: ./uploads
+      
+      # Session Configuration
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SESSION_MAX_AGE
+        value: 86400000
+        
+      # Additional Production Settings
+      - key: RAZORPAY_KEY_ID
+        sync: false # Set this in Render dashboard for security
+      - key: RAZORPAY_KEY_SECRET  
+        sync: false # Set this in Render dashboard for security
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false # Set this in Render dashboard for security
+      
+      # SMTP Configuration (set in Render dashboard)
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_SECURE
+        value: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: "HMS SaaS <noreply@yourdomain.com>"
+    
+    # Build Configuration
+    buildFilter:
+      paths:
+        - apps/api/**
+        - package.json
+        - package-lock.json
+        - apps/api/Dockerfile
+        - apps/api/prisma/**
+    
+    # Deployment Settings
+    autoDeploy: true
+    
+# No database section needed - using Supabase exclusively

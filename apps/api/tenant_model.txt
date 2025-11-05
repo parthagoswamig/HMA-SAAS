@@ -1,0 +1,244 @@
+﻿
+> model Tenant {
+    id                String            @id 
+@default(cuid())
+    name              String
+    slug              String            @unique
+    isActive          Boolean           
+@default(true)
+    createdAt         DateTime          
+@default(now())
+    updatedAt         DateTime          @updatedAt
+    departments       Department[]
+    specialties       Specialty[]
+    staff             Staff[]
+    staffSpecialties  StaffSpecialty[]
+    staffRoles        StaffRole[]
+    locations         Location[]
+    shifts            Shift[]
+    leaves            Leave[]
+    attendances       Attendance[]
+    staffCredentials  StaffCredential[]
+    staffPrivileges   StaffPrivilege[]
+    permissions       Permission[]
+    rolePermissions   RolePermission[]
+    notifications     Notification[]
+    patientAuditLogs  PatientAuditLog[]
+    users             User[]
+    refreshTokens     RefreshToken[]
+    auditLogs         AuditLog[]
+  
+    // Patient relations
+    patients Patient[]
+  
+    // Appointment relations
+    appointments Appointment[]
+    schedules    Schedule[]
+    slots        Slot[]
+    bookings     Booking[]
+    tokens       Token[]
+    counters     Counter[]
+    reminders    Reminder[]
+    appointmentConfigs AppointmentConfig[]
+  
+    // Billing relations
+    billings     Billing[]
+    billingItems BillingItem[]
+    payments     Payment[]
+  
+    // Pharmacy relations
+    medications        Medication[]
+    pharmacyOrders     PharmacyOrder[]
+    pharmacyOrderItems PharmacyOrderItem[]
+  
+    // LIS relations
+    labTests          LabTest[]
+    labPanels         LabPanel[]
+    labOrders         LabOrder[]
+    labSamples        LabSample[]
+    labResults        LabResult[]
+    labAnalyzers      LabAnalyzer[]
+    labQcRuns         LabQcRun[]
+  
+    // IPD relations
+    ipdAdmissions  IPDAdmission[]
+    ipdVitals      IPDVital[]
+    ipdMedications IPDMedication[]
+    ipdProcedures  IPDProcedure[]
+  
+    // Bed relations
+    beds Bed[]
+  
+    // OPD relations
+    opdVisits        OPDVisit[]
+    opdVitals        OPDVital[]
+    opdPrescriptions OPDPrescription[]
+  
+    @@index([slug])
+    @@map("tenants")
+    invoiceLines InvoiceLine[]
+    ledgers      Ledger[]
+  }
+    invoiceLines InvoiceLine[]
+    ledgers      Ledger[]
+  }
+  
+  model Patient {
+    // ========== Identification ==========
+    id                  String          @id 
+@default(cuid())
+    medicalRecordNumber String          @unique
+    registrationNumber  String?         @unique
+    externalId          String?         @unique
+    
+    // ========== Personal Information ==========
+    firstName           String
+    middleName          String?
+    lastName            String
+    dateOfBirth         DateTime?
+    gender              Gender?
+    bloodType           BloodType?
+    maritalStatus       MaritalStatus?
+    
+    // ========== Contact Information ==========
+    email               String?         @unique
+    phone               String?
+    address             String?
+    city                String?
+    state               String?
+    country             String?         
+@default("India")
+    pincode             String?
+    phoneVerified       Boolean         
+@default(false)
+    alternatePhone      String?
+    emailVerified       Boolean         
+@default(false)
+    addressLine1        String?
+    addressLine2        String?
+    postalCode          String?
+    
+    // ========== Identification ==========
+    aadhaarNumber       String?         @unique
+    aadhaarVerified     Boolean         
+@default(false)
+    panNumber           String?         @unique
+    passportNumber      String?         @unique
+    drivingLicense      String?         @unique
+    nationalId          String?         // For 
+non-Indian patients
+    
+    // ========== Medical Information ==========
+    bloodGroup          String?         // A+, O-, 
+etc.
+    rhFactor            String?         // + or -
+    allergies           Json?           // 
+Structured allergies data
+    chronicConditions   String[]        // Array of 
+chronic conditions
+    currentMedications  String[]        // Array of 
+current medications
+    knownAllergies      String[]        // Array of 
+known allergies
+    familyHistory       Json?           // 
+Structured family medical history
+    
+    // ========== Insurance & Billing ==========
+    insuranceProvider   String?
+    insuranceId         String?
+    insuranceGroup      String?
+    insuranceValidUntil DateTime?
+    insuranceType       InsuranceType?  // 
+Cashless, Reimbursement, etc.
+    tpaId               String?         // Third 
+Party Administrator ID
+    
+    // ========== Registration Details ==========
+    registrationType    RegistrationType 
+@default(WALK_IN)
+    referralSource      String?         // Doctor, 
+Hospital, etc.
+    referralDoctor      String?         // 
+Referring doctor's name
+    referralHospital    String?         // 
+Referring hospital/clinic
+    
+    // ========== Additional Details ==========
+    religion            String?
+    nationality         String?
+    language            String          
+@default("en")
+    preferredLanguage   String?         // For 
+multi-language support
+    isVIP               Boolean         
+@default(false)
+    isDeceased          Boolean         
+@default(false)
+    dateOfDeath         DateTime?       @db.Date
+    causeOfDeath        String?
+    notes               String?         // General 
+notes
+    
+    // ========== System Fields ==========
+    tenantId            String
+    createdBy           String?         // User ID 
+who created this record
+    updatedBy           String?         // User ID 
+who last updated
+    verifiedBy          String?         // User ID 
+who verified the patient
+    verificationDate    DateTime?       // When 
+patient was verified
+    verificationMethod  String?         // Email, 
+Phone, Aadhaar, etc.
+    verificationNotes   String?         // Any 
+verification notes
+    isActive            Boolean         
+@default(true)
+    isVerified          Boolean         
+@default(false)
+    lastLoginAt         DateTime?       // Last 
+portal login
+    createdAt           DateTime        
+@default(now())
+    updatedAt           DateTime        @updatedAt
+    deletedAt           DateTime?       // Soft 
+delete
+    
+    // ========== Relations ==========
+    tenant              Tenant            
+@relation(fields: [tenantId], references: [id])
+    medicalRecords      MedicalRecord[]
+    appointments        Appointment[]
+    opdVisits           OPDVisit[]
+    ipdAdmissions       IPDAdmission[]
+    labOrders           LabOrder[]
+    billings            Billing[]
+    documents           PatientDocument[]
+    emergencyContacts   EmergencyContact[]
+    notifications       Notification[]   
+@relation("PatientNotifications")
+    auditLogs           PatientAuditLog[]
+    staff               Staff?           
+@relation(fields: [staffId], references: [id])
+    staffId             String?
+    pharmacyOrders      PharmacyOrder[]
+    
+    // ========== Indexes ==========
+    @@index([tenantId])
+    @@index([medicalRecordNumber])
+    @@index([aadhaarNumber])
+    @@index([phone])
+    @@index([email])
+    @@index([lastName, firstName])
+    @@index([createdAt])
+    @@index([isVerified])
+    @@index([isActive])
+    @@index([registrationType])
+    @@map("patients")
+  }
+  
+  // Add these enums to the schema
+  enum RegistrationType {
+
+

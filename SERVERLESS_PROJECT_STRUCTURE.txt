@@ -1,0 +1,577 @@
+================================================================================
+HMS SAAS - SERVERLESS PROJECT STRUCTURE
+Hospital Management System - Multi-tenant SaaS Platform
+================================================================================
+
+DEPLOYMENT ARCHITECTURE:
+- Frontend: Vercel (Next.js 15)
+- Backend: Vercel Serverless Functions (NestJS)
+- Database: Supabase PostgreSQL
+- ORM: Prisma 6.17.0
+
+================================================================================
+ROOT STRUCTURE
+================================================================================
+
+HMA-SAAS/
+├── apps/
+│   ├── api/              # Backend NestJS API (Serverless)
+│   └── web/              # Frontend Next.js App
+├── packages/             # Shared packages (if any)
+├── node_modules/         # Root dependencies
+├── package.json          # Workspace configuration
+├── vercel.json           # Vercel deployment config
+├── .vercelignore         # Files to ignore in Vercel
+└── README.md
+
+================================================================================
+BACKEND API STRUCTURE (apps/api/)
+================================================================================
+
+apps/api/
+├── api/
+│   └── index.ts                    # Vercel serverless entry point
+│
+├── prisma/
+│   ├── schema.prisma               # Database schema (100+ models)
+│   ├── migrations/                 # Database migrations
+│   └── seed-simple.ts              # Database seeding script
+│
+├── src/
+│   ├── main.ts                     # NestJS bootstrap
+│   ├── app.module.ts               # Root application module
+│   ├── app.controller.ts           # Root controller
+│   └── app.service.ts              # Root service
+│
+│   ├── auth/                       # Authentication & Authorization
+│   │   ├── auth.module.ts
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
+│   │   ├── jwt.guard.ts
+│   │   ├── jwt.strategy.ts
+│   │   ├── user-tenant.decorators.ts
+│   │   └── guards/
+│   │       └── roles.guard.ts
+│
+│   ├── common/                     # Shared utilities
+│   │   ├── dto/
+│   │   │   └── pagination.dto.ts
+│   │   ├── middleware/
+│   │   │   ├── tenant.middleware.ts
+│   │   │   └── request-logger.middleware.ts
+│   │   └── als/
+│   │       └── async-context.ts
+│
+│   ├── core/                       # Core business logic
+│   │   └── rbac/
+│   │       ├── decorators/
+│   │       │   └── roles.decorator.ts
+│   │       └── enums/
+│   │           └── roles.enum.ts
+│
+│   ├── prisma/                     # Prisma service
+│   │   ├── prisma.module.ts
+│   │   ├── prisma.service.ts
+│   │   └── tenant-prisma-middleware.ts
+│
+│   ├── tenants/                    # Multi-tenancy
+│   │   ├── tenants.module.ts
+│   │   ├── tenants.controller.ts
+│   │   └── tenants.service.ts
+│
+│   ├── users/                      # User management
+│   │   ├── users.module.ts
+│   │   ├── users.controller.ts
+│   │   ├── users.service.ts
+│   │   └── dto/
+│   │       ├── create-user.dto.ts
+│   │       └── update-user.dto.ts
+│
+│   ├── patients/                   # Patient management
+│   │   ├── patients.module.ts
+│   │   ├── patients.controller.ts
+│   │   ├── patients.service.ts
+│   │   └── dto/
+│
+│   ├── appointments/               # Appointment scheduling
+│   │   ├── appointments.module.ts
+│   │   ├── appointments.controller.ts
+│   │   └── appointments.service.ts
+│
+│   ├── doctors/                    # Doctor management
+│   │   ├── doctors.module.ts
+│   │   ├── doctors.controller.ts
+│   │   ├── doctors.service.ts
+│   │   └── dto/
+│
+│   ├── staff/                      # Staff management
+│   │   ├── staff.module.ts
+│   │   ├── staff.controller.ts
+│   │   └── staff.service.ts
+│
+│   ├── opd/                        # OPD (Outpatient Department)
+│   │   ├── opd.module.ts
+│   │   ├── opd.controller.ts
+│   │   ├── opd.service.ts
+│   │   └── dto/
+│
+│   ├── ipd/                        # IPD (Inpatient Department)
+│   │   ├── ipd.module.ts
+│   │   ├── ipd.controller.ts
+│   │   ├── ipd.service.ts
+│   │   └── dto/
+│
+│   ├── emergency/                  # Emergency services
+│   │   ├── emergency.module.ts
+│   │   ├── emergency.controller.ts
+│   │   └── emergency.service.ts
+│
+│   ├── surgery/                    # Surgery management
+│   │   ├── surgery.module.ts
+│   │   ├── surgery.controller.ts
+│   │   └── surgery.service.ts
+│
+│   ├── laboratory/                 # Laboratory tests
+│   │   ├── laboratory.module.ts
+│   │   ├── laboratory.controller.ts
+│   │   └── laboratory.service.ts
+│
+│   ├── radiology/                  # Radiology imaging
+│   │   ├── radiology.module.ts
+│   │   ├── radiology.controller.ts
+│   │   └── radiology.service.ts
+│
+│   ├── pathology/                  # Pathology tests
+│   │   ├── pathology.module.ts
+│   │   ├── pathology.controller.ts
+│   │   └── pathology.service.ts
+│
+│   ├── pharmacy/                   # Pharmacy management
+│   │   ├── pharmacy.module.ts
+│   │   ├── pharmacy.controller.ts
+│   │   └── pharmacy.service.ts
+│
+│   ├── pharmacy-drugs/             # Drug inventory
+│   │   ├── pharmacy-drugs.module.ts
+│   │   ├── pharmacy-drugs.controller.ts
+│   │   └── pharmacy-drugs.service.ts
+│
+│   ├── pharmacy-management/        # Pharmacy operations
+│   │   ├── pharmacy-management.module.ts
+│   │   ├── pharmacy-management.controller.ts
+│   │   └── pharmacy-management.service.ts
+│
+│   ├── billing/                    # Billing & invoicing
+│   │   ├── billing.module.ts
+│   │   ├── billing.controller.ts
+│   │   ├── billing.service.ts
+│   │   ├── stripe-billing.service.ts
+│   │   └── stripe.webhook.controller.ts
+│
+│   ├── finance/                    # Financial management
+│   │   ├── finance.module.ts
+│   │   ├── finance.controller.ts
+│   │   └── finance.service.ts
+│
+│   ├── insurance/                  # Insurance claims
+│   │   ├── insurance.module.ts
+│   │   ├── insurance.controller.ts
+│   │   └── insurance.service.ts
+│
+│   ├── hr/                         # Human Resources
+│   │   ├── hr.module.ts
+│   │   ├── hr.controller.ts
+│   │   └── hr.service.ts
+│
+│   ├── inventory/                  # Inventory management
+│   │   ├── inventory.module.ts
+│   │   ├── inventory.controller.ts
+│   │   └── inventory.service.ts
+│
+│   ├── emr/                        # Electronic Medical Records
+│   │   ├── emr.module.ts
+│   │   ├── emr.controller.ts
+│   │   └── emr.service.ts
+│
+│   ├── reports/                    # Reporting system
+│   │   ├── reports.module.ts
+│   │   ├── reports.controller.ts
+│   │   └── reports.service.ts
+│
+│   ├── pdf-reports/                # PDF generation
+│   │   ├── pdf-reports.module.ts
+│   │   ├── pdf-reports.controller.ts
+│   │   └── pdf-reports.service.ts
+│
+│   ├── analytics/                  # Analytics & KPIs
+│   │   ├── analytics.module.ts
+│   │   ├── analytics.controller.ts
+│   │   └── analytics.service.ts
+│
+│   ├── notifications/              # Notification system
+│   │   ├── notifications.module.ts
+│   │   ├── notifications.controller.ts
+│   │   └── notifications.service.ts
+│
+│   ├── communications/             # Communication module
+│   │   ├── communications.module.ts
+│   │   ├── communications.controller.ts
+│   │   └── communications.service.ts
+│
+│   ├── telemedicine/               # Telemedicine services
+│   │   ├── telemedicine.module.ts
+│   │   ├── telemedicine.controller.ts
+│   │   └── telemedicine.service.ts
+│
+│   ├── patient-portal/             # Patient portal
+│   │   ├── patient-portal.module.ts
+│   │   ├── patient-portal.controller.ts
+│   │   └── patient-portal.service.ts
+│
+│   ├── admin-rbac/                 # Admin RBAC management
+│   │   ├── admin-rbac.module.ts
+│   │   ├── admin-rbac.controller.ts
+│   │   └── admin-rbac.service.ts
+│
+│   ├── rbac/                       # Role-based access control
+│   │   ├── rbac.module.ts
+│   │   ├── rbac.controller.ts
+│   │   └── rbac.service.ts
+│
+│   ├── subscription/               # Subscription management
+│   │   ├── subscription.module.ts
+│   │   ├── subscription.controller.ts
+│   │   └── subscription.service.ts
+│
+│   ├── quality/                    # Quality management
+│   │   ├── quality.module.ts
+│   │   ├── quality.controller.ts
+│   │   └── quality.service.ts
+│
+│   ├── research/                   # Research module
+│   │   ├── research.module.ts
+│   │   ├── research.controller.ts
+│   │   └── research.service.ts
+│
+│   ├── integration/                # External integrations
+│   │   ├── integration.module.ts
+│   │   ├── integration.controller.ts
+│   │   └── integration.service.ts
+│
+│   ├── settings-system/            # System settings
+│   │   ├── settings-system.module.ts
+│   │   ├── settings-system.controller.ts
+│   │   ├── settings-system.service.ts
+│   │   └── dto/
+│
+│   ├── settings-hospital/          # Hospital settings
+│   │   ├── settings-hospital.module.ts
+│   │   ├── settings-hospital.controller.ts
+│   │   ├── settings-hospital.service.ts
+│   │   └── dto/
+│
+│   ├── audit-log/                  # Audit logging
+│   │   ├── audit-log.module.ts
+│   │   └── audit-log.controller.ts
+│
+│   ├── queue/                      # Queue management
+│   │   ├── queue.module.ts
+│   │   └── queue.service.ts
+│
+│   └── cron/                       # Scheduled tasks
+│       ├── cron.module.ts
+│       └── cron.service.ts
+│
+├── dist/                           # Compiled output
+├── node_modules/
+├── package.json
+├── tsconfig.json
+├── nest-cli.json
+└── vercel.json
+
+================================================================================
+FRONTEND WEB STRUCTURE (apps/web/)
+================================================================================
+
+apps/web/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/                 # Auth routes (login, signup)
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   └── signup/
+│   │   │       └── page.tsx
+│   │   │
+│   │   ├── (dashboard)/            # Protected dashboard routes
+│   │   │   ├── layout.tsx          # Dashboard layout with sidebar
+│   │   │   ├── page.tsx            # Dashboard home
+│   │   │   │
+│   │   │   ├── patients/           # Patient management
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── appointments/       # Appointments
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── doctors/            # Doctors
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── staff/              # Staff management
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── opd/                # OPD module
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── ipd/                # IPD module
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── emergency/          # Emergency
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── lab-tests/          # Laboratory
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── radiology/          # Radiology
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── pharmacy/           # Pharmacy
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── billing/            # Billing
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── reports/            # Reports
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── analytics/          # Analytics
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── settings/           # Settings
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   └── admin/              # Admin panel
+│   │   │       └── rbac/
+│   │   │           └── page.tsx
+│   │   │
+│   │   ├── layout.tsx              # Root layout
+│   │   ├── page.tsx                # Landing page
+│   │   └── globals.css             # Global styles
+│   │
+│   ├── components/                 # React components
+│   │   ├── ui/                     # shadcn/ui components
+│   │   ├── layout/
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── Navbar.tsx
+│   │   ├── patients/
+│   │   │   └── PatientForm.tsx
+│   │   ├── appointments/
+│   │   │   └── AppointmentForm.tsx
+│   │   ├── opd/
+│   │   │   └── OpdVisitForm.tsx
+│   │   └── ...
+│   │
+│   ├── lib/                        # Utilities
+│   │   ├── api-client.ts           # API client
+│   │   ├── api-client-enhanced.ts  # Enhanced API client
+│   │   ├── api-fetch.ts            # Fetch wrapper
+│   │   ├── dto-mapper.ts           # DTO mapping
+│   │   └── utils.ts                # Helper functions
+│   │
+│   ├── services/                   # API services
+│   │   ├── patients.service.ts
+│   │   ├── appointments.service.ts
+│   │   ├── doctors.service.ts
+│   │   ├── opd.service.ts
+│   │   └── ...
+│   │
+│   ├── hooks/                      # Custom React hooks
+│   │   └── useAuth.ts
+│   │
+│   └── types/                      # TypeScript types
+│       └── index.ts
+│
+├── public/                         # Static assets
+├── .next/                          # Next.js build output
+├── node_modules/
+├── package.json
+├── next.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+└── vercel.json
+
+================================================================================
+CONFIGURATION FILES
+================================================================================
+
+ROOT LEVEL:
+- vercel.json                       # Vercel deployment configuration
+- .vercelignore                     # Files to ignore in deployment
+- package.json                      # Workspace package.json
+- turbo.json                        # Turborepo configuration (if using)
+
+BACKEND (apps/api/):
+- vercel.json                       # API-specific Vercel config
+- nest-cli.json                     # NestJS CLI configuration
+- tsconfig.json                     # TypeScript configuration
+- .env                              # Environment variables
+- package.json                      # Backend dependencies
+
+FRONTEND (apps/web/):
+- vercel.json                       # Web-specific Vercel config
+- next.config.js                    # Next.js configuration
+- tailwind.config.ts                # Tailwind CSS configuration
+- tsconfig.json                     # TypeScript configuration
+- .env.local                        # Environment variables
+- package.json                      # Frontend dependencies
+
+================================================================================
+KEY TECHNOLOGIES
+================================================================================
+
+BACKEND:
+- NestJS 10.x                       # Node.js framework
+- Prisma 6.17.0                     # ORM
+- PostgreSQL                        # Database (Supabase)
+- JWT                               # Authentication
+- Passport                          # Auth strategies
+- Stripe                            # Payment processing
+- PDFKit                            # PDF generation
+- Bull                              # Queue management
+- @nestjs/schedule                  # Cron jobs
+
+FRONTEND:
+- Next.js 15.5.4                    # React framework
+- React 19                          # UI library
+- TypeScript                        # Type safety
+- Tailwind CSS                      # Styling
+- shadcn/ui                         # UI components
+- Lucide React                      # Icons
+- Recharts                          # Charts
+- React Hook Form                   # Form handling
+- Zod                               # Validation
+
+DEPLOYMENT:
+- Vercel                            # Hosting (serverless)
+- Supabase                          # Database hosting
+- GitHub                            # Version control
+
+================================================================================
+API ENDPOINTS (Sample)
+================================================================================
+
+AUTHENTICATION:
+POST   /auth/login                  # User login
+POST   /auth/signup                 # User registration
+POST   /auth/refresh                # Refresh token
+POST   /auth/logout                 # User logout
+
+PATIENTS:
+GET    /patients                    # List patients (paginated)
+POST   /patients                    # Create patient
+GET    /patients/:id                # Get patient details
+PUT    /patients/:id                # Update patient
+DELETE /patients/:id                # Delete patient
+
+APPOINTMENTS:
+GET    /appointments                # List appointments
+POST   /appointments                # Create appointment
+GET    /appointments/:id            # Get appointment
+PUT    /appointments/:id            # Update appointment
+DELETE /appointments/:id            # Cancel appointment
+
+OPD:
+GET    /opd                         # List OPD visits
+POST   /opd                         # Create OPD visit
+GET    /opd/:id                     # Get OPD visit
+PUT    /opd/:id                     # Update OPD visit
+
+BILLING:
+GET    /billing/invoices            # List invoices
+POST   /billing/invoices            # Create invoice
+GET    /stripe-billing/plans        # Get subscription plans
+POST   /stripe-billing/subscribe    # Subscribe to plan
+
+ANALYTICS:
+GET    /analytics/kpis              # Get KPIs
+GET    /analytics/trend/monthly     # Monthly trends
+
+ADMIN:
+GET    /admin-rbac/roles            # List roles
+POST   /admin-rbac/attach-permission # Attach permission to role
+
+================================================================================
+ENVIRONMENT VARIABLES
+================================================================================
+
+BACKEND (.env):
+DATABASE_URL=postgresql://...       # Supabase connection string
+DIRECT_DATABASE_URL=postgresql://...# Direct connection (optional)
+JWT_SECRET=...                      # JWT secret key
+JWT_REFRESH_SECRET=...              # Refresh token secret
+STRIPE_SECRET_KEY=...               # Stripe API key
+STRIPE_WEBHOOK_SECRET=...           # Stripe webhook secret
+NODE_ENV=production                 # Environment
+PORT=3001                           # API port (local dev)
+VERCEL=1                            # Vercel flag
+
+FRONTEND (.env.local):
+NEXT_PUBLIC_API_URL=https://...     # Backend API URL
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...  # Stripe public key
+
+================================================================================
+DEPLOYMENT WORKFLOW
+================================================================================
+
+1. CODE PUSH:
+   git add .
+   git commit -m "message"
+   git push origin main
+
+2. VERCEL AUTO-DEPLOY:
+   - Detects push to main branch
+   - Runs build for both frontend and backend
+   - Deploys to production URLs
+
+3. DATABASE MIGRATIONS:
+   - Run manually: npx prisma migrate deploy
+   - Or auto-run via build script
+
+4. MONITORING:
+   - Vercel Dashboard for logs
+   - Supabase Dashboard for database
+   - Stripe Dashboard for payments
+
+================================================================================
+TOTAL MODULE COUNT: 40+ MODULES
+================================================================================
+
+Core Modules: 6
+- Auth, Users, Tenants, Prisma, Common, Core
+
+Clinical Modules: 12
+- Patients, Appointments, Doctors, Staff, OPD, IPD, Emergency, Surgery,
+  Laboratory, Radiology, Pathology, EMR
+
+Pharmacy Modules: 3
+- Pharmacy, Pharmacy Drugs, Pharmacy Management
+
+Financial Modules: 4
+- Billing, Finance, Insurance, Subscription
+
+Operations Modules: 5
+- Inventory, HR, Reports, PDF Reports, Communications
+
+Advanced Modules: 8
+- Analytics, Notifications, Telemedicine, Patient Portal, Quality,
+  Research, Integration, Admin RBAC
+
+System Modules: 5
+- Settings (System), Settings (Hospital), Audit Log, Queue, Cron
+
+================================================================================
+END OF STRUCTURE DOCUMENT
+================================================================================
+Generated: November 5, 2025
+Project: HMS SaaS Multi-tenant Hospital Management System
+Architecture: Serverless (Vercel + Supabase)
+Status: Production Ready ✅
+================================================================================
